@@ -22,14 +22,12 @@ const PORT = process.env.PORT || 3000;
 const CORS_ORIGIN = process.env.CORS_ORIGIN || '*';
 const JWT_SECRET = process.env.JWT_SECRET || '1XS1r4QJNp6AtkjORvKUU01RZRfzbGV+echJsio9gq8lAOc2NW7sSYsQuncE6+o9';
 
-// ✅ Version corrigée
-const { Pool } = require('pg');
-
 const pool = new Pool({
-  connectionString: process.env.DATABASE_URL, // <-- Lit l'URL fournie par Render
-  ssl: {
-    rejectUnauthorized: false // <-- Très important pour les connexions sur Render
-  }
+  host: process.env.PGHOST || '127.0.0.1',
+  port: +(process.env.PGPORT || 5432),
+  database: process.env.PGDATABASE || 'gz_efoot',
+  user: process.env.PGUSER || 'postgres',
+  password: process.env.PGPASSWORD || 'postgres',
 });
 
 const app = express();

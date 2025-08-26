@@ -1,0 +1,271 @@
+<!doctype html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<title>Connexion — GOUZEPE</title>
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta http-equiv="Cache-Control" content="no-store" />
+<link rel="stylesheet" href="theme.css">
+<meta name="color-scheme" content="dark light">
+
+<style>
+  /* === Thème & couleurs === */
+  :root{
+    --bg:#0b1220; --panel:#0f1627; --panel-veil:rgba(2,6,23,.55);
+    --text:#e5e7eb; --muted:#94a3b8; --border:#1f2937;
+    --accent:#60a5fa; --accent-veil:rgba(96,165,250,.25);
+  }
+  :root.light{
+    --bg:#f4f6fb; --panel:#ffffff; --panel-veil:rgba(255,255,255,.75);
+    --text:#0f172a; --muted:#475569; --border:#e5e7eb;
+    --accent:#2563eb; --accent-veil:rgba(37,99,235,.18);
+  }
+
+  /* === Layout de base === */
+  *{box-sizing:border-box}
+  html,body{height:100%}
+  body{
+    margin:0; background:var(--bg); color:var(--text);
+    font-family:system-ui,-apple-system,Segoe UI,Roboto,Ubuntu,"Trebuchet MS",sans-serif;
+    -webkit-font-smoothing:antialiased; text-rendering:optimizeLegibility;
+  }
+  .wrap{
+    min-height:100dvh; min-block-size:100svh;
+    display:grid; place-items:center;
+    padding:max(16px, env(safe-area-inset-top)) max(16px, env(safe-area-inset-right)) max(16px, env(safe-area-inset-bottom)) max(16px, env(safe-area-inset-left));
+    background:
+      radial-gradient(900px 600px at 20% 0%, rgba(96,165,250,.12), transparent 40%),
+      radial-gradient(900px 600px at 80% 100%, rgba(34,197,94,.10), transparent 40%),
+      url('assets/fond.png') center/cover fixed no-repeat;
+  }
+  html.light .wrap{
+    background:
+      radial-gradient(900px 600px at 20% 0%, rgba(96,165,250,.18), transparent 42%),
+      radial-gradient(900px 600px at 80% 100%, rgba(34,197,94,.16), transparent 42%),
+      url('assets/fond.png') center/cover fixed no-repeat;
+  }
+
+  /* === Carte === */
+  .card{
+    position:relative; margin-inline:auto; width:min(560px,94vw);
+    background:linear-gradient(to bottom right, var(--panel), var(--panel)) /* solid fallback */;
+    border:1px solid var(--border); border-radius:18px;
+    box-shadow:0 14px 60px rgba(0,0,0,.45);
+    overflow:hidden;
+    backdrop-filter:saturate(1.2) blur(6px);
+  }
+  .head{padding:20px 18px; border-bottom:1px solid var(--border)}
+  .head.center{display:grid; place-items:center}
+  .logo{
+    height:68px; width:auto; display:block;
+    border-radius:14px; box-shadow:0 0 0 1px rgba(255,255,255,.08) inset;
+  }
+  .body{padding:18px 18px 10px}
+
+  /* === Typo & éléments === */
+  h2{margin:0 0 12px; font-size:18px; font-weight:700; text-align:center}
+  label{display:block; margin:10px 0 6px; color:var(--muted); font-weight:600}
+  input{
+    width:100%; padding:14px 14px; border:1px solid var(--border); border-radius:12px;
+    background:rgba(11,16,32,.85); color:var(--text); font-size:16px;
+    outline:none; transition:border-color .15s ease, box-shadow .15s ease, background .15s;
+  }
+  html.light input{background:#fff}
+  input::placeholder{color:color-mix(in oklab, var(--muted) 75%, transparent)}
+  input:focus-visible{
+    border-color:var(--accent);
+    box-shadow:0 0 0 3px var(--accent-veil);
+    background:rgba(11,16,32,.92);
+  }
+
+  .field{position:relative}
+  .field .toggle{
+    position:absolute; right:8px; top:50%; transform:translateY(-50%);
+    border:1px solid var(--border); background:transparent; border-radius:10px;
+    padding:6px 8px; cursor:pointer;
+  }
+
+  .btn{
+    border:1px solid var(--border); background:linear-gradient(to bottom, #0b1b0f, #0e2014);
+    color:#d1fae5; border-radius:12px; padding:12px 16px; cursor:pointer;
+    font-weight:700; letter-spacing:.2px; transition:transform .08s ease;
+  }
+  .btn:active{transform:translateY(1px)}
+  .iconbtn{
+    border:1px solid var(--border); background:transparent; border-radius:12px;
+    padding:10px 12px; cursor:pointer;
+  }
+  .iconbtn.float{position:absolute; top:10px; right:10px}
+
+  .error{color:#ef4444; min-height:20px; margin-top:8px}
+  .muted{color:var(--muted)}
+
+  .footer{
+    padding:14px 18px 18px;
+    display:flex; gap:12px; align-items:center; justify-content:space-between;
+  }
+
+  /* Empilement sur mobile : bouton pleine largeur */
+  @media (max-width: 520px){
+    .footer{flex-direction:column; align-items:stretch}
+    .btn{width:100%}
+  }
+
+  /* Préférence accessibilité */
+  @media (prefers-reduced-motion:reduce){
+    .btn, input{transition:none}
+  }
+  /* Utilités */
+  .gear{position:fixed; right:16px; bottom:16px; z-index:30}
+  dialog{border:none; border-radius:14px; max-width:520px; width:min(92vw,520px); padding:0; background:var(--panel); color:var(--text)}
+  dialog::backdrop{background:rgba(0,0,0,.35)}
+  .dlg-h{padding:14px 16px; border-bottom:1px solid var(--border); font-weight:700}
+  .dlg-b{padding:14px 16px; display:grid; gap:10px}
+  .dlg-f{padding:14px 16px; border-top:1px solid var(--border); display:flex; gap:10px; justify-content:flex-end}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <div class="card">
+    <div class="head center">
+      <img class="logo" src="assets/fond.png" alt="GOUZEPE">
+    </div>
+    <button id="theme" class="iconbtn float" title="Basculer thème">🌙</button>
+
+    <form id="f" class="body" autocomplete="on">
+      <h2>Connexion</h2>
+
+      <label>Email</label>
+      <input id="email" type="email" placeholder="admin@gz.local" required>
+
+      <label>Mot de passe</label>
+      <div class="field">
+        <input id="pwd" type="password" placeholder="••••••••" required>
+        <button type="button" id="togglePwd" class="toggle" title="Afficher / masquer">👁️</button>
+      </div>
+
+      <div id="err" class="error"></div>
+
+      <div class="footer">
+        <span class="muted">Session : 24h (déconnexion ensuite)</span>
+        <button id="submit" class="btn" type="submit">Se connecter</button>
+      </div>
+    </form>
+  </div>
+
+  <button id="cfgBtn" class="iconbtn gear" title="Configurer l'API">⚙️</button>
+  <dialog id="cfg">
+    <div class="dlg-h">Configuration de l’API</div>
+    <div class="dlg-b">
+      <label>Adresse (ex: http://192.168.1.117:3000)</label>
+      <input id="apiUrl">
+      <div id="cfgMsg" class="muted">—</div>
+    </div>
+    <div class="dlg-f">
+      <button class="iconbtn" id="cfgTest">Tester</button>
+      <button class="iconbtn" id="cfgSave">Enregistrer</button>
+      <button class="iconbtn" id="cfgClose">Fermer</button>
+    </div>
+  </dialog>
+</div>
+
+<script>
+/* ===== thème ===== */
+(function(){
+  const k='efoot.theme';
+  const apply=m=>{document.documentElement.classList.toggle('light',m==='light'); localStorage.setItem(k,m); document.getElementById('theme').textContent=m==='light'?'🌙':'☀️'}
+  apply(localStorage.getItem(k)||'dark');
+  document.getElementById('theme').onclick=()=>apply(document.documentElement.classList.contains('light')?'dark':'light');
+})();
+
+/* ===== helpers ===== */
+const DEF_API = () => (location.protocol.startsWith('http') ? location.protocol : 'http:') + '//' + location.hostname + ':3000';
+function getAPI(){ return (localStorage.getItem('efoot.api')||DEF_API()).replace(/\/+$/,''); }
+function setAPI(v){ localStorage.setItem('efoot.api', v.replace(/\/+$/,'')); }
+function showErr(msg){ const el=document.getElementById('err'); el.textContent=msg||''; }
+
+/* ===== boucle killer + redirection sûre ===== */
+async function safeFetch(url, opt={}, ms=4000){
+  const ctrl = new AbortController();
+  const t = setTimeout(()=>ctrl.abort(), ms);
+  try{ return await fetch(url, {signal:ctrl.signal, ...opt}); }
+  finally{ clearTimeout(t); }
+}
+function redirect(role){
+  if(sessionStorage.getItem('efoot.navlock')==='1') return;
+  sessionStorage.setItem('efoot.navlock','1');
+  setTimeout(()=>sessionStorage.removeItem('efoot.navlock'), 3000);
+  if((role||'').toLowerCase()==='admin') location.replace('Admin-Utilisateurs.html');
+  else location.replace('Accueil.html');
+}
+
+/* toggle password */
+(function(){ const btn=document.getElementById('togglePwd'); if(btn){ btn.addEventListener('click', ()=>{ const i=document.getElementById('pwd'); if(!i) return; const t=i.getAttribute('type')==='password'?'text':'password'; i.setAttribute('type', t); btn.textContent=(t==='password')?'👁️':'🙈'; }); } })();
+
+/* ===== test token existant → redirection (sans boucle) ===== */
+(async function autoRedirect(){
+  const token=localStorage.getItem('efoot.token');
+  const expAt=parseInt(localStorage.getItem('efoot.expAt')||'0',10);
+  if(!token || Date.now()>=expAt) return;
+  try{
+    const r=await safeFetch(getAPI()+'/auth/me',{headers:{Authorization:'Bearer ' + token}},4000);
+    if(!r || !r.ok) throw 0;
+    const d=await r.json();
+    redirect((d.user&&d.user.role)||localStorage.getItem('efoot.role')||'member');
+  }catch(_){ /* on garde le formulaire visible */ }
+})();
+
+/* ===== formulaire ===== */
+document.getElementById('f').addEventListener('submit', async (e)=>{
+  e.preventDefault();
+  showErr('');
+  const btn=document.getElementById('submit');
+  btn.disabled=true; btn.textContent='Connexion…';
+  let email=(document.getElementById('email').value||'').trim();
+  const password=document.getElementById('pwd').value||'';
+  if(email && !email.includes('@')) email = email+'@gz.local';
+  try{
+    const r=await safeFetch(getAPI()+'/auth/login', {
+      method:'POST',
+      headers:{'Content-Type':'application/json'},
+      body:JSON.stringify({email,password})
+    }, 7000);
+    const d=await r.json().catch(()=>({}));
+    if(!r || !r.ok){ throw new Error((d&&d.error)||'Identifiants invalides'); }
+    const token=d.token, role=(d.user&&d.user.role)||'member';
+    localStorage.setItem('efoot.token', token);
+    localStorage.setItem('efoot.role', role);
+    localStorage.setItem('efoot.expAt', String(Date.now()+24*60*60*1000));
+    redirect(role);
+  }catch(err){
+    console.error(err);
+    showErr(err.message||'Erreur réseau');
+  }finally{
+    btn.disabled=false; btn.textContent='Se connecter';
+  }
+});
+
+/* ===== Config API ===== */
+(function(){
+  const dlg=document.getElementById('cfg');
+  const btn=document.getElementById('cfgBtn');
+  const input=document.getElementById('apiUrl');
+  const msg=document.getElementById('cfgMsg');
+  btn.onclick=()=>{ input.value=getAPI(); msg.textContent='—'; dlg.showModal(); };
+  document.getElementById('cfgClose').onclick=()=>dlg.close();
+  document.getElementById('cfgSave').onclick=()=>{ setAPI(input.value.trim()); msg.textContent='Sauvé.'; };
+  document.getElementById('cfgTest').onclick=async()=>{
+    msg.textContent='Test…';
+    try{
+      const u=(input.value||'').trim().replace(/\/+$/,'')||DEF_API();
+      const r=await safeFetch(u+'/health',{cache:'no-store'},4000);
+      if(!r || !r.ok) throw 0;
+      msg.textContent='OK ✅';
+    }catch(_){ msg.textContent="Échec ❌ — vérifie l'IP/port"; }
+  };
+})();
+</script>
+<footer style="text-align: center; font-family:cursive;">Copyright © -GOUZEPE GAMING CLUB 2025</footer>
+
+</body>
+</html>

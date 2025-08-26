@@ -1,0 +1,229 @@
+/* =========================
+   GOUZEPE — Theme System
+   (Dark/Light chic + accessibilité)
+   ========================= */
+
+/* ====== Palette & tokens ====== */
+:root{
+  /* Surfaces */
+  --bg:#0b1220;
+  --panel:#0f1627;
+  --card:#0c1426;
+  --border:#1f2937;
+
+  /* Texte */
+  --text:#e5e7eb;
+  --muted:#94a3b8;
+
+  /* Accent (vert émeraude) */
+  --accent-50:#ecfdf5;
+  --accent-100:#d1fae5;
+  --accent-200:#a7f3d0;
+  --accent-300:#6ee7b7;
+  --accent-400:#34d399;
+  --accent-500:#10b981;
+  --accent-600:#059669;
+  --accent-700:#047857;
+  --accent-800:#065f46;
+
+  /* Info (cyan) */
+  --info-400:#22d3ee;
+  --info-600:#0891b2;
+
+  /* Warn (ambre) */
+  --warn-200:#fde68a;
+  --warn-400:#f59e0b;
+  --warn-700:#b45309;
+
+  /* Danger (rouge) */
+  --danger-200:#fecaca;
+  --danger-500:#ef4444;
+  --danger-700:#b91c1c;
+
+  /* Effets */
+  --ring:#38bdf8; /* focus */
+  --shadow:0 12px 50px rgba(0,0,0,.35);
+  --glass:rgba(255,255,255,.04);
+}
+
+:root.light{
+  --bg:#f5f7fb;
+  --panel:#ffffff;
+  --card:#ffffff;
+  --border:#e5e7eb;
+  --text:#0f172a;
+  --muted:#475569;
+
+  --shadow:0 14px 40px rgba(0,0,0,.12);
+  --glass:rgba(0,0,0,.03);
+}
+
+/* Transition douce lors du switch */
+html{ transition: background-color .25s ease, color .25s ease, filter .25s ease; }
+
+/* ====== Arrière-plan global (unifié) ====== */
+body{
+  background:
+    radial-gradient(900px 600px at 20% 0%, rgba(96,165,250,.12), transparent 40%),
+    radial-gradient(900px 600px at 80% 100%, rgba(34,197,94,.10), transparent 40%),
+    linear-gradient(180deg, color-mix(in srgb, var(--bg) 92%, transparent), var(--bg)),
+    url('assets/fond.png') center/cover fixed no-repeat;
+  color:var(--text);
+}
+
+html.light body{
+  background:
+    radial-gradient(900px 600px at 20% 0%, rgba(96,165,250,.18), transparent 42%),
+    radial-gradient(900px 600px at 80% 100%, rgba(34,197,94,.16), transparent 42%),
+    linear-gradient(180deg, color-mix(in srgb, #ffffff 92%, transparent), #ffffff),
+    url('assets/fond.png') center/cover fixed no-repeat;
+}
+
+/* ====== Conteneurs & Dialogs ====== */
+.card{
+  background:linear-gradient(0deg, var(--glass), var(--glass)), var(--panel);
+  border:1px solid var(--border);
+  border-radius:16px;
+  box-shadow:var(--shadow);
+}
+dialog{
+  background:linear-gradient(0deg, var(--glass), var(--glass)), var(--panel);
+  border:1px solid var(--border);
+  border-radius:14px;
+  box-shadow:var(--shadow);
+}
+dialog::backdrop{
+  background:rgba(0,0,0,.4);
+  backdrop-filter:blur(2px);
+}
+
+/* ====== Typo util ====== */
+.muted{color:var(--muted)}
+.hint{font-size:.92em;color:var(--muted)}
+h1,h2,h3,h4{letter-spacing:.2px}
+
+/* ====== Inputs ====== */
+input, select, textarea{
+  background:color-mix(in srgb, var(--card) 92%, transparent);
+  color:var(--text);
+  border:1px solid var(--border);
+  border-radius:12px;
+  padding:10px 12px;
+  transition:border-color .15s ease, box-shadow .15s ease, background-color .15s ease;
+}
+input::placeholder, textarea::placeholder{color:color-mix(in srgb, var(--muted) 70%, transparent)}
+input:focus, select:focus, textarea:focus{
+  outline:none;
+  border-color:color-mix(in srgb, var(--ring) 60%, var(--border));
+  box-shadow:0 0 0 3px color-mix(in srgb, var(--ring) 22%, transparent);
+}
+
+/* mini icônes (œil mdp, roue cfg…) */
+.iconbtn{
+  border:1px solid var(--border);
+  background:linear-gradient(0deg, var(--glass), var(--glass)), var(--panel);
+  border-radius:12px;
+  padding:8px 10px;
+  cursor:pointer;
+  transition:transform .12s ease, box-shadow .12s ease, background-color .12s ease;
+}
+.iconbtn:hover{ transform:translateY(-1px); box-shadow:0 8px 24px rgba(0,0,0,.18); }
+.iconbtn:active{ transform:translateY(0); }
+
+/* ====== Boutons ====== */
+.btn{
+  --bg-btn: linear-gradient(0deg, var(--glass), var(--glass)), var(--panel);
+  --bd-btn: var(--border);
+  --fg-btn: var(--text);
+  border:1px solid var(--bd-btn);
+  background:var(--bg-btn);
+  color:var(--fg-btn);
+  border-radius:12px;
+  padding:10px 14px;
+  cursor:pointer;
+  transition:transform .12s ease, box-shadow .12s ease, background-color .12s ease, border-color .12s ease, color .12s ease;
+  will-change: transform;
+}
+.btn:hover{
+  transform:translateY(-1px);
+  box-shadow:0 10px 24px rgba(0,0,0,.18);
+}
+.btn:active{ transform:translateY(0); }
+.btn:focus-visible{
+  outline:2px solid var(--ring);
+  outline-offset:2px;
+  box-shadow:0 0 0 4px color-mix(in srgb, var(--ring) 24%, transparent);
+}
+
+/* Variantes */
+.btn.primary{
+  --bg-btn: linear-gradient(180deg, color-mix(in srgb, var(--accent-500) 24%, transparent), color-mix(in srgb, var(--accent-600) 14%, transparent)), var(--panel);
+  --bd-btn: color-mix(in srgb, var(--accent-600) 60%, var(--border));
+  --fg-btn: #d1fae5;
+}
+.btn.primary:hover{
+  --bg-btn: linear-gradient(180deg, color-mix(in srgb, var(--accent-500) 32%, transparent), color-mix(in srgb, var(--accent-600) 20%, transparent)), var(--panel);
+}
+.btn.warn{
+  --bg-btn: linear-gradient(180deg, color-mix(in srgb, var(--warn-400) 22%, transparent), color-mix(in srgb, var(--warn-700) 10%, transparent)), var(--panel);
+  --bd-btn: color-mix(in srgb, var(--warn-700) 60%, var(--border));
+  --fg-btn: #fff7ed;
+}
+.btn.danger{
+  --bg-btn: linear-gradient(180deg, color-mix(in srgb, var(--danger-500) 22%, transparent), color-mix(in srgb, var(--danger-700) 12%, transparent)), var(--panel);
+  --bd-btn: color-mix(in srgb, var(--danger-700) 60%, var(--border));
+  --fg-btn: #fee2e2;
+}
+.btn.ghost{
+  --bg-btn: transparent;
+  --bd-btn: color-mix(in srgb, var(--border) 60%, transparent);
+  --fg-btn: var(--text);
+}
+
+/* États disabled */
+.btn[disabled], .iconbtn[disabled]{
+  opacity:.55; cursor:not-allowed; transform:none; box-shadow:none;
+}
+
+/* ====== Tables ====== */
+table{
+  background:var(--card);
+  border:1px solid var(--border);
+  border-radius:12px;
+  overflow:hidden;
+}
+th,td{ padding:10px; border-bottom:1px solid var(--border); }
+thead th{
+  color:var(--muted);
+  position:sticky; top:0;
+  background:linear-gradient(0deg, var(--glass), var(--glass)), var(--card);
+  backdrop-filter:saturate(120%);
+}
+tbody tr:nth-child(odd){ background:color-mix(in srgb, var(--card) 92%, transparent); }
+tbody tr:hover{ background:color-mix(in srgb, var(--info-600) 9%, transparent); }
+
+/* ====== Bandeaux / alertes ====== */
+.banner-warn{
+  padding:10px 12px;
+  border:1px solid color-mix(in srgb, var(--warn-700) 50%, var(--border));
+  background:linear-gradient(0deg, color-mix(in srgb, var(--warn-400) 12%, transparent), transparent), var(--panel);
+  border-radius:12px;
+}
+
+/* ====== Switch thème (si bouton #theme) ====== */
+#theme{
+  border-radius:999px;
+  padding:8px 12px;
+  font-weight:600;
+  background:linear-gradient(90deg, color-mix(in srgb, var(--info-400) 18%, transparent), color-mix(in srgb, var(--accent-500) 18%, transparent)), var(--panel);
+  border:1px solid color-mix(in srgb, var(--info-600) 35%, var(--border));
+}
+
+/* ====== Champs “score” ====== */
+.score input{ width:52px; text-align:center; }
+.bad{ outline:2px solid var(--danger-500); }
+
+/* ====== Utilitaires ====== */
+.shadow{ box-shadow:var(--shadow) }
+.round{ border-radius:12px }
+.border{ border:1px solid var(--border) }

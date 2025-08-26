@@ -1,0 +1,335 @@
+<!doctype html>
+<html lang="fr">
+<head>
+<meta charset="utf-8" />
+<title>GOUZEPE eFOOTBALL — Classement Général</title>
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<style>
+  :root{
+    --bg:#0b1220;--panel:#0f1627;--card:#0c1426;--text:#e5e7eb;--muted:#94a3b8;--border:#1f2937;
+  }
+  :root.light{--bg:#f4f6fb;--panel:#ffffff;--card:#ffffff;--text:#0f172a;--muted:#475569;--border:#e5e7eb}
+  *{box-sizing:border-box} html,body{height:100%}
+  body{
+    margin:0;color:var(--text);
+    font-family:system-ui,-apple-system,Segoe UI,Roboto,Ubuntu,"Trebuchet MS",sans-serif;
+    background:
+      radial-gradient(900px 600px at 20% 0%, rgba(96,165,250,.12), transparent 40%),
+      radial-gradient(900px 600px at 80% 100%, rgba(34,197,94,.10), transparent 40%),
+      linear-gradient(180deg, rgba(7,10,22,.94), rgba(15,23,42,.96)),
+      url('assets/fond.png') center/cover fixed no-repeat;
+  }
+  html.light body{
+    background:
+      radial-gradient(900px 600px at 20% 0%, rgba(96,165,250,.18), transparent 42%),
+      radial-gradient(900px 600px at 80% 100%, rgba(34,197,94,.16), transparent 42%),
+      linear-gradient(180deg, rgba(255,255,255,.86), rgba(245,247,251,.92)),
+      url('assets/fond.png') center/cover fixed no-repeat;
+  }
+  .wrap{max-width:1200px;margin:auto;padding:12px}
+
+  .top{position:sticky;top:0;z-index:50;display:flex;align-items:center;justify-content:space-between;gap:12px;padding:8px 6px;background:rgba(12,18,32,.55);backdrop-filter:blur(6px);border-radius:14px}
+  html.light .top{background:rgba(255,255,255,.7)}
+  .nav{display:flex;gap:10px;align-items:center;flex-wrap:wrap}
+  .logo{width:52px;height:52px;border-radius:14px;background:url('assets/fond.png') center/cover no-repeat;pointer-events:none}
+  .menu-toggle{display:none}
+  .menu{display:flex;gap:10px;align-items:center;flex-wrap:wrap}
+  @media (max-width: 840px){
+    .menu-toggle{display:inline-flex;align-items:center;justify-content:center;border:1px solid var(--border);border-radius:12px;padding:10px 14px;background:#10192c;color:var(--text);cursor:pointer}
+    html.light .menu-toggle{background:#fff}
+    .menu{
+      position:fixed; right:12px; top:64px; z-index:1000; display:none;
+      flex-direction:column; gap:10px; width:min(88vw,340px); padding:12px;
+      background:var(--panel); border:1px solid var(--border); border-radius:14px;
+      box-shadow:0 20px 40px rgba(0,0,0,.35)
+    }
+    .menu.open{display:flex}
+  }
+
+  .btn{border:1px solid var(--border);border-radius:12px;padding:10px 14px;background:#10192c;color:var(--text);cursor:pointer}
+  html.light .btn{background:#fff}
+  .btn.primary{background:#0b1b0f;border-color:#14532d;color:#d1fae5}
+  .btn.danger{background:#2a0c0c;border-color:#7f1d1d;color:#fecaca}
+  select,input{border:1px solid var(--border);border-radius:12px;padding:10px 12px;background:#0b1020;color:var(--text)}
+  html.light select,html.light input{background:#fff}
+  .muted{color:var(--muted)}
+  table{width:100%;border-collapse:collapse;border:1px solid var(--border);border-radius:12px;overflow:hidden;background:var(--card)}
+  th,td{padding:10px;border-bottom:1px solid var(--border);text-align:left}
+  th{color:var(--muted);position:sticky;top:0;background:var(--card)}
+  .cards{display:none}
+  @media (max-width: 700px){
+    table{display:none}
+    .cards{display:grid;gap:10px}
+    .card{background:var(--panel);border:1px solid var(--border);border-radius:14px;padding:10px}
+    .grid2{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+  }
+
+  dialog{border:none;border-radius:14px;max-width:900px;width:min(94vw,900px);padding:0;background:var(--panel);color:var(--text)}
+  dialog::backdrop{background:rgba(0,0,0,.4);backdrop-filter:blur(1.5px)}
+  .tbl{width:100%;border-collapse:collapse;border:1px solid #444}
+  .tbl th,.tbl td{border:1px solid #444;padding:4px 6px}
+  .tbl thead th{background:#efefef}
+</style>
+</head>
+<body>
+<div class="wrap">
+
+  <div class="top">
+    <div class="nav">
+      <div class="logo" aria-hidden="true"></div>
+      <h1 style="margin:0;font-size:20px">Classement Général — Saison</h1>
+    </div>
+    <button id="menuToggle" class="menu-toggle" aria-label="Ouvrir le menu" aria-expanded="false" aria-controls="menu">☰</button>
+    <div id="menu" class="menu">
+      <a class="btn" href="Accueil.html">🏟️ Accueil</a>
+      <a class="btn adminOnly" href="Admin-Joueurs.html">👥 Admin-Joueurs</a>
+      <a class="btn adminOnly" href="Admin-Utilisateurs.html">🛡️ Admin-Utilisateurs</a>
+      <button id="theme" class="btn">☀️</button>
+      <button id="logoutBtn" class="btn danger">Déconnexion</button>
+    </div>
+  </div>
+
+  <div class="row" style="margin:12px 0">
+    <input id="search" placeholder="Rechercher joueur (nom ou ID)…" style="flex:1;min-width:220px">
+    <button id="printSeason" class="btn">Imprimer la saison</button>
+    <button id="refresh" class="btn">Rafraîchir</button>
+  </div>
+
+  <div class="row" style="margin:0 0 10px">
+    <div class="muted">Journée confirmée :</div>
+    <select id="daySelect" style="min-width:220px"></select>
+    <button id="viewDay" class="btn">Afficher</button>
+    <button id="editDay" class="btn primary adminOnly" disabled>Modifier (admin)</button>
+    <button id="printDay" class="btn" disabled>Imprimer cette journée</button>
+  </div>
+
+  <table id="seasonTable">
+    <thead>
+      <tr>
+        <th>#</th>
+        <th>Nom</th>
+        <th class="hid-m">ID</th>
+        <th>Total pts</th>
+        <th>Participations</th>
+        <th>Moy</th>
+        <th>Gagnés D1</th>
+        <th>Gagnés D2</th>
+        <th>Équipes diff.</th>
+      </tr>
+    </thead>
+    <tbody></tbody>
+  </table>
+
+  <div class="cards" id="seasonCards"></div>
+
+  <dialog id="dayModal">
+    <div style="padding:14px;border-bottom:1px solid var(--border);display:flex;justify-content:space-between;align-items:center">
+      <div id="dayTitle" style="font-weight:700">Journée</div>
+      <button class="btn" onclick="document.getElementById('dayModal').close()">Fermer</button>
+    </div>
+    <div style="padding:12px">
+      <div id="dayContent"></div>
+    </div>
+  </dialog>
+
+</div>
+
+<script>
+/* ===== utils & state ===== */
+const $=s=>document.querySelector(s);
+const DEF_API=()=>`${location.protocol.startsWith('http')?location.protocol:'http:'}//${location.hostname}:3000`;
+const API=(localStorage.getItem('efoot.api')||DEF_API()).replace(/\/+$/,'');
+const token=localStorage.getItem('efoot.token');
+const role =(localStorage.getItem('efoot.role')||'member').toLowerCase();
+const expAt=+localStorage.getItem('efoot.expAt')||0;
+if(!token||Date.now()>=expAt){location.href='login.html'}
+
+document.querySelectorAll('.adminOnly').forEach(el=>el.style.display=(role==='admin')?'inline-flex':'none');
+
+/* thème + menu + logout */
+(function(){
+  const k='efoot.theme';
+  const apply=m=>{document.documentElement.classList.toggle('light',m==='light');localStorage.setItem(k,m);$('#theme').textContent=m==='light'?'🌙':'☀️'};
+  apply(localStorage.getItem(k)||'dark');
+  $('#theme').onclick=()=>apply(document.documentElement.classList.contains('light')?'dark':'light');
+})();
+(function(){
+  const menu=$('#menu'), toggle=$('#menuToggle');
+  function open(v){menu.classList.toggle('open',v);toggle.setAttribute('aria-expanded',v?'true':'false')}
+  toggle?.addEventListener('click',()=>open(!menu.classList.contains('open')));
+  document.addEventListener('click',(e)=>{
+    if(!menu.classList.contains('open'))return;
+    if(e.target===toggle||menu.contains(e.target))return;
+    open(false);
+  },true);
+})();
+$('#logoutBtn')?.addEventListener('click',()=>{['efoot.token','efoot.role','efoot.expAt'].forEach(k=>localStorage.removeItem(k));location.href='login.html'});
+
+/* ===== fetch saison ===== */
+let seasonData=[];
+async function loadSeason(){
+  const r=await fetch(`${API}/season/standings`,{headers:{'Authorization':`Bearer ${token}`}});
+  const d=await r.json();
+  seasonData = d.standings||[];
+  renderSeason();
+}
+function escapeHtml(t){return String(t||'').replace(/[&<>"']/g,m=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[m]));}
+function renderSeason(){
+  const q=($('#search').value||'').toLowerCase();
+  const data = seasonData.filter(x=>(x.name||'').toLowerCase().includes(q) || (x.id||'').toLowerCase().includes(q));
+  const tb=$('#seasonTable tbody'); tb.innerHTML='';
+  data.forEach((p,i)=>{
+    const tr=document.createElement('tr');
+    tr.innerHTML = '<td>'+(i+1)+'</td>'
+      + '<td>'+escapeHtml(p.name||p.id||'')+'</td>'
+      + '<td class="hid-m">'+escapeHtml(p.id||'')+'</td>'
+      + '<td>'+(p.total??0)+'</td>'
+      + '<td>'+(p.participations??0)+'</td>'
+      + '<td>'+((p.moyenne??0).toFixed? (p.moyenne||0).toFixed(2): (p.moyenne??0))+'</td>'
+      + '<td>'+(p.won_d1??0)+'</td>'
+      + '<td>'+(p.won_d2??0)+'</td>'
+      + '<td>'+(p.teams_used??0)+'</td>';
+    tb.appendChild(tr);
+  });
+
+  const cards=$('#seasonCards'); cards.innerHTML='';
+  data.forEach((p,i)=>{
+    const div=document.createElement('div');
+    div.className='card';
+    div.innerHTML='<div style="font-weight:700;margin-bottom:4px">'+(i+1)+'. '+escapeHtml(p.name||p.id||'')+'</div>'
+      + '<div class="grid2">'
+      + '<div><span class="muted">ID:</span> '+escapeHtml(p.id||'')+'</div>'
+      + '<div><span class="muted">Total:</span> '+(p.total??0)+'</div>'
+      + '<div><span class="muted">Part.:</span> '+(p.participations??0)+'</div>'
+      + '<div><span class="muted">Moy.:</span> '+((p.moyenne??0).toFixed? (p.moyenne||0).toFixed(2): (p.moyenne??0))+'</div>'
+      + '<div><span class="muted">D1 gagnés:</span> '+(p.won_d1??0)+'</div>'
+      + '<div><span class="muted">D2 gagnés:</span> '+(p.won_d2??0)+'</div>'
+      + '<div><span class="muted">Équipes diff.:</span> '+(p.teams_used??0)+'</div>'
+      + '</div>';
+    cards.appendChild(div);
+  });
+}
+
+/* ===== Liste des journées + affichage ===== */
+async function loadDays(){
+  const r=await fetch(`${API}/matchdays`,{headers:{'Authorization':`Bearer ${token}`}});
+  const d=await r.json();
+  const sel=$('#daySelect'); sel.innerHTML='';
+  (d.days||[]).forEach(dt=>{
+    const o=document.createElement('option'); o.value=dt; o.textContent=dt; sel.appendChild(o);
+  });
+  const has=!!sel.value; $('#editDay').disabled = !has || role!=='admin'; $('#printDay').disabled=!has;
+}
+async function viewSelectedDay(openModal=true){
+  const day=$('#daySelect').value;
+  if(!day){ alert('Choisis une date'); return; }
+  const r=await fetch(`${API}/matchdays/${day}`,{headers:{'Authorization':`Bearer ${token}`}});
+  if(!r.ok){ alert('Journée introuvable'); return; }
+  const p=await r.json();
+  if(openModal){
+    $('#dayTitle').textContent='Journée du '+new Date(day).toLocaleDateString('fr-FR',{weekday:'long',day:'2-digit',month:'long',year:'numeric'});
+    $('#dayContent').innerHTML = renderDayContent(p);
+    $('#dayModal').showModal();
+  }
+  return p;
+}
+function renderDayContent(payload){
+  function tbl(rows){
+    let h='<table class="tbl"><thead><tr><th>Domicile</th><th>Extérieur</th><th>Aller</th><th>Retour</th></tr></thead><tbody>';
+    (rows||[]).forEach(m=>{
+      const a = (m.a1!=null||m.a2!=null)?((m.a1??'')+' - '+(m.a2??'')):''; 
+      const r = (m.r1!=null||m.r2!=null)?((m.r1??'')+' - '+(m.r2??'')):''; 
+      h+= '<tr><td>'+escapeHtml(m.p1||'')+'</td><td>'+escapeHtml(m.p2||'')+'</td><td>'+a+'</td><td>'+r+'</td></tr>';
+    });
+    h+='</tbody></table>'; return h;
+  }
+  const c1 = payload?.champions?.d1||{}, c2 = payload?.champions?.d2||{};
+  const barr = payload?.champions?.barrage||{};
+  const team1=(c1.team||'').toUpperCase().slice(0,6)||'—';
+  const team2=(c2.team||'').toUpperCase().slice(0,6)||'—';
+  const mg = o => (o && o.A!=null && o.B!=null) ? (o.A+' - '+o.B) : '';
+  let html = '';
+  html += '<h3>D1</h3>'+tbl(payload.d1||[]);
+  html += '<div style="margin:6px 0 10px;font-weight:700;color:#c00">'+escapeHtml(c1.id||'—')+' CHAMPION avec '+escapeHtml(team1)+'</div>';
+  html += '<h3>D2</h3>'+tbl(payload.d2||[]);
+  html += '<div style="margin:6px 0 10px;font-weight:700;color:#c00">'+escapeHtml(c2.id||'—')+' CHAMPION avec '+escapeHtml(team2)+'</div>';
+  html += '<h3>Barrages</h3>';
+  html += '<table class="tbl"><thead><tr><th>Affiche</th><th>Aller</th><th>Retour</th><th>Match 3</th></tr></thead><tbody>';
+  html += '<tr><td>'+escapeHtml((barr.ids?.d1||'—')+' - '+(barr.ids?.d2||'—'))+'</td><td>'+mg((payload.barrage||{}).m1||{})+'</td><td>'+mg((payload.barrage||{}).m2||{})+'</td><td>'+mg((payload.barrage||{}).m3||{})+'</td></tr>';
+  html += '</tbody></table>';
+  html += '<div style="margin-top:6px;font-weight:600">*** '+escapeHtml((payload.barrage?.label)||'—')+'</div>';
+  if(payload.barrage?.notes){
+    html += '<div style="margin-top:8px"><span class="muted">Notes :</span><br>'+escapeHtml(payload.barrage.notes).replace(/\r?\n/g,'<br>')+'</div>';
+  }
+  return html;
+}
+
+/* ===== Impression ===== */
+function printSeason(){
+  const rows = seasonData.slice();
+  const css='@page{size:A4;margin:12mm;}body{font:12px/1.35 Segoe UI,Roboto,Arial,sans-serif;color:#111;}h1{font-size:18px;margin:0 0 8px;}table{width:100%;border-collapse:collapse;border:1px solid #444}th,td{border:1px solid #444;padding:4px 6px}thead th{background:#efefef}';
+  let html='<!doctype html><html><head><meta charset="utf-8"><title>Classement Saison</title><style>'+css+'</style></head><body onload="window.print()">';
+  html+='<h1>Classement Général — Saison</h1>';
+  html+='<table><thead><tr><th>#</th><th>Nom</th><th>ID</th><th>Total</th><th>Part.</th><th>Moy.</th><th>Gagnés D1</th><th>Gagnés D2</th><th>Équipes diff.</th></tr></thead><tbody>';
+  rows.forEach((p,i)=>{
+    html+='<tr><td>'+(i+1)+'</td><td>'+escapeHtml(p.name||p.id||'')+'</td><td>'+escapeHtml(p.id||'')+'</td><td>'+(p.total??0)+'</td><td>'+(p.participations??0)+'</td><td>'+((p.moyenne??0).toFixed ? (p.moyenne||0).toFixed(2):(p.moyenne??0))+'</td><td>'+(p.won_d1??0)+'</td><td>'+(p.won_d2??0)+'</td><td>'+(p.teams_used??0)+'</td></tr>';
+  });
+  html+='</tbody></table></body></html>';
+  const w=window.open('','_blank'); w.document.open(); w.document.write(html); w.document.close(); w.focus();
+}
+async function printSelectedDay(){
+  const day=$('#daySelect').value; if(!day) return;
+  const payload = await viewSelectedDay(false);
+  if(!payload) return;
+  // même rendu que la modale, dans une page imprimable :
+  const css='@page{size:A4;margin:14mm;}body{font:12px/1.35 "Segoe UI",Roboto,Arial,sans-serif;color:#111;}h1{font-size:18px;margin:0 0 8px;} h2{font-size:14px;margin:12px 0 6px;} .grid{display:grid;grid-template-columns:1.2fr .9fr;gap:14px;align-items:start;} .tbl{width:100%;border-collapse:collapse;border:1px solid #444;} .tbl th,.tbl td{border:1px solid #444;padding:4px 6px} .tbl thead th{background:#efefef;} .tbl.compact td,.tbl.compact th{padding:3px 5px;} .hl td{background:#fff6bf;} .muted{color:#555;} .header{display:flex;justify-content:space-between;align-items:center;margin-bottom:6px;} .champ{text-align:center;margin:6px 0 10px;font-weight:800;color:#c00;} .section{margin-top:8px;}';
+  function esc(t){return String(t||'').replace(/[&<>"']/g,m=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[m]));}
+  function mg(o){return (o && o.A!=null && o.B!=null) ? (o.A+' - '+o.B) : '';}
+  function tblMatches(rows){
+    var html = '<table class="tbl" ><thead><tr><th>Domicile</th><th>Extérieur</th><th>Aller</th><th>Retour</th></tr></thead><tbody>';
+    (rows||[]).forEach(function(m){
+      var a=(m.a1!=null||m.a2!=null)?((m.a1??'')+' - '+(m.a2??'')):'';
+      var r=(m.r1!=null||m.r2!=null)?((m.r1??'')+' - '+(m.r2??'')):'';
+      html+='<tr><td>'+esc(m.p1)+'</td><td>'+esc(m.p2)+'</td><td>'+esc(a)+'</td><td>'+esc(r)+'</td></tr>';
+    });
+    html+='</tbody></table>'; return html;
+  }
+  const st1=payload.st1||[], st2=payload.st2||[];
+  const c1=payload?.champions?.d1||{}, c2=payload?.champions?.d2||{}, barr=payload?.champions?.barrage||{};
+  const team1=(c1.team||'').toUpperCase().slice(0,10)||'—';
+  const team2=(c2.team||'').toUpperCase().slice(0,10)||'—';
+  var blocD1='<div class="section"><h2>SCORES D1</h2><div class="grid"><div>'+tblMatches(payload.d1||[])+'</div></div><div class="champ">'+esc(c1.id||'—')+' CHAMPION avec '+esc(team1)+'</div></div>';
+  var blocD2='<div class="section"><h2>SCORES D2</h2><div class="grid"><div>'+tblMatches(payload.d2||[])+'</div></div><div class="champ">'+esc(c2.id||'—')+' CHAMPION avec '+esc(team2)+'</div></div>';
+  var blocBarr='<div class="section"><h2>BARRAGES</h2><table class="tbl compact"><thead><tr><th>Affiche</th><th>Aller</th><th>Retour</th><th>Match 3</th></tr></thead><tbody><tr><td>'+esc((barr.ids?.d1||'—')+' - '+(barr.ids?.d2||'—'))+'</td><td>'+esc(mg((payload.barrage||{}).m1||{}))+'</td><td>'+esc(mg((payload.barrage||{}).m2||{}))+'</td><td>'+esc(mg((payload.barrage||{}).m3||{}))+'</td></tr></tbody></table><div class="muted" style="margin-top:6px">*** '+esc((payload.barrage?.label)||'—')+'</div></div>';
+  var notes = payload.barrage?.notes ? '<div class="section"><h2>Notes / commentaires</h2>'+esc(payload.barrage.notes).replace(/\r?\n/g,'<br>')+'</div>' : '';
+  var html='<!doctype html><html lang="fr"><head><meta charset="utf-8"/><title>Résultats — '+day+'</title><style>'+css+'</style></head><body onload="window.print()"><div class="header"><h1>SAISON EFOOT</h1><div>'+new Date(day).toLocaleDateString('fr-FR')+'</div></div>'+blocD1+blocD2+blocBarr+notes+'</body></html>';
+  const w=window.open('','_blank'); w.document.open(); w.document.write(html); w.document.close(); w.focus();
+}
+
+/* Events & init */
+$('#search').addEventListener('input', renderSeason);
+$('#refresh').onclick=()=>{loadSeason(); loadDays();};
+$('#printSeason').onclick=printSeason;
+$('#viewDay').onclick=()=>viewSelectedDay(true);
+$('#daySelect').addEventListener('change',()=>{ const has=!!$('#daySelect').value; $('#editDay').disabled=(role!=='admin')||!has; $('#printDay').disabled=!has; });
+$('#editDay').onclick=()=>{ const d=$('#daySelect').value; if(d) location.href='Accueil.html?date='+encodeURIComponent(d); };
+$('#printDay').onclick=printSelectedDay;
+
+(async function init(){
+  await loadSeason();
+  await loadDays();
+  // sockets
+  try{
+    const s=document.createElement('script'); s.src=`${API}/socket.io/socket.io.js`; s.onload=()=>{
+      const u=new URL(API); const ws=`${u.protocol}//${u.hostname}:${u.port||'3000'}`;
+      const socket=window.io(ws,{transports:['websocket','polling']});
+      socket.on('season:updated', ()=>{ loadSeason(); loadDays(); });
+      socket.on('day:confirmed', ()=>{ loadSeason(); loadDays(); });
+    }; document.head.appendChild(s);
+  }catch(_){}
+})();
+</script>
+<footer style="text-align: center; font-family:cursive;">Copyright © -GOUZEPE GAMING CLUB 2025</footer>
+
+</body>
+</html>

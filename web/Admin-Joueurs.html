@@ -1,0 +1,283 @@
+<!doctype html>
+<html lang="fr">
+<head>
+<meta charset="utf-8" />
+<title>GOUZEPE — Admin Joueurs</title>
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<link rel="stylesheet" href="theme.css">
+<meta name="color-scheme" content="dark light">
+
+<style>
+  :root{--bg:#0b1220;--panel:#0f1627;--card:#0c1426;--text:#e5e7eb;--muted:#94a3b8;--border:#1f2937}
+  :root.light{--bg:#f4f6fb;--panel:#fff;--card:#fff;--text:#0f172a;--muted:#475569;--border:#e5e7eb}
+  *{box-sizing:border-box} html,body{height:100%}
+  body{margin:0;color:var(--text);font-family:system-ui,-apple-system,Segoe UI,Roboto,Ubuntu,"Trebuchet MS",sans-serif;
+    background:
+      radial-gradient(900px 600px at 20% 0%, rgba(96,165,250,.12), transparent 40%),
+      radial-gradient(900px 600px at 80% 100%, rgba(34,197,94,.10), transparent 40%),
+      linear-gradient(180deg, rgba(7,10,22,.94), rgba(15,23,42,.96)),
+      url('assets/fond.png') center/cover fixed no-repeat;}
+  html.light body{background:
+      radial-gradient(900px 600px at 20% 0%, rgba(96,165,250,.18), transparent 42%),
+      radial-gradient(900px 600px at 80% 100%, rgba(34,197,94,.16), transparent 42%),
+      linear-gradient(180deg, rgba(255,255,255,.86), rgba(245,247,251,.92)),
+      url('assets/fond.png') center/cover fixed no-repeat;}
+  .wrap{max-width:1100px;margin:auto;padding:12px}
+  .top{position:sticky;top:0;z-index:50;display:flex;align-items:center;justify-content:space-between;gap:12px;padding:8px 6px;background:rgba(12,18,32,.55);backdrop-filter:blur(6px);border-radius:14px}
+  html.light .top{background:rgba(255,255,255,.7)}
+  .nav{display:flex;gap:10px;align-items:center;flex-wrap:wrap}
+  .logo{width:58px;height:58px;border-radius:14px;background:url('assets/fond.png') center/cover no-repeat}
+  .menu-toggle{display:none}
+  .menu{display:flex;gap:10px;align-items:center;flex-wrap:wrap}
+  @media (max-width: 840px){
+    .menu-toggle{display:inline-flex;align-items:center;justify-content:center;border:1px solid var(--border);border-radius:12px;padding:10px 14px;background:#10192c;color:var(--text);cursor:pointer}
+    html.light .menu-toggle{background:#fff}
+    .menu{
+      position:fixed; right:12px; top:64px; z-index:1000; display:none;
+      flex-direction:column; gap:10px; width:min(88vw,340px); padding:12px;
+      background:var(--panel); border:1px solid var(--border); border-radius:14px;
+      box-shadow:0 20px 40px rgba(0,0,0,.35)
+    }
+    .menu.open{display:flex}
+  }
+  .btn{border:1px solid var(--border);border-radius:12px;padding:10px 14px;background:#10192c;color:var(--text);cursor:pointer}
+  html.light .btn{background:#fff}
+  .btn.danger{background:#2a0c0c;border-color:#7f1d1d;color:#fecaca}
+  .btn.primary{background:#0b1b0f;border-color:#14532d;color:#d1fae5}
+  .card{background:var(--panel);border:1px solid var(--border);border-radius:16px;padding:14px}
+  .row{display:flex;gap:10px;flex-wrap:wrap}
+  input,select{border:1px solid var(--border);border-radius:12px;padding:10px 12px;background:#0b1020;color:var(--text)}
+  html.light input,html.light select{background:#fff}
+  table{width:100%;border-collapse:collapse;border:1px solid var(--border);background:var(--card);border-radius:12px;overflow:hidden}
+  th,td{padding:10px;border-bottom:1px solid var(--border)}
+  th{color:var(--muted)}
+  .muted{color:var(--muted)}
+  /* Dialog générique */
+dialog{border:none;border-radius:14px;max-width:520px;width:min(92vw,520px);padding:0;background:var(--panel);color:var(--text)}
+dialog::backdrop{background:rgba(0,0,0,.35)}
+.dlg-h{padding:14px 16px;border-bottom:1px solid var(--border);font-weight:700}
+.dlg-b{padding:14px 16px;display:grid;gap:10px}
+.dlg-f{padding:14px 16px;border-top:1px solid var(--border);display:flex;gap:10px;justify-content:flex-end}
+
+/* Afficher l’ID tel que saisi (aucune transformation) */
+.keepcase{text-transform:none !important}
+
+</style>
+</head>
+<!-- ======= Edit joueur ======= -->
+<dialog id="editDlg">
+  <div class="dlg-h">Modifier le joueur</div>
+  <div class="dlg-b">
+    <label>ID (clé)</label>
+    <input id="e_pid" readonly>
+
+    <label>Nom</label>
+    <input id="e_name" placeholder="Nom complet">
+
+    <label>Statut</label>
+    <select id="e_role">
+      <option value="MEMBRE">MEMBRE</option>
+      <option value="INVITE">INVITE</option>
+    </select>
+
+    <div id="editMsg" class="muted">—</div>
+  </div>
+  <div class="dlg-f">
+    <button class="iconbtn" id="editCancel">Annuler</button>
+    <button class="btn" id="editSave">Enregistrer</button>
+  </div>
+</dialog>
+
+<body>
+<div class="wrap">
+  <div class="top">
+    <div class="nav">
+      <div class="logo" aria-hidden="true"></div>
+      <h1 style="margin:0;font-size:20px">Administration — Joueurs</h1>
+    </div>
+    <button id="menuToggle" class="menu-toggle" aria-label="Ouvrir le menu" aria-expanded="false" aria-controls="menu">☰</button>
+    <div id="menu" class="menu">
+      <a class="btn" href="Accueil.html">🏟️ Accueil</a>
+      <a class="btn" href="Classement-general.html">📊 Classements</a>
+      <a class="btn adminOnly" href="Admin-Utilisateurs.html">🛡️ Admin-Utilisateurs</a>
+      <button id="theme" class="btn">☀️</button>
+      <button id="logoutBtn" class="btn danger">Déconnexion</button>
+    </div>
+  </div>
+
+  <section class="card" style="margin-top:12px">
+    <h3 style="margin:6px 0">Créer / modifier un joueur</h3>
+    <div class="row">
+      <input id="pid" placeholder="ID (ex: CBlacks_GZ)" style="min-width:160px">
+      <input id="pname" placeholder="Nom complet" style="min-width:220px;flex:1">
+      <select id="prole">
+        <option value="MEMBRE">MEMBRE</option>
+        <option value="INVITE">INVITE</option>
+      </select>
+      <button id="addBtn" class="btn primary">Ajouter</button>
+    </div>
+    <div id="msg" class="muted" style="margin-top:6px"></div>
+  </section>
+
+  <section class="card" style="margin-top:12px">
+    <div class="row" style="justify-content:space-between;align-items:center">
+      <h3 style="margin:6px 0">Joueurs enregistrés</h3>
+      <div class="row">
+        <input id="q" placeholder="Rechercher (ID/nom)..." />
+        <button id="reload" class="btn">Rafraîchir</button>
+      </div>
+    </div>
+    <table style="text-align: center;">
+      <thead><tr><th>ID</th><th>Nom</th><th>Status</th><th>Actions</th></tr></thead>
+      <tbody id="list"></tbody>
+    </table>
+  </section>
+</div>
+
+<script src="common.js"></script>
+<script>
+/* Page-specific: Admin-Joueurs (players CRUD) */
+/* list/load */
+let players=[];
+async function load(){
+  try{
+    const r=await fetch(`${API}/players`,{headers:{'Authorization':`Bearer ${token}`}});
+    const d=await r.json(); players=d.players||[];
+    render();
+    $('#msg').textContent='';
+  }catch(e){
+    $('#msg').textContent='Impossible de charger les joueurs';
+  }
+}
+function render(){
+  const q=($('#q').value||'');
+  const rows=players.filter(p=>p.player_id.includes(q)||(p.name||'').includes(q));
+  const tb=$('#list'); tb.innerHTML='';
+  rows.forEach(p=>{
+    const tr=document.createElement('tr');
+    tr.innerHTML=`<td>${p.player_id}</td>
+      <td>${p.name||''}</td>
+      <td>${p.role||'MEMBRE'}</td>
+      <td>
+        <button class="btn" data-edit="${p.player_id}">Modifier</button>
+        <button class="btn danger" data-del="${p.player_id}">Supprimer</button>
+      </td>`;
+    tb.appendChild(tr);
+  });
+}
+
+/* add/update/delete */
+async function ensurePlayersWrite(method,url,body){
+  try{
+    const r=await fetch(url,{method,headers:{'Content-Type':'application/json','Authorization':`Bearer ${token}`},body: body?JSON.stringify(body):undefined});
+    if(r.status===404||r.status===405){ throw new Error("Les endpoints admin/players ne sont pas activés sur l'API."); }
+    if(!r.ok){ const d=await r.json().catch(()=>({})); throw new Error(d.error||`Erreur ${r.status}`); }
+    return await r.json().catch(()=>({ok:true}));
+  }catch(e){ throw e; }
+}
+$('#addBtn').onclick=async ()=>{
+  const player_id=$('#pid').value.trim()
+  const name=$('#pname').value.trim();
+  const roleSel=$('#prole').value||'MEMBRE';
+  if(!player_id||!name){ $('#msg').textContent='ID et Nom requis'; return; }
+  $('#msg').textContent='Enregistrement…';
+  try{
+    await ensurePlayersWrite('POST',`${API}/admin/players`,{player_id,name,role:roleSel});
+    $('#msg').textContent='OK';
+    await load();
+  }catch(e){
+    $('#msg').textContent=e.message||'Erreur';
+  }
+};
+$('#list').addEventListener('click',async (e)=>{
+  const id = e.target.dataset.edit || e.target.dataset.del;
+  if(!id) return;
+  if(e.target.dataset.edit){
+    const p=players.find(x=>x.player_id===id); if(!p) return;
+    const name=prompt('Nom du joueur', p.name||''); if(name==null) return;
+    const roleSel=prompt('Rôle (MEMBRE/INVITE)', p.role||'MEMBRE')||'MEMBRE';
+    $('#msg').textContent='Mise à jour…';
+    try{
+      await ensurePlayersWrite('PUT',`${API}/admin/players/${encodeURIComponent(id)}`,{name,role:roleSel.toUpperCase()});
+      $('#msg').textContent='OK';
+      await load();
+    }catch(err){ $('#msg').textContent=err.message||'Erreur'; }
+  }else if(e.target.dataset.del){
+    if(!confirm('Supprimer ce joueur ?')) return;
+    $('#msg').textContent='Suppression…';
+    try{
+      await ensurePlayersWrite('DELETE',`${API}/admin/players/${encodeURIComponent(id)}`);
+      $('#msg').textContent='OK';
+      await load();
+    }catch(err){ $('#msg').textContent=err.message||'Erreur'; }
+  }
+});
+$('#reload').onclick=load;
+$('#q').addEventListener('input',render);
+
+/* init */
+load();
+// Utilise ta fonction ensurePlayersWrite si elle existe, sinon fallback fetch
+async function playersWrite(method, url, body){
+  const opt = { method, headers: { 'Authorization': `Bearer ${token}` } };
+  if (body) { opt.headers['Content-Type'] = 'application/json'; opt.body = JSON.stringify(body); }
+  const r = await fetch(url, opt);
+  if (!r.ok) { const d = await r.json().catch(()=>({})); throw new Error(d.error || `Erreur ${r.status}`); }
+  return r.json().catch(()=>({ ok:true }));
+}
+const writePlayer = (typeof ensurePlayersWrite === 'function') ? ensurePlayersWrite : playersWrite;
+
+// Ouvre le formulaire d’édition
+function openEditPlayer(id){
+  const p = (window.players || []).find(x => x.player_id === id);
+  if (!p) return;
+
+  const dlg   = document.getElementById('editDlg');
+  const pid   = document.getElementById('e_pid');
+  const pname = document.getElementById('e_name');
+  const prole = document.getElementById('e_role');
+  const msg   = document.getElementById('editMsg');
+
+  pid.value   = p.player_id || '';
+  pname.value = p.name || '';
+  prole.value = (p.role || 'MEMBRE').toUpperCase();
+  msg.textContent = '—';
+  dlg.showModal();
+
+  const btnSave   = document.getElementById('editSave');
+  const btnCancel = document.getElementById('editCancel');
+
+  const cleanup = () => {
+    btnSave.removeEventListener('click', onSave);
+    btnCancel.removeEventListener('click', onCancel);
+  };
+  const onCancel = () => { cleanup(); dlg.close(); };
+  const onSave   = async () => {
+    try{
+      msg.textContent = 'Mise à jour…';
+      await writePlayer('PUT', `${API}/admin/players/${encodeURIComponent(id)}`, {
+        name: pname.value.trim(),
+        role: prole.value
+      });
+      msg.textContent = 'OK';
+      cleanup(); dlg.close();
+      await (window.load && window.load()); // recharge la liste
+    }catch(e){ msg.textContent = e.message || 'Erreur'; }
+  };
+
+  btnSave.addEventListener('click', onSave);
+  btnCancel.addEventListener('click', onCancel);
+}
+
+// Câblage sur le tableau (boutons “Modifier” doivent avoir data-edit="ID")
+document.getElementById('list').addEventListener('click', (e)=>{
+  if (e.target && e.target.dataset && e.target.dataset.edit) {
+    openEditPlayer(e.target.dataset.edit);
+  }
+});
+
+</script>
+<footer style="text-align: center; font-family:cursive;">Copyright © -GOUZEPE GAMING CLUB 2025</footer>
+
+</body>
+</html>

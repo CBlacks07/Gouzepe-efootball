@@ -1,0 +1,308 @@
+<!doctype html>
+<html lang="fr">
+<head>
+<meta charset="utf-8" />
+<title>GOUZEPE eFOOTBALL — Admin Utilisateurs</title>
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<link rel="stylesheet" href="theme.css">
+<meta name="color-scheme" content="dark light">
+
+<style>
+  :root{
+    --bg:#0b1220;--panel:#0f1627;--card:#0c1426;--text:#e5e7eb;--muted:#94a3b8;--border:#1f2937;
+    --ok:#14532d;--okbg:#0b1610;--warn:#7c2d12;--warnbg:#1a120b;--danger:#7f1d1d
+  }
+  :root.light{--bg:#f4f6fb;--panel:#ffffff;--card:#ffffff;--text:#0f172a;--muted:#475569;--border:#e5e7eb}
+
+  *{box-sizing:border-box}
+  html,body{height:100%}
+  body{
+    margin:0;color:var(--text);
+    font-family:system-ui,-apple-system,Segoe UI,Roboto,Ubuntu,"Trebuchet MS",sans-serif;
+    background:
+      radial-gradient(900px 600px at 20% 0%, rgba(96,165,250,.12), transparent 40%),
+      radial-gradient(900px 600px at 80% 100%, rgba(34,197,94,.10), transparent 40%),
+      linear-gradient(180deg, rgba(7,10,22,.94), rgba(15,23,42,.96)),
+      url('assets/fond.png') center/cover fixed no-repeat;
+  }
+  html.light body{
+    background:
+      radial-gradient(900px 600px at 20% 0%, rgba(96,165,250,.18), transparent 42%),
+      radial-gradient(900px 600px at 80% 100%, rgba(34,197,94,.16), transparent 42%),
+      linear-gradient(180deg, rgba(255,255,255,.86), rgba(245,247,251,.92)),
+      url('assets/fond.png') center/cover fixed no-repeat;
+  }
+
+  .wrap{max-width:1100px;margin:auto;padding:12px}
+  .top{position:sticky;top:0;z-index:50;display:flex;align-items:center;justify-content:space-between;gap:12px;padding:8px 6px;background:rgba(12,18,32,.55);backdrop-filter:blur(6px);border-radius:14px}
+  html.light .top{background:rgba(255,255,255,.7)}
+  .nav{display:flex;gap:10px;align-items:center;flex-wrap:wrap}
+  .logo{width:90px;height:90px;border-radius:14px;background:url('assets/fond.png') center/cover no-repeat;pointer-events:none}
+  .menu-toggle{display:none}
+  .menu{display:flex;gap:10px;align-items:center;flex-wrap:wrap}
+  @media (max-width: 840px){
+    .menu-toggle{display:inline-flex;align-items:center;justify-content:center;border:1px solid var(--border);border-radius:12px;padding:10px 14px;background:#10192c;color:var(--text);cursor:pointer}
+    html.light .menu-toggle{background:#fff}
+    .menu{
+      position:fixed; right:12px; top:64px; z-index:1000; display:none;
+      flex-direction:column; gap:10px; width:min(88vw,340px); padding:12px;
+      background:var(--panel); border:1px solid var(--border); border-radius:14px;
+      box-shadow:0 20px 40px rgba(0,0,0,.35)
+    }
+    .menu.open{display:flex}
+  }
+
+  .btn{border:1px solid var(--border);border-radius:12px;padding:10px 14px;background:#10192c;color:var(--text);cursor:pointer}
+  html.light .btn{background:#fff}
+  .btn.primary{background:var(--okbg);border-color:var(--ok);color:#d1fae5}
+  .btn.warn{background:var(--warnbg);border-color:var(--warn);color:#fde68a}
+  .btn.danger{background:#2a0c0c;border-color:var(--danger);color:#fecaca}
+  .row{display:flex;gap:10px;flex-wrap:wrap}
+  .card{background:var(--panel);border:1px solid var(--border);border-radius:16px;padding:14px}
+  .muted{color:var(--muted)}
+  select,input{border:1px solid var(--border);border-radius:12px;padding:10px 12px;background:#0b1020;color:var(--text)}
+  html.light select,html.light input{background:#fff}
+
+  table{width:100%;border-collapse:collapse;border:1px solid var(--border);border-radius:12px;overflow:hidden;background:var(--card)}
+  th,td{padding:10px;border-bottom:1px solid var(--border);text-align:left}
+  th{color:var(--muted)}
+
+  dialog{border:none;border-radius:14px;max-width:520px;width:min(92vw,520px);padding:0;background:var(--panel);color:var(--text)}
+  dialog::backdrop{background:rgba(0,0,0,.4);backdrop-filter:blur(1.5px)}
+
+  .foot{display:flex;gap:10px;justify-content:flex-end;margin-top:10px;flex-wrap:wrap}
+  #status{transition:opacity .25s}
+</style>
+</head>
+<body>
+<div class="wrap">
+
+  <div class="top">
+    <div class="nav">
+      <div class="logo" aria-hidden="true"></div>
+      <h1 style="margin:0;font-size:20px">Administration — Utilisateurs</h1>
+    </div>
+    <button id="menuToggle" class="menu-toggle" aria-label="Ouvrir le menu" aria-expanded="false" aria-controls="menu">☰</button>
+    <div id="menu" class="menu">
+      <a class="btn" href="Accueil.html">🏟️ Accueil</a>
+      <a class="btn" href="Classement-general.html">📊 Classements</a>
+      <a class="btn" href="Admin-Joueurs.html">👥 Admin-Joueurs</a>
+      <button id="theme" class="btn" title="Basculer thème">☀️</button>
+      <button id="logoutBtn" class="btn danger">Déconnexion</button>
+    </div>
+  </div>
+
+  <!-- Création -->
+  <section class="card" style="margin-top:12px">
+    <h3 style="margin:6px 0">Créer un utilisateur</h3>
+    <div class="row">
+      <input id="emailNew" placeholder="email (ex: admin@gz ou user)" style="min-width:220px;flex:1">
+      <input id="pwdNew" type="password" placeholder="mot de passe" style="min-width:180px">
+      <select id="roleNew">
+        <option value="member">member</option>
+        <option value="admin">admin</option>
+      </select>
+      <button id="addBtn" class="btn primary">Ajouter</button>
+    </div>
+    <div class="muted" style="margin-top:6px">Astuce : si vous ne mettez pas de domaine, <code>@gz.local</code> sera ajouté automatiquement.</div>
+  </section>
+
+  <!-- Liste + outils -->
+  <section class="card" style="margin-top:12px">
+    <div class="row" style="justify-content:space-between;align-items:center">
+      <h3 style="margin:6px 0">Utilisateurs enregistrés</h3>
+      <div class="row">
+        <input id="search" placeholder="Rechercher (email)…" style="min-width:220px">
+        <button id="refresh" class="btn">Rafraîchir</button>
+      </div>
+    </div>
+
+    <table id="tbl">
+      <thead>
+        <tr>
+          <th>Email</th>
+          <th>Rôle</th>
+          <th>Créé</th>
+          <th style="width:220px">Actions</th>
+        </tr>
+      </thead>
+      <tbody></tbody>
+    </table>
+
+    <div class="foot"><span id="status" class="muted"></span></div>
+  </section>
+
+  <!-- Modal édition -->
+  <dialog id="editDlg">
+    <div style="padding:14px;border-bottom:1px solid var(--border);font-weight:700">Modifier l’utilisateur</div>
+    <form id="editForm" style="padding:14px;display:grid;gap:10px">
+      <input type="hidden" id="editId">
+      <label>Email
+        <input id="editEmail" required>
+      </label>
+      <label>Rôle
+        <select id="editRole">
+          <option value="member">member</option>
+          <option value="admin">admin</option>
+        </select>
+      </label>
+      <label>Nouveau mot de passe (optionnel)
+        <input id="editPwd" type="password" placeholder="laisser vide pour ne pas changer">
+      </label>
+      <div id="editErr" style="color:#ef4444"></div>
+      <div style="display:flex;gap:10px;justify-content:flex-end;border-top:1px solid var(--border);padding-top:12px">
+        <button type="button" class="btn" onclick="document.getElementById('editDlg').close()">Annuler</button>
+        <button type="submit" class="btn primary">Enregistrer</button>
+      </div>
+    </form>
+  </dialog>
+
+</div>
+
+<script src="common.js"></script>
+<script>
+
+// ===== Preamble via common.js =====
+if (typeof App !== 'undefined') { App.requireAdmin(); }
+
+// Local helpers (page-specific)
+const $ = (s)=>document.querySelector(s);
+const EMAIL_DOMAIN = localStorage.getItem('efoot.emailDomain') || 'gz.local';
+function toast(m){ const s=$('#status'); if(!s){ console.log(m); return; } s.textContent=m; s.style.opacity=1; setTimeout(()=>s.style.opacity=.75,1200); }
+function normEmail(x){ x=(x||'').trim(); if(!x) return x; if(x.includes('@')) return x.toLowerCase(); return (x+'@'+EMAIL_DOMAIN).toLowerCase(); }
+function fmtDate(s){ try{ const d=new Date(s); return d.toLocaleString('fr-FR'); } catch(_){ return s||''; } }
+function escapeHtml(t){ return String(t??'').replace(/[&<>"']/g, m => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[m])); }
+
+/* ===== CRUD Users ===== */
+let USERS=[];
+async function loadUsers(){
+  const r=await fetch(`${API}/admin/users`,{headers:{'Authorization':`Bearer ${token}`}});
+  if(!r.ok){ toast('Chargement échoué'); return; }
+  const d=await r.json();
+  USERS = d.users||[];
+  renderUsers();
+}
+function renderUsers(){
+  const q=($('#search').value||'').toLowerCase();
+  const rows = USERS.filter(u=>(u.email||'').toLowerCase().includes(q));
+  const tb=$('#tbl tbody'); tb.innerHTML='';
+  rows.forEach(u=>{
+    const tr=document.createElement('tr');
+    tr.innerHTML =
+      `<td>${escapeHtml(u.email||'')}</td>
+       <td>${escapeHtml(u.role||'')}</td>
+       <td class="muted">${escapeHtml(fmtDate(u.created_at||u.createdAt||''))}</td>
+       <td>
+         <button class="btn primary" data-edit="${u.id}">Modifier</button>
+         <button class="btn danger" data-del="${u.id}">Supprimer</button>
+       </td>`;
+    tb.appendChild(tr);
+  });
+}
+
+/* list actions */
+document.getElementById('refresh').addEventListener('click', loadUsers);
+document.getElementById('search').addEventListener('input', renderUsers);
+
+/* add */
+$('#addBtn').onclick=async ()=>{
+  const email = normEmail($('#emailNew').value);
+  const password = ($('#pwdNew').value||'').trim();
+  const role = $('#roleNew').value;
+  if(!email || !password){ return toast('Email et mot de passe requis'); }
+  const btn=$('#addBtn'); btn.disabled=true; btn.textContent='Ajout…';
+  try{
+    const r=await fetch(`${API}/admin/users`,{
+      method:'POST',
+      headers:{'Content-Type':'application/json','Authorization':`Bearer ${token}`},
+      body:JSON.stringify({email,password,role})
+    });
+    const d=await r.json().catch(()=>({}));
+    if(!r.ok) throw new Error(d.error||`Erreur ${r.status}`);
+    $('#emailNew').value=''; $('#pwdNew').value='';
+    toast('Utilisateur ajouté');
+    await loadUsers();
+  }catch(e){ toast(e.message||'Erreur'); }
+  finally{ btn.disabled=false; btn.textContent='Ajouter'; }
+};
+
+/* edit open/submit */
+document.addEventListener('click', e=>{
+  const id = e.target?.dataset?.edit;
+  if(id){
+    const u = USERS.find(x=>String(x.id)===String(id));
+    if(!u) return;
+    $('#editId').value = u.id;
+    $('#editEmail').value = u.email||'';
+    $('#editRole').value = (u.role||'member');
+    $('#editPwd').value = '';
+    $('#editErr').textContent='';
+    $('#editDlg').showModal();
+  }
+});
+
+$('#editForm').addEventListener('submit', async (e)=>{
+  e.preventDefault();
+  const id = $('#editId').value;
+  const email = normEmail($('#editEmail').value);
+  const role  = $('#editRole').value;
+  const pwd   = $('#editPwd').value.trim();
+  const body = { email, role };
+  if(pwd) body.password = pwd;
+  try{
+    const r=await fetch(`${API}/admin/users/${encodeURIComponent(id)}`,{
+      method:'PUT',
+      headers:{'Content-Type':'application/json','Authorization':`Bearer ${token}`},
+      body:JSON.stringify(body)
+    });
+    const d=await r.json().catch(()=>({}));
+    if(!r.ok) throw new Error(d.error||'Échec modification');
+    $('#editDlg').close();
+    toast('Utilisateur modifié');
+    await loadUsers();
+  }catch(err){
+    $('#editErr').textContent = err.message||'Erreur';
+  }
+});
+
+/* delete */
+document.addEventListener('click', async e=>{
+  const id = e.target?.dataset?.del;
+  if(!id) return;
+  if(!confirm('Supprimer cet utilisateur ?')) return;
+  try{
+    const r=await fetch(`${API}/admin/users/${encodeURIComponent(id)}`,{
+      method:'DELETE',
+      headers:{'Authorization':`Bearer ${token}`}
+    });
+    if(!r.ok){
+      const d=await r.json().catch(()=>({}));
+      throw new Error(d.error||'Échec suppression');
+    }
+    toast('Utilisateur supprimé');
+    await loadUsers();
+  }catch(err){
+    toast(err.message||'Erreur');
+  }
+});
+
+/* sockets (auto-refresh) */
+(function setupSocket(){
+  const s=document.createElement('script'); s.src=`${API}/socket.io/socket.io.js`;
+  s.onload=()=>{
+    try{
+      const u=new URL(API); const ws=`${u.protocol}//${u.hostname}:${u.port||'3000'}`;
+      const socket=window.io(ws,{transports:['websocket','polling']});
+      socket.on('users:changed', ()=>loadUsers());
+    }catch(_){}
+  };
+  document.head.appendChild(s);
+})();
+
+/* init */
+(async function init(){ await loadUsers(); })();
+</script>
+<footer style="text-align: center; font-family:cursive;">Copyright © -GOUZEPE GAMING CLUB 2025</footer>
+
+</body>
+</html>

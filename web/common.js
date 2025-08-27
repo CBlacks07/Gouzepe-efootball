@@ -54,7 +54,7 @@
 
     // Pages admin → rôle admin obligatoire
     if (here.startsWith('admin-') && getRole() !== 'admin') {
-      location.replace('Accueil.html');
+      location.replace('accueil.html');
     }
   })();
 

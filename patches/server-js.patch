@@ -1,0 +1,40 @@
+diff --git a/server.js b/server.js
+index 0000000..0000001 100644
+--- a/server.js
++++ b/server.js
+@@ -1,8 +1,12 @@
+-const express = require('express');
++const express = require('express');
++const helmet = require('helmet');
+@@
+ const app = express();
+ app.use(express.json());
++app.set('trust proxy', 1);
++app.use(helmet({ crossOriginResourcePolicy:false }));
+@@
+-// ---------- matchdays ----------
+-app.get('/matchdays', auth, async (req,res)=>{
+-  const seasonId = await currentSeasonId();
+-  const r=await q(`SELECT day FROM matchday WHERE season_id=$1 ORDER BY day ASC`,[seasonId]);
+-  ok(res,{ days:r.rows.map(x=>dayjs(x.day).format('YYYY-MM-DD')) });
+-});
++// ---------- matchdays ----------
++app.get('/matchdays', auth, async (req,res)=>{
++  const seasonId = await currentSeasonId();
++  const { month } = req.query; // ex: 2025-08
++  let sql = `SELECT day FROM matchday WHERE season_id=$1`;
++  const params = [seasonId];
++  if(month && /^\d{4}-\d{2}$/.test(month)){
++    sql += ` AND to_char(day,'YYYY-MM')=$2`;
++    params.push(month);
++  }
++  sql += ` ORDER BY day ASC`;
++  const r = await q(sql, params);
++  ok(res,{ days:r.rows.map(x=>dayjs(x.day).format('YYYY-MM-DD')) });
++});
++
++// Saison courante (utilisé par l’accueil)
++app.get('/season/current', auth, async (req,res)=>{
++  const r = await q(`SELECT name FROM seasons WHERE is_closed=false ORDER BY id DESC LIMIT 1`);
++  ok(res, { name: r.rows[0]?.name || 'Saison courante' });
++});

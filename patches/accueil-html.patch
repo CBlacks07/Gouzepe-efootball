@@ -1,0 +1,51 @@
+diff --git a/accueil.html b/accueil.html
+index 0000000..0000001 100644
+--- a/accueil.html
++++ b/accueil.html
+@@ -1,12 +1,20 @@
+ <!doctype html>
+ <html lang="fr">
+ <head>
+   <meta charset="utf-8" />
+   <title>GOUZEPE eFOOTBALL — Accueil</title>
+   <meta name="viewport" content="width=device-width, initial-scale=1" />
+   <link rel="stylesheet" href="common.css">
++  <link rel="icon" href="assets/favicon.svg" type="image/svg+xml">
++  <meta name="theme-color" content="#0b1220">
+@@
+ <style>
+@@
++  /* Anneaux de focus accessibles (UX clavier) */
++  :where(button,input,select,textarea):focus-visible{
++    outline: none; box-shadow: 0 0 0 3px rgba(96,165,250,.35);
++  }
++
+   #status{transition:opacity .25s}
+ </style>
+@@
+   updateButtons();
+   enforceReadOnlyForMembers();
+ }
+@@
+ (async ()=>{
+   await initSeasonContext(API, token);
+@@
+ })();
++
++/* Saisie chiffres stricte + bornes sur inputs de score (0..30) */
++(function enforceNumericScores(){
++  const isScore = el => el && (el.matches?.('.score input,[inputmode="numeric"]'));
++  document.addEventListener('beforeinput', (e)=>{
++    if(!isScore(e.target)) return;
++    if(e.data && /\D/.test(e.data)) e.preventDefault();
++  });
++  document.addEventListener('blur', (e)=>{
++    if(!isScore(e.target)) return;
++    const v = e.target.value.trim();
++    if(v===''){ e.target.value=''; return; }
++    const n = Math.max(0, Math.min(30, parseInt(v,10)||0));
++    e.target.value = String(n);
++  }, true);
++})();
+@@
+ </html>

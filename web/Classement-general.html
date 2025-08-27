@@ -451,7 +451,7 @@ $('#printDay').onclick=printSelectedDay;
 
 // (SUPPRIMÉ doublon) Ancienne version sans &edit=1 supprimée.
 // On garde seulement celle-ci :
-document.getElementById('editDay').onclick=()=>{ const d=$('#daySelect').value; if(d) location.href='Accueil.html?date='+encodeURIComponent(d)+'&edit=1'; };
+document.getElementById('editDay').onclick=()=>{ const d=$('#daySelect').value; if(d) location.href='accueil.html?date='+encodeURIComponent(d)+'&edit=1'; };
 
 // ▼ AJOUT : suppression de la journée (admin)
 document.getElementById('deleteDay')?.addEventListener('click', async ()=>{

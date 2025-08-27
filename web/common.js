@@ -32,7 +32,7 @@
   }
 
   function requireAdmin(){
-    if (getRole() !== 'admin') location.replace('Accueil.html');
+    if (getRole() !== 'admin') location.replace('accueil.html');
   }
 
   // Expose minimal API globale

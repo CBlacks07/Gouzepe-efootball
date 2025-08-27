@@ -312,7 +312,7 @@ $('#refresh').onclick=()=>{loadSeason(); loadDays();};
 $('#printSeason').onclick=printSeason;
 $('#viewDay').onclick=()=>viewSelectedDay(true);
 $('#daySelect').addEventListener('change',()=>{ const has=!!$('#daySelect').value; $('#editDay').disabled=(role!=='admin')||!has; $('#printDay').disabled=!has; });
-$('#editDay').onclick=()=>{ const d=$('#daySelect').value; if(d) location.href='Accueil.html?date='+encodeURIComponent(d); };
+$('#editDay').onclick=()=>{ const d=$('#daySelect').value; if(d) location.href='accueil.html?date='+encodeURIComponent(d); };
 $('#printDay').onclick=printSelectedDay;
 
 (async function init(){

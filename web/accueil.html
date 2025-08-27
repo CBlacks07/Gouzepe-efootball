@@ -449,7 +449,7 @@ function updateButtons(){
       saveBtn.onclick = () => {
         const d = getDateKey();
         if (!d) { alert('Date invalide'); return; }
-        location.href = 'Accueil.html?date='+encodeURIComponent(d)+'&edit=1';
+        location.href = 'accueil.html?date='+encodeURIComponent(d)+'&edit=1';
       };
     }
     if (newDayBtn) newDayBtn.style.display='inline-flex';

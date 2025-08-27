@@ -196,7 +196,7 @@ function redirect(role){
   sessionStorage.setItem('efoot.navlock','1');
   setTimeout(()=>sessionStorage.removeItem('efoot.navlock'), 3000);
   if((role||'').toLowerCase()==='admin') location.replace('Admin-Utilisateurs.html');
-  else location.replace('Accueil.html');
+  else location.replace('accueil.html');
 }
 
 /* toggle password */

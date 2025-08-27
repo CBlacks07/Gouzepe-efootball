@@ -198,7 +198,7 @@ Add-PortRule -Port 8080 -Name "gouzepe-web-8080"
 # ───────────────────────────────────────────────
 # Copie des pages vers ./web (si absent)
 # ───────────────────────────────────────────────
-$pages = @('login.html','accueil.html','Classement-general.html','Admin-Joueurs.html','Admin-Utilisateurs.html')
+$pages = @('login.html','Accueil.html','Classement-general.html','Admin-Joueurs.html','Admin-Utilisateurs.html')
 foreach($pg in $pages){
   $src = Join-Path $root $pg
   $dst = Join-Path $WebDir $pg
@@ -218,7 +218,7 @@ Write-Host "`nTout est prêt ✅" -ForegroundColor Green
 Write-Host "API :   http://$ip:3000/health"
 Write-Host "WEB :   http://$ip:8080/ (redirige vers login.html)"
 Write-Host "Pages :"
-Write-Host "  - Accueil               http://$ip:8080/accueil.html"
+Write-Host "  - Accueil               http://$ip:8080/Accueil.html"
 Write-Host "  - Classement général    http://$ip:8080/Classement-general.html"
 Write-Host "  - Admin joueurs         http://$ip:8080/Admin-Joueurs.html"
 Write-Host "  - Admin utilisateurs    http://$ip:8080/Admin-Utilisateurs.html"

@@ -1,7 +1,7 @@
-diff --git a/accueil.html b/accueil.html
+diff --git a/Accueil.html b/Accueil.html
 index 0000000..0000001 100644
---- a/accueil.html
-+++ b/accueil.html
+--- a/Accueil.html
++++ b/Accueil.html
 @@ -1,12 +1,20 @@
  <!doctype html>
  <html lang="fr">

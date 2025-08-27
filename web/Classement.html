@@ -81,7 +81,7 @@
     </div>
     <button id="menuToggle" class="menu-toggle" aria-label="Ouvrir le menu" aria-expanded="false" aria-controls="menu">☰</button>
     <div id="menu" class="menu">
-      <a class="btn" href="accueil.html">🏟️ Accueil</a>
+      <a class="btn" href="Accueil.html">🏟️ Accueil</a>
       <a class="btn adminOnly" href="Admin-Joueurs.html">👥 Admin-Joueurs</a>
       <a class="btn adminOnly" href="Admin-Utilisateurs.html">🛡️ Admin-Utilisateurs</a>
       <button id="theme" class="btn">☀️</button>
@@ -312,7 +312,7 @@ $('#refresh').onclick=()=>{loadSeason(); loadDays();};
 $('#printSeason').onclick=printSeason;
 $('#viewDay').onclick=()=>viewSelectedDay(true);
 $('#daySelect').addEventListener('change',()=>{ const has=!!$('#daySelect').value; $('#editDay').disabled=(role!=='admin')||!has; $('#printDay').disabled=!has; });
-$('#editDay').onclick=()=>{ const d=$('#daySelect').value; if(d) location.href='accueil.html?date='+encodeURIComponent(d); };
+$('#editDay').onclick=()=>{ const d=$('#daySelect').value; if(d) location.href='Accueil.html?date='+encodeURIComponent(d); };
 $('#printDay').onclick=printSelectedDay;
 
 (async function init(){

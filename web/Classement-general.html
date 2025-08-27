@@ -86,7 +86,7 @@
     </div>
     <button id="menuToggle" class="menu-toggle" aria-label="Ouvrir le menu" aria-expanded="false" aria-controls="menu">☰</button>
     <div id="menu" class="menu">
-      <a class="btn" href="accueil.html">🏟️ Accueil</a>
+      <a class="btn" href="Accueil.html">🏟️ Accueil</a>
       <a class="btn adminOnly" href="Admin-Joueurs.html">👥 Admin-Joueurs</a>
       <a class="btn adminOnly" href="Admin-Utilisateurs.html">🛡️ Admin-Utilisateurs</a>
       <button id="theme" class="btn">☀️</button>
@@ -451,7 +451,7 @@ $('#printDay').onclick=printSelectedDay;
 
 // (SUPPRIMÉ doublon) Ancienne version sans &edit=1 supprimée.
 // On garde seulement celle-ci :
-document.getElementById('editDay').onclick=()=>{ const d=$('#daySelect').value; if(d) location.href='accueil.html?date='+encodeURIComponent(d)+'&edit=1'; };
+document.getElementById('editDay').onclick=()=>{ const d=$('#daySelect').value; if(d) location.href='Accueil.html?date='+encodeURIComponent(d)+'&edit=1'; };
 
 // ▼ AJOUT : suppression de la journée (admin)
 document.getElementById('deleteDay')?.addEventListener('click', async ()=>{
@@ -548,7 +548,7 @@ document.getElementById('newSeason')?.addEventListener('click', async ()=>{
 document.getElementById('editDay').onclick = ()=>{
   const d = document.getElementById('daySelect').value;
   if(!d) return;
-  location.href = 'accueil.html?date='+encodeURIComponent(d)+'&edit=1';
+  location.href = 'Accueil.html?date='+encodeURIComponent(d)+'&edit=1';
 };
 
 // Rattacher la journée sélectionnée à la saison sélectionnée (fonction existante)

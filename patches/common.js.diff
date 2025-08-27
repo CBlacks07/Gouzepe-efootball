@@ -1,0 +1,49 @@
+--- common.js
++++ common.patched.js
+@@ -32,7 +32,7 @@
+   }
+ 
+   function requireAdmin(){
+-    if (getRole() !== 'admin') location.replace('Accueil.html');
++    if (getRole() !== 'admin') location.replace('accueil.html');
+   }
+ 
+   // Expose minimal API globale
+@@ -42,6 +42,28 @@
+   window.role  = getRole();
+   window.expAt = getExp();
+   window.App = { $, $$, getAPI, getToken: getTok, getRole, getExp, toast, safeFetch, logout, requireAdmin };
++
++  /* auto-discovery de l’API (premier chargement, sans action utilisateur) */
++  (async function autoDiscoverAPI(){
++    if (localStorage.getItem('efoot.api')) return;
++    const candidates = [];
++    const h = location.hostname;
++    if (h.endsWith('.onrender.com')) {
++      if (h.includes('-static')) candidates.push('https://' + h.replace('-static', '-api'));
++      candidates.push('https://' + h.replace('-static', ''));
++    }
++    candidates.push(DEF_API());
++    for (const base of candidates) {
++      try {
++        const r = await safeFetch(base.replace(/\/+$/,'') + '/health', { cache:'no-store' }, 2500);
++        if (r && r.ok) {
++          localStorage.setItem('efoot.api', base.replace(/\/+$/,''));
++          location.reload();
++          return;
++        }
++      } catch (_) {}
++    }
++  })();
+ 
+   // ---------- Auth guard (toutes pages sauf login) ----------
+   (function guard(){
+@@ -54,7 +76,7 @@
+ 
+     // Pages admin → rôle admin obligatoire
+     if (here.startsWith('admin-') && getRole() !== 'admin') {
+-      location.replace('Accueil.html');
++      location.replace('accueil.html');
+     }
+   })();
+ 

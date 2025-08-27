@@ -1,0 +1,53 @@
+--- login.html
++++ login.patched.html
+@@ -179,7 +179,16 @@
+ })();
+ 
+ /* ===== helpers ===== */
+-const DEF_API = () => (location.protocol.startsWith('http') ? location.protocol : 'http:') + '//' + location.hostname + ':3000';
++const DEF_API = () => {
++  const meta = document.querySelector('meta[name="efoot.api"]');
++  if (meta?.content) return meta.content.replace(/\/+$/,'');
++  const h = location.hostname;
++  if (h.endsWith('.onrender.com')) {
++    if (h.includes('-static')) return ('https://' + h.replace('-static','-api'));
++    return ('https://' + h.replace('-static',''));
++  }
++  return (location.protocol.startsWith('http') ? location.protocol : 'http:') + '//' + location.hostname + ':3000';
++};
+ function getAPI(){ return (localStorage.getItem('efoot.api')||DEF_API()).replace(/\/+$/,''); }
+ function setAPI(v){ localStorage.setItem('efoot.api', v.replace(/\/+$/,'')); }
+ function showErr(msg){ const el=document.getElementById('err'); el.textContent=msg||''; }
+@@ -191,12 +200,31 @@
+   try{ return await fetch(url, {signal:ctrl.signal, ...opt}); }
+   finally{ clearTimeout(t); }
+ }
++
++// Auto-discovery silencieux au premier chargement
++(async function autoDiscoverAPI(){
++  if (localStorage.getItem('efoot.api')) return;
++  const h = location.hostname;
++  const candidates = [];
++  if (h.endsWith('.onrender.com')) {
++    if (h.includes('-static')) candidates.push('https://' + h.replace('-static','-api'));
++    candidates.push('https://' + h.replace('-static',''));
++  }
++  candidates.push(DEF_API());
++  for (const base of candidates) {
++    try{
++      const r = await safeFetch(base.replace(/\/+$/,'') + '/health', { cache:'no-store' }, 2500);
++      if (r && r.ok){ setAPI(base); location.reload(); return; }
++    }catch(_){}
++  }
++})();
++
+ function redirect(role){
+   if(sessionStorage.getItem('efoot.navlock')==='1') return;
+   sessionStorage.setItem('efoot.navlock','1');
+   setTimeout(()=>sessionStorage.removeItem('efoot.navlock'), 3000);
+   if((role||'').toLowerCase()==='admin') location.replace('Admin-Utilisateurs.html');
+-  else location.replace('Accueil.html');
++  else location.replace('accueil.html');
+ }
+ 
+ /* toggle password */

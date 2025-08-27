@@ -43,6 +43,28 @@
   window.expAt = getExp();
   window.App = { $, $$, getAPI, getToken: getTok, getRole, getExp, toast, safeFetch, logout, requireAdmin };
 
+  /* auto-discovery de l’API (premier chargement, sans action utilisateur) */
+  (async function autoDiscoverAPI(){
+    if (localStorage.getItem('efoot.api')) return;
+    const candidates = [];
+    const h = location.hostname;
+    if (h.endsWith('.onrender.com')) {
+      if (h.includes('-static')) candidates.push('https://' + h.replace('-static', '-api'));
+      candidates.push('https://' + h.replace('-static', ''));
+    }
+    candidates.push(DEF_API());
+    for (const base of candidates) {
+      try {
+        const r = await safeFetch(base.replace(/\/+$/,'') + '/health', { cache:'no-store' }, 2500);
+        if (r && r.ok) {
+          localStorage.setItem('efoot.api', base.replace(/\/+$/,''));
+          location.reload();
+          return;
+        }
+      } catch (_) {}
+    }
+  })();
+
   // ---------- Auth guard (toutes pages sauf login) ----------
   (function guard(){
     const here = (location.pathname.split('/').pop() || '').toLowerCase();

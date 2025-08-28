@@ -74,11 +74,13 @@
     const tok = getTok(), exp = getExp();
     if (!tok || Date.now() >= exp) { location.replace('login.html'); return; }
 
-    // Pages admin → rôle admin obligatoire
-    if (here.startsWith('admin-') && getRole() !== 'admin') {
-      location.replace('accueil.html');
+    // Pages admin : tout sauf Admin-Joueurs reste réservé aux admins
+    if (here.startsWith('admin-')) {
+      const isAdmin = (getRole() || '').toLowerCase() === 'admin';
+      const isPlayersAdmin = here === 'admin-joueurs.html';
+      
     }
-  })();
+})();
 
   // ---------- Affichage "adminOnly" ----------
   $$('.adminOnly').forEach(el => el.style.display = (getRole() === 'admin') ? 'inline-flex' : 'none');
@@ -98,19 +100,26 @@
   })();
 
   // ---------- Menu mobile ----------
-  (function mobileMenu(){
-    const menu = document.querySelector('#menu'), toggle = document.querySelector('#menuToggle');
-    if (!menu || !toggle) return;
-    function open(v){ menu.classList.toggle('open', v); toggle.setAttribute('aria-expanded', v ? 'true' : 'false'); }
-    toggle.addEventListener('click', () => open(!menu.classList.contains('open')));
+  (function menu(){
+    const btn = document.querySelector('#menuToggle');
+    const menu = document.querySelector('#menu');
+    if (!btn || !menu) return;
+    btn.addEventListener('click', () => {
+      const open = menu.classList.toggle('open');
+      btn.setAttribute('aria-expanded', open ? 'true' : 'false');
+      btn.setAttribute('aria-label', open ? 'Fermer le menu' : 'Ouvrir le menu');
+    });
     document.addEventListener('click', (e) => {
       if (!menu.classList.contains('open')) return;
-      if (e.target === toggle || menu.contains(e.target)) return;
-      open(false);
-    }, true);
+      if (e.target === btn || menu.contains(e.target)) return;
+      menu.classList.remove('open');
+      btn.setAttribute('aria-expanded', 'false');
+      btn.setAttribute('aria-label', 'Ouvrir le menu');
+    });
   })();
 
   // ---------- Logout ----------
   const logoutBtn = document.querySelector('#logoutBtn');
   if (logoutBtn) logoutBtn.addEventListener('click', logout);
 })();
+

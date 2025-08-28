@@ -1,40 +1,63 @@
-// Usage: node create_admin.js <email> <password> [role]
-// ex: node create_admin.js admin@gz.local Admin123 admin
+// Crée (ou met à jour) un admin dans la table users.
+// Usage 1 (via env) : ADMIN_EMAIL="admin@gz.local" ADMIN_PASSWORD="admin" node create_admin.js
+// Usage 2 (via args) : node create_admin.js admin@gz.local monpassword
+
+require('dotenv').config();
 const { Pool } = require('pg');
 const bcrypt = require('bcryptjs');
-require('dotenv').config();
 
-const email = (process.argv[2]||'').toLowerCase().trim();
-const password = process.argv[3]||'';
-const role = (process.argv[4]||'admin').toLowerCase();
+const emailArg = (process.argv[2] || '').trim();
+const passArg  = (process.argv[3] || '').trim();
 
-if(!email || !password){
-  console.log('Usage: node create_admin.js <email> <password> [role]');
+const EMAIL = emailArg || (process.env.ADMIN_EMAIL || '').trim();
+const PASS  = passArg  || (process.env.ADMIN_PASSWORD || '').trim();
+
+if (!EMAIL || !PASS) {
+  console.error('❌ EMAIL et MOT DE PASSE requis.\n' +
+    'Exemples:\n' +
+    '  ADMIN_EMAIL="admin@gz.local" ADMIN_PASSWORD="admin" node create_admin.js\n' +
+    '  node create_admin.js admin@gz.local monpassword');
   process.exit(1);
 }
 
+const useSSL = (process.env.PGSSL === 'true') || process.env.RENDER === 'true' || process.env.NODE_ENV === 'production';
 const pool = new Pool({
-  host: process.env.PGHOST,
-  port: process.env.PGPORT,
-  database: process.env.PGDATABASE,
-  user: process.env.PGUSER,
-  password: process.env.PGPASSWORD
+  host: process.env.PGHOST || '127.0.0.1',
+  port: +(process.env.PGPORT || 5432),
+  database: process.env.PGDATABASE || 'gz_efoot',
+  user: process.env.PGUSER || 'postgres',
+  password: process.env.PGPASSWORD || 'postgres',
+  ssl: useSSL ? { rejectUnauthorized: false } : false,
 });
 
-(async ()=>{
-  try{
-    const hash = await bcrypt.hash(password, 10);
-    const r = await pool.query(
+async function run() {
+  const client = await pool.connect();
+  try {
+    // table users (au cas où)
+    await client.query(`CREATE TABLE IF NOT EXISTS users(
+      id SERIAL PRIMARY KEY,
+      email TEXT UNIQUE NOT NULL,
+      password_hash TEXT NOT NULL,
+      role TEXT NOT NULL DEFAULT 'member',
+      created_at TIMESTAMP DEFAULT now()
+    )`);
+
+    const hash = await bcrypt.hash(PASS, 10);
+    const up = await client.query(
       `INSERT INTO users(email,password_hash,role)
-       VALUES($1,$2,$3)
-       ON CONFLICT(email) DO UPDATE SET password_hash=$2, role=$3
+       VALUES ($1,$2,'admin')
+       ON CONFLICT(email) DO UPDATE SET password_hash=EXCLUDED.password_hash, role='admin'
        RETURNING id,email,role,created_at`,
-      [email, hash, role]
+      [EMAIL.toLowerCase(), hash]
     );
-    console.log('OK:', r.rows[0]);
-  }catch(e){
-    console.error('ERR:', e.message);
-  }finally{
+    console.log('✅ Admin OK :', up.rows[0]);
+  } catch (e) {
+    console.error('❌ Erreur seed admin:', e.message);
+    process.exitCode = 1;
+  } finally {
+    client.release();
     await pool.end();
   }
-})();
+}
+
+run();

@@ -1,9 +1,12 @@
+<!-- Classement-general.html -->
 <!doctype html>
 <html lang="fr">
 <head>
 <meta charset="utf-8" />
 <title>GOUZEPE eFOOTBALL — Classement Général</title>
 <meta name="viewport" content="width=device-width, initial-scale=1" />
+<link rel="stylesheet" href="theme.css">
+
 <style>
   :root{
     --bg:#0b1220;--panel:#0f1627;--card:#0c1426;--text:#e5e7eb;--muted:#94a3b8;--border:#1f2937;
@@ -82,17 +85,20 @@
   <div class="top">
     <div class="nav">
       <div class="logo" aria-hidden="true"></div>
-      <h1 style="margin:0;font-size:20px">Classement Général — Saison</h1>
+      <h1 style="margin:0;font-size:16px">GOUZEPE GAMING CLUB <br>Championnat eFootball</h1>
+      <span id="season-badge" class="season-badge blink-slow" style="display:none">Saison : <span id="season-text"></span></span>
     </div>
     <button id="menuToggle" class="menu-toggle" aria-label="Ouvrir le menu" aria-expanded="false" aria-controls="menu">☰</button>
-    <div id="menu" class="menu">
-      <a class="btn" href="Accueil.html">🏟️ Accueil</a>
-      <a class="btn adminOnly" href="Admin-Joueurs.html">👥 Admin-Joueurs</a>
+    <div id="menu" class="menu top">
+      <a class="btn" id="btnProfile" href="Panel-Membre.html" style="display:none">👤 Mon profil</a>
+      <a class="btn" href="Classement-general.html" title="Voir le classement général de la saison">📊 Classements</a>
+      <a class="btn" id="linkMembers" href="Admin-Joueurs.html">👥 Admin-Joueurs</a>
       <a class="btn adminOnly" href="Admin-Utilisateurs.html">🛡️ Admin-Utilisateurs</a>
-      <button id="theme" class="btn">☀️</button>
+      <button id="theme" class="btn" title="Basculer thème">☀️</button>
       <button id="logoutBtn" class="btn danger">Déconnexion</button>
     </div>
   </div>
+
 
   <div class="row" style="margin:12px 0; display:flex; gap:10px; flex-wrap:wrap">
     <label class="muted">Saison :</label>
@@ -133,13 +139,12 @@
 
   <div class="cards" id="seasonCards"></div>
 
-  <dialog id="dayModal">
-    <div style="padding:14px;border-bottom:1px solid var(--border);display:flex;justify-content:space-between;align-items:center">
+  <dialog id="dayModal" class="day">
+    <div class="day-head" style="padding:14px;border-bottom:1px solid var(--border);display:flex;justify-content:space-between;align-items:center">
       <div id="dayTitle" style="font-weight:700">Journée</div>
       <button class="btn" onclick="document.getElementById('dayModal').close()">Fermer</button>
     </div>
-    <div style="padding:12px">
-      <div id="dayContent"></div>
+    <div id="day-body" style="padding:12px">
     </div>
   </dialog>
 
@@ -200,13 +205,52 @@ function roleOf(id){ return (ROLE_BY_ID.get(id)||'MEMBRE').toUpperCase(); }
 
 /* ===== fetch saison ===== */
 let seasonData=[];
-async function loadSeason(){
-  const r=await fetch(`${API}/season/standings`,{headers:{'Authorization':`Bearer ${token}`}});
-  const d=await r.json();
-  seasonData = d.standings||[];
-  renderSeason();
+async function loadSeasons(){
+  const r = await fetch(`${API}/seasons`, { headers:{Authorization:`Bearer ${token}`} });
+  const d = await r.json();
+  const sel = document.getElementById('seasonSelect');
+  sel.innerHTML = '';
+
+  (d.seasons || []).forEach(s=>{
+    const o = document.createElement('option');
+    o.value = s.id;
+    o.textContent = `${s.name}${s.is_closed ? ' (clôturée)' : ''}`;
+    sel.appendChild(o);
+  });
+
+  return d.seasons || [];
 }
 function escapeHtml(t){return String(t||'').replace(/[&<>"']/g,m=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;','\'':'&#39;'}[m]));}
+
+async function selectCurrentSeasonIfPossible(){
+  let current = null;
+  try {
+    const r = await fetch(`${API}/season/current`, { headers:{Authorization:`Bearer ${token}`} });
+    if (r.ok) current = await r.json(); // { id, name }
+  } catch(_){}
+
+  const sel = document.getElementById('seasonSelect');
+  if (!sel) return;
+
+  if (current) {
+    // sélectionne la saison courante si elle est listée
+    for (const opt of sel.options) {
+      if (+opt.value === +current.id) { sel.value = String(current.id); break; }
+    }
+    const badge = document.getElementById('season-badge');
+    const txt   = document.getElementById('season-text');
+    if (txt)   txt.textContent = current.name || `Saison ${current.id}`;
+    if (badge) badge.style.display = 'inline-flex';
+  } else {
+    // pas de saison courante détectée : masque le badge
+    const badge = document.getElementById('season-badge');
+    if (badge) badge.style.display = 'none';
+  }
+
+  // Déclenche le chargement standings + journées pour la saison sélectionnée
+  sel.dispatchEvent(new Event('change'));
+}
+
 function renderSeason(){
   const q=($('#search').value||'').toLowerCase();
   const data = seasonData.filter(x=>(x.name||'').toLowerCase().includes(q) || (x.id||'').toLowerCase().includes(q));
@@ -266,7 +310,7 @@ async function viewSelectedDay(openModal=true){
 
   if(openModal){
     $('#dayTitle').textContent='Journée du '+new Date(day).toLocaleDateString('fr-FR',{weekday:'long',day:'2-digit',month:'long',year:'numeric'});
-    $('#dayContent').innerHTML = renderDayContent(payload);
+    $('#day-body').innerHTML = renderDayContent(payload);
     $('#dayModal').showModal();
   }
   return payload;
@@ -302,6 +346,19 @@ function splitAndRankDaily(st){
   inv.forEach(r=> r.RANK='—');
   return {main,inv};
 }
+
+function enhanceTables(){
+  // force le min-width sur tous les tableaux dans .table-wrap
+  document.querySelectorAll('.table-wrap > table').forEach(t=>{
+    if(!t.style.minWidth) t.style.minWidth = '720px';
+  });
+  // clavier numérique sur tous les inputs de score
+  document.querySelectorAll('table input[type=number]').forEach(inp=>{
+    inp.setAttribute('inputmode','numeric');
+    inp.setAttribute('pattern','[0-9]*');
+  });
+};
+
 function standingsTableHTML(title, rowsMain, rowsInv){
   const head='<table class="tbl"><thead><tr><th>Rang</th><th>Nom</th><th>ID</th><th>J</th><th>V</th><th>N</th><th>D</th><th>BM</th><th>BC</th><th>Diff</th><th>PTS</th></tr></thead><tbody>';
   const row = (r)=> `<tr><td>${r.RANK}</td><td>${escapeHtml(nameOf(r.id))}</td><td>${escapeHtml(r.id)}</td><td>${r.J}</td><td>${r.V}</td><td>${r.N}</td><td>${r.D}</td><td>${r.BP}</td><td>${r.BC}</td><td>${r.DIFF}</td><td>${r.PTS}</td></tr>`;
@@ -313,6 +370,8 @@ function standingsTableHTML(title, rowsMain, rowsInv){
   }
   return `<div class="sectionTitle">${title}</div>${head}${body}</tbody></table>`;
 }
+
+
 
 /* ===== rendu de la journée ===== */
 function renderMatchesTable(rows){
@@ -433,6 +492,7 @@ async function printSelectedDay(){
     html+= '<div style="margin-top:8px"><b>Notes :</b><br>'+esc(payload.barrage.notes).replace(/\r?\n/g,'<br>')+'</div>';
   }
   html+='</body></html>';
+
   const w=window.open('','_blank'); w.document.open(); w.document.write(html); w.document.close(); w.focus();
 }
 
@@ -484,16 +544,24 @@ document.getElementById('deleteDay')?.addEventListener('click', async ()=>{
 
 (async function init(){
   await loadPlayers();
-  await loadSeason();
-  await loadDays();
-  // sockets
+  await loadSeasons();
+  await selectCurrentSeasonIfPossible();
+
+  // Au cas où, on recharge aussi les standings/journées par défaut
+  // si la sélection de saison n’a rien déclenché :
+  if (!document.getElementById('daySelect').options.length) {
+    await loadSeason();
+    await loadDays();
+  }
+
+  // socket (inchangé)
   try{
     const s=document.createElement('script'); s.src=`${API}/socket.io/socket.io.js`; s.onload=()=>{
       const u=new URL(API); const ws=`${u.protocol}//${u.hostname}:${u.port||'3000'}`;
       const socket=window.io(ws,{transports:['websocket','polling']});
-      socket.on('season:updated', ()=>{ loadSeason(); loadDays(); });
-      socket.on('day:confirmed', ()=>{ loadSeason(); loadDays(); });
-      socket.on('day:deleted',  ()=>{ loadSeason(); loadDays(); });
+      socket.on('season:updated', ()=>{ loadSeasons().then(selectCurrentSeasonIfPossible); });
+      socket.on('day:confirmed', ()=>{ loadDays(); loadSeason(); });
+      socket.on('day:deleted',  ()=>{ loadDays(); loadSeason(); });
     }; document.head.appendChild(s);
   }catch(_){}
 })();
@@ -546,11 +614,12 @@ document.getElementById('newSeason')?.addEventListener('click', async ()=>{
 
 // Modifier (admin) => passer en mode édition avec la date sélectionnée
 document.getElementById('editDay').onclick = ()=>{
-  const d = document.getElementById('daySelect').value;
+  const d   = document.getElementById('daySelect').value;
+  const sid = +document.getElementById('seasonSelect').value || '';
   if(!d) return;
-  location.href = 'Accueil.html?date='+encodeURIComponent(d)+'&edit=1';
+  location.href = 'Accueil.html?date=' + encodeURIComponent(d)
+               + '&edit=1&sid=' + encodeURIComponent(sid);
 };
-
 // Rattacher la journée sélectionnée à la saison sélectionnée (fonction existante)
 async function reattachDayToSeason(){
   const day = document.getElementById('daySelect').value;
@@ -572,6 +641,74 @@ async function reattachDayToSeason(){
   await loadSeasons();
   document.getElementById('seasonSelect').dispatchEvent(new Event('change'));
 })();
+
+// Montrer "Mon profil" en premier pour les membres
+(function(){
+  const r = (localStorage.getItem('efoot.role')||'member').toLowerCase();
+  const b = document.getElementById('btnProfile');
+  if(b && r !== 'admin'){ b.style.display='inline-flex'; b.parentNode.insertBefore(b, b.parentNode.firstChild); }
+})();
+// PING présence pour les membres
+(function(){
+  const r = (localStorage.getItem('efoot.role')||'member').toLowerCase();
+  if(!token || r==='admin') return;
+  const ping = ()=> fetch(`${API}/presence/ping`, { method:'POST', headers:{Authorization:`Bearer ${token}`}})
+                    .catch(()=>{});
+  ping();
+  setInterval(ping, 15000);
+})();
+
+(function(){
+  const role = (localStorage.getItem('efoot.role') || 'member').toLowerCase();
+  const btn = document.getElementById('btnProfile');
+  const lm  = document.getElementById('linkMembers');
+  const menu = document.getElementById('menu');
+
+  if (role === 'admin') {
+    if (btn) btn.style.display = 'none';
+    if (lm)  lm.textContent = '👥 Admin-Joueurs';
+  } else {
+    if (btn) {
+      btn.style.display = 'inline-flex';
+      btn.href = 'Panel-Membre.html';
+      // le mettre en premier dans le menu
+      if (menu && btn.parentNode === menu) menu.insertBefore(btn, menu.firstChild);
+    }
+    if (lm) {
+      lm.textContent = '👥 Liste des membres';
+      lm.href = 'Admin-Joueurs.html'; // même page, mais en lecture seule côté membre
+    }
+  }
+})();
+
+// === Menu mobile robuste (id: menuToggle OR menuBtn)
+(function(){
+  const menu = document.getElementById('menu');
+  const toggle = document.getElementById('menuToggle') || document.getElementById('menuBtn');
+  if(!menu || !toggle) return;
+  function open(v){
+    menu.classList.toggle('open', v);
+    toggle.setAttribute('aria-expanded', v?'true':'false');
+  }
+  toggle.addEventListener('click', (e)=>{ e.stopPropagation(); open(!menu.classList.contains('open')); });
+  document.addEventListener('click', (e)=>{
+    if(!menu.classList.contains('open')) return;
+    if(e.target===toggle || menu.contains(e.target)) return;
+    open(false);
+  }, true);
+  document.addEventListener('keydown', (e)=>{ if(e.key==='Escape') open(false); });
+})();
+
+(function(){
+  const k='efoot.theme';
+  const apply=m=>{document.documentElement.classList.toggle('light',m==='light');localStorage.setItem(k,m);$('#theme').textContent=m==='light'?'🌙':'☀️'};
+  apply(localStorage.getItem(k)||'dark');
+  $('#theme').onclick=()=>apply(document.documentElement.classList.contains('light')?'dark':'light');
+})();
+
 </script>
+
+<footer style="text-align: center; font-family:'Gill Sans', 'Gill Sans MT', Calibri, 'Trebuchet MS', sans-serif;">Copyright © -GOUZEPE GAMING CLUB 2025</footer>
+
 </body>
 </html>

@@ -7760,3 +7760,1446 @@ login error error: la relation « app_user » n'existe pas
   line: '1452',
   routine: 'parserOpenTable'
 }
+Schema init error Error: The server does not support SSL connections
+    at C:\Users\CCL\Desktop\GOUZEPE_APP\api\node_modules\pg-pool\index.js:45:11
+    at process.processTicksAndRejections (node:internal/process/task_queues:105:5)
+    at async ensureSchema (C:\Users\CCL\Desktop\GOUZEPE_APP\api\server.js:75:3)
+    at async C:\Users\CCL\Desktop\GOUZEPE_APP\api\server.js:432:5
+Schema init error Error: The server does not support SSL connections
+    at C:\Users\CCL\Desktop\GOUZEPE_APP\api\node_modules\pg-pool\index.js:45:11
+    at process.processTicksAndRejections (node:internal/process/task_queues:105:5)
+    at async ensureSchema (C:\Users\CCL\Desktop\GOUZEPE_APP\api\server.js:75:3)
+    at async C:\Users\CCL\Desktop\GOUZEPE_APP\api\server.js:432:5
+Schema init error Error: The server does not support SSL connections
+    at C:\Users\CCL\Desktop\GOUZEPE_APP\api\node_modules\pg-pool\index.js:45:11
+    at process.processTicksAndRejections (node:internal/process/task_queues:105:5)
+    at async ensureSchema (C:\Users\CCL\Desktop\GOUZEPE_APP\api\server.js:75:3)
+    at async C:\Users\CCL\Desktop\GOUZEPE_APP\api\server.js:432:5
+Schema init error Error: The server does not support SSL connections
+    at C:\Users\CCL\Desktop\GOUZEPE_APP\api\node_modules\pg-pool\index.js:45:11
+    at process.processTicksAndRejections (node:internal/process/task_queues:105:5)
+    at async ensureSchema (C:\Users\CCL\Desktop\GOUZEPE_APP\api\server.js:75:3)
+    at async C:\Users\CCL\Desktop\GOUZEPE_APP\api\server.js:432:5
+Schema init error Error: The server does not support SSL connections
+    at C:\Users\CCL\Desktop\GOUZEPE_APP\api\node_modules\pg-pool\index.js:45:11
+    at process.processTicksAndRejections (node:internal/process/task_queues:105:5)
+    at async ensureSchema (C:\Users\CCL\Desktop\GOUZEPE_APP\api\server.js:75:3)
+    at async C:\Users\CCL\Desktop\GOUZEPE_APP\api\server.js:432:5
+Schema init error Error: The server does not support SSL connections
+    at C:\Users\CCL\Desktop\GOUZEPE_APP\api\node_modules\pg-pool\index.js:45:11
+    at process.processTicksAndRejections (node:internal/process/task_queues:105:5)
+    at async ensureSchema (C:\Users\CCL\Desktop\GOUZEPE_APP\api\server.js:75:3)
+    at async C:\Users\CCL\Desktop\GOUZEPE_APP\api\server.js:432:5
+Schema init error Error: The server does not support SSL connections
+    at C:\Users\CCL\Desktop\GOUZEPE_APP\api\node_modules\pg-pool\index.js:45:11
+    at process.processTicksAndRejections (node:internal/process/task_queues:105:5)
+    at async ensureSchema (C:\Users\CCL\Desktop\GOUZEPE_APP\api\server.js:75:3)
+    at async C:\Users\CCL\Desktop\GOUZEPE_APP\api\server.js:432:5
+Schema init error Error: The server does not support SSL connections
+    at C:\Users\CCL\Desktop\GOUZEPE_APP\api\node_modules\pg-pool\index.js:45:11
+    at process.processTicksAndRejections (node:internal/process/task_queues:105:5)
+    at async ensureSchema (C:\Users\CCL\Desktop\GOUZEPE_APP\api\server.js:75:3)
+    at async C:\Users\CCL\Desktop\GOUZEPE_APP\api\server.js:432:5
+Schema init error Error: The server does not support SSL connections
+    at C:\Users\CCL\Desktop\GOUZEPE_APP\api\node_modules\pg-pool\index.js:45:11
+    at process.processTicksAndRejections (node:internal/process/task_queues:105:5)
+    at async ensureSchema (C:\Users\CCL\Desktop\GOUZEPE_APP\api\server.js:75:3)
+    at async C:\Users\CCL\Desktop\GOUZEPE_APP\api\server.js:432:5
+Schema init error Error: The server does not support SSL connections
+    at C:\Users\CCL\Desktop\GOUZEPE_APP\api\node_modules\pg-pool\index.js:45:11
+    at process.processTicksAndRejections (node:internal/process/task_queues:105:5)
+    at async ensureSchema (C:\Users\CCL\Desktop\GOUZEPE_APP\api\server.js:75:3)
+    at async C:\Users\CCL\Desktop\GOUZEPE_APP\api\server.js:432:5
+Schema init error Error: The server does not support SSL connections
+    at C:\Users\CCL\Desktop\GOUZEPE_APP\api\node_modules\pg-pool\index.js:45:11
+    at process.processTicksAndRejections (node:internal/process/task_queues:105:5)
+    at async ensureSchema (C:\Users\CCL\Desktop\GOUZEPE_APP\api\server.js:75:3)
+    at async C:\Users\CCL\Desktop\GOUZEPE_APP\api\server.js:432:5
+Schema init error Error: The server does not support SSL connections
+    at C:\Users\CCL\Desktop\GOUZEPE_APP\api\node_modules\pg-pool\index.js:45:11
+    at process.processTicksAndRejections (node:internal/process/task_queues:105:5)
+    at async ensureSchema (C:\Users\CCL\Desktop\GOUZEPE_APP\api\server.js:75:3)
+    at async C:\Users\CCL\Desktop\GOUZEPE_APP\api\server.js:432:5
+Schema init error Error: The server does not support SSL connections
+    at C:\Users\CCL\Desktop\GOUZEPE_APP\api\node_modules\pg-pool\index.js:45:11
+    at process.processTicksAndRejections (node:internal/process/task_queues:105:5)
+    at async ensureSchema (C:\Users\CCL\Desktop\GOUZEPE_APP\api\server.js:75:3)
+    at async C:\Users\CCL\Desktop\GOUZEPE_APP\api\server.js:432:5
+Schema init error Error: The server does not support SSL connections
+    at C:\Users\CCL\Desktop\GOUZEPE_APP\api\node_modules\pg-pool\index.js:45:11
+    at process.processTicksAndRejections (node:internal/process/task_queues:105:5)
+    at async ensureSchema (C:\Users\CCL\Desktop\GOUZEPE_APP\api\server.js:75:3)
+    at async C:\Users\CCL\Desktop\GOUZEPE_APP\api\server.js:432:5
+Schema init error Error: The server does not support SSL connections
+    at C:\Users\CCL\Desktop\GOUZEPE_APP\api\node_modules\pg-pool\index.js:45:11
+    at process.processTicksAndRejections (node:internal/process/task_queues:105:5)
+    at async ensureSchema (C:\Users\CCL\Desktop\GOUZEPE_APP\api\server.js:75:3)
+    at async C:\Users\CCL\Desktop\GOUZEPE_APP\api\server.js:432:5
+Schema init error Error: The server does not support SSL connections
+    at C:\Users\CCL\Desktop\GOUZEPE_APP\api\node_modules\pg-pool\index.js:45:11
+    at process.processTicksAndRejections (node:internal/process/task_queues:105:5)
+    at async ensureSchema (C:\Users\CCL\Desktop\GOUZEPE_APP\api\server.js:75:3)
+    at async C:\Users\CCL\Desktop\GOUZEPE_APP\api\server.js:432:5
+Schema init error Error: The server does not support SSL connections
+    at C:\Users\CCL\Desktop\GOUZEPE_APP\api\node_modules\pg-pool\index.js:45:11
+    at process.processTicksAndRejections (node:internal/process/task_queues:105:5)
+    at async ensureSchema (C:\Users\CCL\Desktop\GOUZEPE_APP\api\server.js:75:3)
+    at async C:\Users\CCL\Desktop\GOUZEPE_APP\api\server.js:432:5
+Schema init error Error: The server does not support SSL connections
+    at C:\Users\CCL\Desktop\GOUZEPE_APP\api\node_modules\pg-pool\index.js:45:11
+    at process.processTicksAndRejections (node:internal/process/task_queues:105:5)
+    at async ensureSchema (C:\Users\CCL\Desktop\GOUZEPE_APP\api\server.js:75:3)
+    at async C:\Users\CCL\Desktop\GOUZEPE_APP\api\server.js:432:5
+Schema init error Error: The server does not support SSL connections
+    at C:\Users\CCL\Desktop\GOUZEPE_APP\api\node_modules\pg-pool\index.js:45:11
+    at process.processTicksAndRejections (node:internal/process/task_queues:105:5)
+    at async ensureSchema (C:\Users\CCL\Desktop\GOUZEPE_APP\api\server.js:75:3)
+    at async C:\Users\CCL\Desktop\GOUZEPE_APP\api\server.js:432:5
+Schema init error Error: The server does not support SSL connections
+    at C:\Users\CCL\Desktop\GOUZEPE_APP\api\node_modules\pg-pool\index.js:45:11
+    at process.processTicksAndRejections (node:internal/process/task_queues:105:5)
+    at async ensureSchema (C:\Users\CCL\Desktop\GOUZEPE_APP\api\server.js:75:3)
+    at async C:\Users\CCL\Desktop\GOUZEPE_APP\api\server.js:432:5
+Schema init error Error: The server does not support SSL connections
+    at C:\Users\CCL\Desktop\GOUZEPE_APP\api\node_modules\pg-pool\index.js:45:11
+    at process.processTicksAndRejections (node:internal/process/task_queues:105:5)
+    at async ensureSchema (C:\Users\CCL\Desktop\GOUZEPE_APP\api\server.js:75:3)
+    at async C:\Users\CCL\Desktop\GOUZEPE_APP\api\server.js:432:5
+Schema init error Error: The server does not support SSL connections
+    at C:\Users\CCL\Desktop\GOUZEPE_APP\api\node_modules\pg-pool\index.js:45:11
+    at process.processTicksAndRejections (node:internal/process/task_queues:105:5)
+    at async ensureSchema (C:\Users\CCL\Desktop\GOUZEPE_APP\api\server.js:75:3)
+    at async C:\Users\CCL\Desktop\GOUZEPE_APP\api\server.js:432:5
+Schema init error Error: The server does not support SSL connections
+    at C:\Users\CCL\Desktop\GOUZEPE_APP\api\node_modules\pg-pool\index.js:45:11
+    at process.processTicksAndRejections (node:internal/process/task_queues:105:5)
+    at async ensureSchema (C:\Users\CCL\Desktop\GOUZEPE_APP\api\server.js:75:3)
+    at async C:\Users\CCL\Desktop\GOUZEPE_APP\api\server.js:432:5
+Schema init error Error: The server does not support SSL connections
+    at C:\Users\CCL\Desktop\GOUZEPE_APP\api\node_modules\pg-pool\index.js:45:11
+    at process.processTicksAndRejections (node:internal/process/task_queues:105:5)
+    at async ensureSchema (C:\Users\CCL\Desktop\GOUZEPE_APP\api\server.js:75:3)
+    at async C:\Users\CCL\Desktop\GOUZEPE_APP\api\server.js:432:5
+Schema init error Error: The server does not support SSL connections
+    at C:\Users\CCL\Desktop\GOUZEPE_APP\api\node_modules\pg-pool\index.js:45:11
+    at process.processTicksAndRejections (node:internal/process/task_queues:105:5)
+    at async ensureSchema (C:\Users\CCL\Desktop\GOUZEPE_APP\api\server.js:75:3)
+    at async C:\Users\CCL\Desktop\GOUZEPE_APP\api\server.js:432:5
+Schema init error Error: The server does not support SSL connections
+    at C:\Users\CCL\Desktop\GOUZEPE_APP\api\node_modules\pg-pool\index.js:45:11
+    at process.processTicksAndRejections (node:internal/process/task_queues:105:5)
+    at async ensureSchema (C:\Users\CCL\Desktop\GOUZEPE_APP\api\server.js:75:3)
+    at async C:\Users\CCL\Desktop\GOUZEPE_APP\api\server.js:432:5
+Schema init error Error: The server does not support SSL connections
+    at C:\Users\CCL\Desktop\GOUZEPE_APP\api\node_modules\pg-pool\index.js:45:11
+    at process.processTicksAndRejections (node:internal/process/task_queues:105:5)
+    at async ensureSchema (C:\Users\CCL\Desktop\GOUZEPE_APP\api\server.js:75:3)
+    at async C:\Users\CCL\Desktop\GOUZEPE_APP\api\server.js:432:5
+Schema init error Error: The server does not support SSL connections
+    at C:\Users\CCL\Desktop\GOUZEPE_APP\api\node_modules\pg-pool\index.js:45:11
+    at process.processTicksAndRejections (node:internal/process/task_queues:105:5)
+    at async ensureSchema (C:\Users\CCL\Desktop\GOUZEPE_APP\api\server.js:75:3)
+    at async C:\Users\CCL\Desktop\GOUZEPE_APP\api\server.js:432:5
+Schema init error Error: The server does not support SSL connections
+    at C:\Users\CCL\Desktop\GOUZEPE_APP\api\node_modules\pg-pool\index.js:45:11
+    at process.processTicksAndRejections (node:internal/process/task_queues:105:5)
+    at async ensureSchema (C:\Users\CCL\Desktop\GOUZEPE_APP\api\server.js:75:3)
+    at async C:\Users\CCL\Desktop\GOUZEPE_APP\api\server.js:432:5
+Schema init error Error: The server does not support SSL connections
+    at C:\Users\CCL\Desktop\GOUZEPE_APP\api\node_modules\pg-pool\index.js:45:11
+    at process.processTicksAndRejections (node:internal/process/task_queues:105:5)
+    at async ensureSchema (C:\Users\CCL\Desktop\GOUZEPE_APP\api\server.js:75:3)
+    at async C:\Users\CCL\Desktop\GOUZEPE_APP\api\server.js:432:5
+Schema init error Error: The server does not support SSL connections
+    at C:\Users\CCL\Desktop\GOUZEPE_APP\api\node_modules\pg-pool\index.js:45:11
+    at process.processTicksAndRejections (node:internal/process/task_queues:105:5)
+    at async ensureSchema (C:\Users\CCL\Desktop\GOUZEPE_APP\api\server.js:75:3)
+    at async C:\Users\CCL\Desktop\GOUZEPE_APP\api\server.js:432:5
+Schema init error Error: The server does not support SSL connections
+    at C:\Users\CCL\Desktop\GOUZEPE_APP\api\node_modules\pg-pool\index.js:45:11
+    at process.processTicksAndRejections (node:internal/process/task_queues:105:5)
+    at async ensureSchema (C:\Users\CCL\Desktop\GOUZEPE_APP\api\server.js:75:3)
+    at async C:\Users\CCL\Desktop\GOUZEPE_APP\api\server.js:432:5
+Schema init error Error: The server does not support SSL connections
+    at C:\Users\CCL\Desktop\GOUZEPE_APP\api\node_modules\pg-pool\index.js:45:11
+    at process.processTicksAndRejections (node:internal/process/task_queues:105:5)
+    at async ensureSchema (C:\Users\CCL\Desktop\GOUZEPE_APP\api\server.js:75:3)
+    at async C:\Users\CCL\Desktop\GOUZEPE_APP\api\server.js:432:5
+Schema init error Error: The server does not support SSL connections
+    at C:\Users\CCL\Desktop\GOUZEPE_APP\api\node_modules\pg-pool\index.js:45:11
+    at process.processTicksAndRejections (node:internal/process/task_queues:105:5)
+    at async ensureSchema (C:\Users\CCL\Desktop\GOUZEPE_APP\api\server.js:75:3)
+    at async C:\Users\CCL\Desktop\GOUZEPE_APP\api\server.js:432:5
+Schema init error Error: The server does not support SSL connections
+    at C:\Users\CCL\Desktop\GOUZEPE_APP\api\node_modules\pg-pool\index.js:45:11
+    at process.processTicksAndRejections (node:internal/process/task_queues:105:5)
+    at async ensureSchema (C:\Users\CCL\Desktop\GOUZEPE_APP\api\server.js:75:3)
+    at async C:\Users\CCL\Desktop\GOUZEPE_APP\api\server.js:432:5
+node:internal/modules/cjs/loader:1413
+  throw err;
+  ^
+
+Error: Cannot find module 'multer'
+Require stack:
+- C:\Users\CCL\Desktop\GOUZEPE_APP\api\server.js
+    at Module._resolveFilename (node:internal/modules/cjs/loader:1410:15)
+    at defaultResolveImpl (node:internal/modules/cjs/loader:1051:19)
+    at resolveForCJSWithHooks (node:internal/modules/cjs/loader:1056:22)
+    at Module._load (node:internal/modules/cjs/loader:1219:37)
+    at TracingChannel.traceSync (node:diagnostics_channel:322:14)
+    at wrapModuleLoad (node:internal/modules/cjs/loader:238:24)
+    at Module.require (node:internal/modules/cjs/loader:1493:12)
+    at require (node:internal/modules/helpers:152:16)
+    at Object.<anonymous> (C:\Users\CCL\Desktop\GOUZEPE_APP\api\server.js:23:16)
+    at Module._compile (node:internal/modules/cjs/loader:1738:14) {
+  code: 'MODULE_NOT_FOUND',
+  requireStack: [ 'C:\\Users\\CCL\\Desktop\\GOUZEPE_APP\\api\\server.js' ]
+}
+
+Node.js v24.6.0
+node:internal/modules/cjs/loader:1413
+  throw err;
+  ^
+
+Error: Cannot find module 'multer'
+Require stack:
+- C:\Users\CCL\Desktop\GOUZEPE_APP\api\server.js
+    at Module._resolveFilename (node:internal/modules/cjs/loader:1410:15)
+    at defaultResolveImpl (node:internal/modules/cjs/loader:1051:19)
+    at resolveForCJSWithHooks (node:internal/modules/cjs/loader:1056:22)
+    at Module._load (node:internal/modules/cjs/loader:1219:37)
+    at TracingChannel.traceSync (node:diagnostics_channel:322:14)
+    at wrapModuleLoad (node:internal/modules/cjs/loader:238:24)
+    at Module.require (node:internal/modules/cjs/loader:1493:12)
+    at require (node:internal/modules/helpers:152:16)
+    at Object.<anonymous> (C:\Users\CCL\Desktop\GOUZEPE_APP\api\server.js:23:16)
+    at Module._compile (node:internal/modules/cjs/loader:1738:14) {
+  code: 'MODULE_NOT_FOUND',
+  requireStack: [ 'C:\\Users\\CCL\\Desktop\\GOUZEPE_APP\\api\\server.js' ]
+}
+
+Node.js v24.6.0
+Schema init error Error: The server does not support SSL connections
+    at C:\Users\CCL\Desktop\GOUZEPE_APP\api\node_modules\pg-pool\index.js:45:11
+    at process.processTicksAndRejections (node:internal/process/task_queues:105:5)
+    at async ensureSchema (C:\Users\CCL\Desktop\GOUZEPE_APP\api\server.js:75:3)
+    at async C:\Users\CCL\Desktop\GOUZEPE_APP\api\server.js:432:5
+Schema init error Error: The server does not support SSL connections
+    at C:\Users\CCL\Desktop\GOUZEPE_APP\api\node_modules\pg-pool\index.js:45:11
+    at process.processTicksAndRejections (node:internal/process/task_queues:105:5)
+    at async ensureSchema (C:\Users\CCL\Desktop\GOUZEPE_APP\api\server.js:75:3)
+    at async C:\Users\CCL\Desktop\GOUZEPE_APP\api\server.js:432:5
+Schema init error Error: The server does not support SSL connections
+    at C:\Users\CCL\Desktop\GOUZEPE_APP\api\node_modules\pg-pool\index.js:45:11
+    at process.processTicksAndRejections (node:internal/process/task_queues:105:5)
+    at async ensureSchema (C:\Users\CCL\Desktop\GOUZEPE_APP\api\server.js:75:3)
+    at async C:\Users\CCL\Desktop\GOUZEPE_APP\api\server.js:432:5
+Schema init error Error: The server does not support SSL connections
+    at C:\Users\CCL\Desktop\GOUZEPE_APP\api\node_modules\pg-pool\index.js:45:11
+    at process.processTicksAndRejections (node:internal/process/task_queues:105:5)
+    at async ensureSchema (C:\Users\CCL\Desktop\GOUZEPE_APP\api\server.js:75:3)
+    at async C:\Users\CCL\Desktop\GOUZEPE_APP\api\server.js:432:5
+node:internal/modules/cjs/loader:1413
+  throw err;
+  ^
+
+Error: Cannot find module 'multer'
+Require stack:
+- C:\Users\CCL\Desktop\GOUZEPE_APP\api\server.js
+    at Module._resolveFilename (node:internal/modules/cjs/loader:1410:15)
+    at defaultResolveImpl (node:internal/modules/cjs/loader:1051:19)
+    at resolveForCJSWithHooks (node:internal/modules/cjs/loader:1056:22)
+    at Module._load (node:internal/modules/cjs/loader:1219:37)
+    at TracingChannel.traceSync (node:diagnostics_channel:322:14)
+    at wrapModuleLoad (node:internal/modules/cjs/loader:238:24)
+    at Module.require (node:internal/modules/cjs/loader:1493:12)
+    at require (node:internal/modules/helpers:152:16)
+    at Object.<anonymous> (C:\Users\CCL\Desktop\GOUZEPE_APP\api\server.js:23:16)
+    at Module._compile (node:internal/modules/cjs/loader:1738:14) {
+  code: 'MODULE_NOT_FOUND',
+  requireStack: [ 'C:\\Users\\CCL\\Desktop\\GOUZEPE_APP\\api\\server.js' ]
+}
+
+Node.js v24.6.0
+node:internal/modules/cjs/loader:1413
+  throw err;
+  ^
+
+Error: Cannot find module 'multer'
+Require stack:
+- C:\Users\CCL\Desktop\GOUZEPE_APP\api\server.js
+    at Module._resolveFilename (node:internal/modules/cjs/loader:1410:15)
+    at defaultResolveImpl (node:internal/modules/cjs/loader:1051:19)
+    at resolveForCJSWithHooks (node:internal/modules/cjs/loader:1056:22)
+    at Module._load (node:internal/modules/cjs/loader:1219:37)
+    at TracingChannel.traceSync (node:diagnostics_channel:322:14)
+    at wrapModuleLoad (node:internal/modules/cjs/loader:238:24)
+    at Module.require (node:internal/modules/cjs/loader:1493:12)
+    at require (node:internal/modules/helpers:152:16)
+    at Object.<anonymous> (C:\Users\CCL\Desktop\GOUZEPE_APP\api\server.js:23:16)
+    at Module._compile (node:internal/modules/cjs/loader:1738:14) {
+  code: 'MODULE_NOT_FOUND',
+  requireStack: [ 'C:\\Users\\CCL\\Desktop\\GOUZEPE_APP\\api\\server.js' ]
+}
+
+Node.js v24.6.0
+node:internal/modules/cjs/loader:1413
+  throw err;
+  ^
+
+Error: Cannot find module 'multer'
+Require stack:
+- C:\Users\CCL\Desktop\GOUZEPE_APP\api\server.js
+    at Module._resolveFilename (node:internal/modules/cjs/loader:1410:15)
+    at defaultResolveImpl (node:internal/modules/cjs/loader:1051:19)
+    at resolveForCJSWithHooks (node:internal/modules/cjs/loader:1056:22)
+    at Module._load (node:internal/modules/cjs/loader:1219:37)
+    at TracingChannel.traceSync (node:diagnostics_channel:322:14)
+    at wrapModuleLoad (node:internal/modules/cjs/loader:238:24)
+    at Module.require (node:internal/modules/cjs/loader:1493:12)
+    at require (node:internal/modules/helpers:152:16)
+    at Object.<anonymous> (C:\Users\CCL\Desktop\GOUZEPE_APP\api\server.js:23:16)
+    at Module._compile (node:internal/modules/cjs/loader:1738:14) {
+  code: 'MODULE_NOT_FOUND',
+  requireStack: [ 'C:\\Users\\CCL\\Desktop\\GOUZEPE_APP\\api\\server.js' ]
+}
+
+Node.js v24.6.0
+node:internal/modules/cjs/loader:1413
+  throw err;
+  ^
+
+Error: Cannot find module 'multer'
+Require stack:
+- C:\Users\CCL\Desktop\GOUZEPE_APP\api\server.js
+    at Module._resolveFilename (node:internal/modules/cjs/loader:1410:15)
+    at defaultResolveImpl (node:internal/modules/cjs/loader:1051:19)
+    at resolveForCJSWithHooks (node:internal/modules/cjs/loader:1056:22)
+    at Module._load (node:internal/modules/cjs/loader:1219:37)
+    at TracingChannel.traceSync (node:diagnostics_channel:322:14)
+    at wrapModuleLoad (node:internal/modules/cjs/loader:238:24)
+    at Module.require (node:internal/modules/cjs/loader:1493:12)
+    at require (node:internal/modules/helpers:152:16)
+    at Object.<anonymous> (C:\Users\CCL\Desktop\GOUZEPE_APP\api\server.js:23:16)
+    at Module._compile (node:internal/modules/cjs/loader:1738:14) {
+  code: 'MODULE_NOT_FOUND',
+  requireStack: [ 'C:\\Users\\CCL\\Desktop\\GOUZEPE_APP\\api\\server.js' ]
+}
+
+Node.js v24.6.0
+node:internal/modules/cjs/loader:1413
+  throw err;
+  ^
+
+Error: Cannot find module 'multer'
+Require stack:
+- C:\Users\CCL\Desktop\GOUZEPE_APP\api\server.js
+    at Module._resolveFilename (node:internal/modules/cjs/loader:1410:15)
+    at defaultResolveImpl (node:internal/modules/cjs/loader:1051:19)
+    at resolveForCJSWithHooks (node:internal/modules/cjs/loader:1056:22)
+    at Module._load (node:internal/modules/cjs/loader:1219:37)
+    at TracingChannel.traceSync (node:diagnostics_channel:322:14)
+    at wrapModuleLoad (node:internal/modules/cjs/loader:238:24)
+    at Module.require (node:internal/modules/cjs/loader:1493:12)
+    at require (node:internal/modules/helpers:152:16)
+    at Object.<anonymous> (C:\Users\CCL\Desktop\GOUZEPE_APP\api\server.js:23:16)
+    at Module._compile (node:internal/modules/cjs/loader:1738:14) {
+  code: 'MODULE_NOT_FOUND',
+  requireStack: [ 'C:\\Users\\CCL\\Desktop\\GOUZEPE_APP\\api\\server.js' ]
+}
+
+Node.js v24.6.0
+node:internal/modules/cjs/loader:1413
+  throw err;
+  ^
+
+Error: Cannot find module 'multer'
+Require stack:
+- C:\Users\CCL\Desktop\GOUZEPE_APP\api\server.js
+    at Module._resolveFilename (node:internal/modules/cjs/loader:1410:15)
+    at defaultResolveImpl (node:internal/modules/cjs/loader:1051:19)
+    at resolveForCJSWithHooks (node:internal/modules/cjs/loader:1056:22)
+    at Module._load (node:internal/modules/cjs/loader:1219:37)
+    at TracingChannel.traceSync (node:diagnostics_channel:322:14)
+    at wrapModuleLoad (node:internal/modules/cjs/loader:238:24)
+    at Module.require (node:internal/modules/cjs/loader:1493:12)
+    at require (node:internal/modules/helpers:152:16)
+    at Object.<anonymous> (C:\Users\CCL\Desktop\GOUZEPE_APP\api\server.js:23:16)
+    at Module._compile (node:internal/modules/cjs/loader:1738:14) {
+  code: 'MODULE_NOT_FOUND',
+  requireStack: [ 'C:\\Users\\CCL\\Desktop\\GOUZEPE_APP\\api\\server.js' ]
+}
+
+Node.js v24.6.0
+node:internal/modules/cjs/loader:1413
+  throw err;
+  ^
+
+Error: Cannot find module 'multer'
+Require stack:
+- C:\Users\CCL\Desktop\GOUZEPE_APP\api\server.js
+    at Module._resolveFilename (node:internal/modules/cjs/loader:1410:15)
+    at defaultResolveImpl (node:internal/modules/cjs/loader:1051:19)
+    at resolveForCJSWithHooks (node:internal/modules/cjs/loader:1056:22)
+    at Module._load (node:internal/modules/cjs/loader:1219:37)
+    at TracingChannel.traceSync (node:diagnostics_channel:322:14)
+    at wrapModuleLoad (node:internal/modules/cjs/loader:238:24)
+    at Module.require (node:internal/modules/cjs/loader:1493:12)
+    at require (node:internal/modules/helpers:152:16)
+    at Object.<anonymous> (C:\Users\CCL\Desktop\GOUZEPE_APP\api\server.js:23:16)
+    at Module._compile (node:internal/modules/cjs/loader:1738:14) {
+  code: 'MODULE_NOT_FOUND',
+  requireStack: [ 'C:\\Users\\CCL\\Desktop\\GOUZEPE_APP\\api\\server.js' ]
+}
+
+Node.js v24.6.0
+node:internal/modules/cjs/loader:1413
+  throw err;
+  ^
+
+Error: Cannot find module 'multer'
+Require stack:
+- C:\Users\CCL\Desktop\GOUZEPE_APP\api\server.js
+    at Module._resolveFilename (node:internal/modules/cjs/loader:1410:15)
+    at defaultResolveImpl (node:internal/modules/cjs/loader:1051:19)
+    at resolveForCJSWithHooks (node:internal/modules/cjs/loader:1056:22)
+    at Module._load (node:internal/modules/cjs/loader:1219:37)
+    at TracingChannel.traceSync (node:diagnostics_channel:322:14)
+    at wrapModuleLoad (node:internal/modules/cjs/loader:238:24)
+    at Module.require (node:internal/modules/cjs/loader:1493:12)
+    at require (node:internal/modules/helpers:152:16)
+    at Object.<anonymous> (C:\Users\CCL\Desktop\GOUZEPE_APP\api\server.js:23:16)
+    at Module._compile (node:internal/modules/cjs/loader:1738:14) {
+  code: 'MODULE_NOT_FOUND',
+  requireStack: [ 'C:\\Users\\CCL\\Desktop\\GOUZEPE_APP\\api\\server.js' ]
+}
+
+Node.js v24.6.0
+node:internal/modules/cjs/loader:1413
+  throw err;
+  ^
+
+Error: Cannot find module 'multer'
+Require stack:
+- C:\Users\CCL\Desktop\GOUZEPE_APP\api\server.js
+    at Module._resolveFilename (node:internal/modules/cjs/loader:1410:15)
+    at defaultResolveImpl (node:internal/modules/cjs/loader:1051:19)
+    at resolveForCJSWithHooks (node:internal/modules/cjs/loader:1056:22)
+    at Module._load (node:internal/modules/cjs/loader:1219:37)
+    at TracingChannel.traceSync (node:diagnostics_channel:322:14)
+    at wrapModuleLoad (node:internal/modules/cjs/loader:238:24)
+    at Module.require (node:internal/modules/cjs/loader:1493:12)
+    at require (node:internal/modules/helpers:152:16)
+    at Object.<anonymous> (C:\Users\CCL\Desktop\GOUZEPE_APP\api\server.js:23:16)
+    at Module._compile (node:internal/modules/cjs/loader:1738:14) {
+  code: 'MODULE_NOT_FOUND',
+  requireStack: [ 'C:\\Users\\CCL\\Desktop\\GOUZEPE_APP\\api\\server.js' ]
+}
+
+Node.js v24.6.0
+node:internal/modules/cjs/loader:1413
+  throw err;
+  ^
+
+Error: Cannot find module 'multer'
+Require stack:
+- C:\Users\CCL\Desktop\GOUZEPE_APP\api\server.js
+    at Module._resolveFilename (node:internal/modules/cjs/loader:1410:15)
+    at defaultResolveImpl (node:internal/modules/cjs/loader:1051:19)
+    at resolveForCJSWithHooks (node:internal/modules/cjs/loader:1056:22)
+    at Module._load (node:internal/modules/cjs/loader:1219:37)
+    at TracingChannel.traceSync (node:diagnostics_channel:322:14)
+    at wrapModuleLoad (node:internal/modules/cjs/loader:238:24)
+    at Module.require (node:internal/modules/cjs/loader:1493:12)
+    at require (node:internal/modules/helpers:152:16)
+    at Object.<anonymous> (C:\Users\CCL\Desktop\GOUZEPE_APP\api\server.js:23:16)
+    at Module._compile (node:internal/modules/cjs/loader:1738:14) {
+  code: 'MODULE_NOT_FOUND',
+  requireStack: [ 'C:\\Users\\CCL\\Desktop\\GOUZEPE_APP\\api\\server.js' ]
+}
+
+Node.js v24.6.0
+node:internal/modules/cjs/loader:1413
+  throw err;
+  ^
+
+Error: Cannot find module 'multer'
+Require stack:
+- C:\Users\CCL\Desktop\GOUZEPE_APP\api\server.js
+    at Module._resolveFilename (node:internal/modules/cjs/loader:1410:15)
+    at defaultResolveImpl (node:internal/modules/cjs/loader:1051:19)
+    at resolveForCJSWithHooks (node:internal/modules/cjs/loader:1056:22)
+    at Module._load (node:internal/modules/cjs/loader:1219:37)
+    at TracingChannel.traceSync (node:diagnostics_channel:322:14)
+    at wrapModuleLoad (node:internal/modules/cjs/loader:238:24)
+    at Module.require (node:internal/modules/cjs/loader:1493:12)
+    at require (node:internal/modules/helpers:152:16)
+    at Object.<anonymous> (C:\Users\CCL\Desktop\GOUZEPE_APP\api\server.js:23:16)
+    at Module._compile (node:internal/modules/cjs/loader:1738:14) {
+  code: 'MODULE_NOT_FOUND',
+  requireStack: [ 'C:\\Users\\CCL\\Desktop\\GOUZEPE_APP\\api\\server.js' ]
+}
+
+Node.js v24.6.0
+node:internal/modules/cjs/loader:1413
+  throw err;
+  ^
+
+Error: Cannot find module 'multer'
+Require stack:
+- C:\Users\CCL\Desktop\GOUZEPE_APP\api\server.js
+    at Module._resolveFilename (node:internal/modules/cjs/loader:1410:15)
+    at defaultResolveImpl (node:internal/modules/cjs/loader:1051:19)
+    at resolveForCJSWithHooks (node:internal/modules/cjs/loader:1056:22)
+    at Module._load (node:internal/modules/cjs/loader:1219:37)
+    at TracingChannel.traceSync (node:diagnostics_channel:322:14)
+    at wrapModuleLoad (node:internal/modules/cjs/loader:238:24)
+    at Module.require (node:internal/modules/cjs/loader:1493:12)
+    at require (node:internal/modules/helpers:152:16)
+    at Object.<anonymous> (C:\Users\CCL\Desktop\GOUZEPE_APP\api\server.js:23:16)
+    at Module._compile (node:internal/modules/cjs/loader:1738:14) {
+  code: 'MODULE_NOT_FOUND',
+  requireStack: [ 'C:\\Users\\CCL\\Desktop\\GOUZEPE_APP\\api\\server.js' ]
+}
+
+Node.js v24.6.0
+node:internal/modules/cjs/loader:1413
+  throw err;
+  ^
+
+Error: Cannot find module 'multer'
+Require stack:
+- C:\Users\CCL\Desktop\GOUZEPE_APP\api\server.js
+    at Module._resolveFilename (node:internal/modules/cjs/loader:1410:15)
+    at defaultResolveImpl (node:internal/modules/cjs/loader:1051:19)
+    at resolveForCJSWithHooks (node:internal/modules/cjs/loader:1056:22)
+    at Module._load (node:internal/modules/cjs/loader:1219:37)
+    at TracingChannel.traceSync (node:diagnostics_channel:322:14)
+    at wrapModuleLoad (node:internal/modules/cjs/loader:238:24)
+    at Module.require (node:internal/modules/cjs/loader:1493:12)
+    at require (node:internal/modules/helpers:152:16)
+    at Object.<anonymous> (C:\Users\CCL\Desktop\GOUZEPE_APP\api\server.js:23:16)
+    at Module._compile (node:internal/modules/cjs/loader:1738:14) {
+  code: 'MODULE_NOT_FOUND',
+  requireStack: [ 'C:\\Users\\CCL\\Desktop\\GOUZEPE_APP\\api\\server.js' ]
+}
+
+Node.js v24.6.0
+node:internal/modules/cjs/loader:1413
+  throw err;
+  ^
+
+Error: Cannot find module 'multer'
+Require stack:
+- C:\Users\CCL\Desktop\GOUZEPE_APP\api\server.js
+    at Module._resolveFilename (node:internal/modules/cjs/loader:1410:15)
+    at defaultResolveImpl (node:internal/modules/cjs/loader:1051:19)
+    at resolveForCJSWithHooks (node:internal/modules/cjs/loader:1056:22)
+    at Module._load (node:internal/modules/cjs/loader:1219:37)
+    at TracingChannel.traceSync (node:diagnostics_channel:322:14)
+    at wrapModuleLoad (node:internal/modules/cjs/loader:238:24)
+    at Module.require (node:internal/modules/cjs/loader:1493:12)
+    at require (node:internal/modules/helpers:152:16)
+    at Object.<anonymous> (C:\Users\CCL\Desktop\GOUZEPE_APP\api\server.js:23:16)
+    at Module._compile (node:internal/modules/cjs/loader:1738:14) {
+  code: 'MODULE_NOT_FOUND',
+  requireStack: [ 'C:\\Users\\CCL\\Desktop\\GOUZEPE_APP\\api\\server.js' ]
+}
+
+Node.js v24.6.0
+node:internal/modules/cjs/loader:1413
+  throw err;
+  ^
+
+Error: Cannot find module 'multer'
+Require stack:
+- C:\Users\CCL\Desktop\GOUZEPE_APP\api\server.js
+    at Module._resolveFilename (node:internal/modules/cjs/loader:1410:15)
+    at defaultResolveImpl (node:internal/modules/cjs/loader:1051:19)
+    at resolveForCJSWithHooks (node:internal/modules/cjs/loader:1056:22)
+    at Module._load (node:internal/modules/cjs/loader:1219:37)
+    at TracingChannel.traceSync (node:diagnostics_channel:322:14)
+    at wrapModuleLoad (node:internal/modules/cjs/loader:238:24)
+    at Module.require (node:internal/modules/cjs/loader:1493:12)
+    at require (node:internal/modules/helpers:152:16)
+    at Object.<anonymous> (C:\Users\CCL\Desktop\GOUZEPE_APP\api\server.js:23:16)
+    at Module._compile (node:internal/modules/cjs/loader:1738:14) {
+  code: 'MODULE_NOT_FOUND',
+  requireStack: [ 'C:\\Users\\CCL\\Desktop\\GOUZEPE_APP\\api\\server.js' ]
+}
+
+Node.js v24.6.0
+node:internal/modules/cjs/loader:1413
+  throw err;
+  ^
+
+Error: Cannot find module 'multer'
+Require stack:
+- C:\Users\CCL\Desktop\GOUZEPE_APP\api\server.js
+    at Module._resolveFilename (node:internal/modules/cjs/loader:1410:15)
+    at defaultResolveImpl (node:internal/modules/cjs/loader:1051:19)
+    at resolveForCJSWithHooks (node:internal/modules/cjs/loader:1056:22)
+    at Module._load (node:internal/modules/cjs/loader:1219:37)
+    at TracingChannel.traceSync (node:diagnostics_channel:322:14)
+    at wrapModuleLoad (node:internal/modules/cjs/loader:238:24)
+    at Module.require (node:internal/modules/cjs/loader:1493:12)
+    at require (node:internal/modules/helpers:152:16)
+    at Object.<anonymous> (C:\Users\CCL\Desktop\GOUZEPE_APP\api\server.js:23:16)
+    at Module._compile (node:internal/modules/cjs/loader:1738:14) {
+  code: 'MODULE_NOT_FOUND',
+  requireStack: [ 'C:\\Users\\CCL\\Desktop\\GOUZEPE_APP\\api\\server.js' ]
+}
+
+Node.js v24.6.0
+node:internal/modules/cjs/loader:1413
+  throw err;
+  ^
+
+Error: Cannot find module 'multer'
+Require stack:
+- C:\Users\CCL\Desktop\GOUZEPE_APP\api\server.js
+    at Module._resolveFilename (node:internal/modules/cjs/loader:1410:15)
+    at defaultResolveImpl (node:internal/modules/cjs/loader:1051:19)
+    at resolveForCJSWithHooks (node:internal/modules/cjs/loader:1056:22)
+    at Module._load (node:internal/modules/cjs/loader:1219:37)
+    at TracingChannel.traceSync (node:diagnostics_channel:322:14)
+    at wrapModuleLoad (node:internal/modules/cjs/loader:238:24)
+    at Module.require (node:internal/modules/cjs/loader:1493:12)
+    at require (node:internal/modules/helpers:152:16)
+    at Object.<anonymous> (C:\Users\CCL\Desktop\GOUZEPE_APP\api\server.js:23:16)
+    at Module._compile (node:internal/modules/cjs/loader:1738:14) {
+  code: 'MODULE_NOT_FOUND',
+  requireStack: [ 'C:\\Users\\CCL\\Desktop\\GOUZEPE_APP\\api\\server.js' ]
+}
+
+Node.js v24.6.0
+node:internal/modules/cjs/loader:1413
+  throw err;
+  ^
+
+Error: Cannot find module 'multer'
+Require stack:
+- C:\Users\CCL\Desktop\GOUZEPE_APP\api\server.js
+    at Module._resolveFilename (node:internal/modules/cjs/loader:1410:15)
+    at defaultResolveImpl (node:internal/modules/cjs/loader:1051:19)
+    at resolveForCJSWithHooks (node:internal/modules/cjs/loader:1056:22)
+    at Module._load (node:internal/modules/cjs/loader:1219:37)
+    at TracingChannel.traceSync (node:diagnostics_channel:322:14)
+    at wrapModuleLoad (node:internal/modules/cjs/loader:238:24)
+    at Module.require (node:internal/modules/cjs/loader:1493:12)
+    at require (node:internal/modules/helpers:152:16)
+    at Object.<anonymous> (C:\Users\CCL\Desktop\GOUZEPE_APP\api\server.js:23:16)
+    at Module._compile (node:internal/modules/cjs/loader:1738:14) {
+  code: 'MODULE_NOT_FOUND',
+  requireStack: [ 'C:\\Users\\CCL\\Desktop\\GOUZEPE_APP\\api\\server.js' ]
+}
+
+Node.js v24.6.0
+node:internal/modules/cjs/loader:1413
+  throw err;
+  ^
+
+Error: Cannot find module 'multer'
+Require stack:
+- C:\Users\CCL\Desktop\GOUZEPE_APP\api\server.js
+    at Module._resolveFilename (node:internal/modules/cjs/loader:1410:15)
+    at defaultResolveImpl (node:internal/modules/cjs/loader:1051:19)
+    at resolveForCJSWithHooks (node:internal/modules/cjs/loader:1056:22)
+    at Module._load (node:internal/modules/cjs/loader:1219:37)
+    at TracingChannel.traceSync (node:diagnostics_channel:322:14)
+    at wrapModuleLoad (node:internal/modules/cjs/loader:238:24)
+    at Module.require (node:internal/modules/cjs/loader:1493:12)
+    at require (node:internal/modules/helpers:152:16)
+    at Object.<anonymous> (C:\Users\CCL\Desktop\GOUZEPE_APP\api\server.js:23:16)
+    at Module._compile (node:internal/modules/cjs/loader:1738:14) {
+  code: 'MODULE_NOT_FOUND',
+  requireStack: [ 'C:\\Users\\CCL\\Desktop\\GOUZEPE_APP\\api\\server.js' ]
+}
+
+Node.js v24.6.0
+node:internal/modules/cjs/loader:1413
+  throw err;
+  ^
+
+Error: Cannot find module 'multer'
+Require stack:
+- C:\Users\CCL\Desktop\GOUZEPE_APP\api\server.js
+    at Module._resolveFilename (node:internal/modules/cjs/loader:1410:15)
+    at defaultResolveImpl (node:internal/modules/cjs/loader:1051:19)
+    at resolveForCJSWithHooks (node:internal/modules/cjs/loader:1056:22)
+    at Module._load (node:internal/modules/cjs/loader:1219:37)
+    at TracingChannel.traceSync (node:diagnostics_channel:322:14)
+    at wrapModuleLoad (node:internal/modules/cjs/loader:238:24)
+    at Module.require (node:internal/modules/cjs/loader:1493:12)
+    at require (node:internal/modules/helpers:152:16)
+    at Object.<anonymous> (C:\Users\CCL\Desktop\GOUZEPE_APP\api\server.js:23:16)
+    at Module._compile (node:internal/modules/cjs/loader:1738:14) {
+  code: 'MODULE_NOT_FOUND',
+  requireStack: [ 'C:\\Users\\CCL\\Desktop\\GOUZEPE_APP\\api\\server.js' ]
+}
+
+Node.js v24.6.0
+node:internal/modules/cjs/loader:1413
+  throw err;
+  ^
+
+Error: Cannot find module 'multer'
+Require stack:
+- C:\Users\CCL\Desktop\GOUZEPE_APP\api\server.js
+    at Module._resolveFilename (node:internal/modules/cjs/loader:1410:15)
+    at defaultResolveImpl (node:internal/modules/cjs/loader:1051:19)
+    at resolveForCJSWithHooks (node:internal/modules/cjs/loader:1056:22)
+    at Module._load (node:internal/modules/cjs/loader:1219:37)
+    at TracingChannel.traceSync (node:diagnostics_channel:322:14)
+    at wrapModuleLoad (node:internal/modules/cjs/loader:238:24)
+    at Module.require (node:internal/modules/cjs/loader:1493:12)
+    at require (node:internal/modules/helpers:152:16)
+    at Object.<anonymous> (C:\Users\CCL\Desktop\GOUZEPE_APP\api\server.js:23:16)
+    at Module._compile (node:internal/modules/cjs/loader:1738:14) {
+  code: 'MODULE_NOT_FOUND',
+  requireStack: [ 'C:\\Users\\CCL\\Desktop\\GOUZEPE_APP\\api\\server.js' ]
+}
+
+Node.js v24.6.0
+node:internal/modules/cjs/loader:1413
+  throw err;
+  ^
+
+Error: Cannot find module 'multer'
+Require stack:
+- C:\Users\CCL\Desktop\GOUZEPE_APP\api\server.js
+    at Module._resolveFilename (node:internal/modules/cjs/loader:1410:15)
+    at defaultResolveImpl (node:internal/modules/cjs/loader:1051:19)
+    at resolveForCJSWithHooks (node:internal/modules/cjs/loader:1056:22)
+    at Module._load (node:internal/modules/cjs/loader:1219:37)
+    at TracingChannel.traceSync (node:diagnostics_channel:322:14)
+    at wrapModuleLoad (node:internal/modules/cjs/loader:238:24)
+    at Module.require (node:internal/modules/cjs/loader:1493:12)
+    at require (node:internal/modules/helpers:152:16)
+    at Object.<anonymous> (C:\Users\CCL\Desktop\GOUZEPE_APP\api\server.js:23:16)
+    at Module._compile (node:internal/modules/cjs/loader:1738:14) {
+  code: 'MODULE_NOT_FOUND',
+  requireStack: [ 'C:\\Users\\CCL\\Desktop\\GOUZEPE_APP\\api\\server.js' ]
+}
+
+Node.js v24.6.0
+node:internal/modules/cjs/loader:1413
+  throw err;
+  ^
+
+Error: Cannot find module 'multer'
+Require stack:
+- C:\Users\CCL\Desktop\GOUZEPE_APP\api\server.js
+    at Module._resolveFilename (node:internal/modules/cjs/loader:1410:15)
+    at defaultResolveImpl (node:internal/modules/cjs/loader:1051:19)
+    at resolveForCJSWithHooks (node:internal/modules/cjs/loader:1056:22)
+    at Module._load (node:internal/modules/cjs/loader:1219:37)
+    at TracingChannel.traceSync (node:diagnostics_channel:322:14)
+    at wrapModuleLoad (node:internal/modules/cjs/loader:238:24)
+    at Module.require (node:internal/modules/cjs/loader:1493:12)
+    at require (node:internal/modules/helpers:152:16)
+    at Object.<anonymous> (C:\Users\CCL\Desktop\GOUZEPE_APP\api\server.js:23:16)
+    at Module._compile (node:internal/modules/cjs/loader:1738:14) {
+  code: 'MODULE_NOT_FOUND',
+  requireStack: [ 'C:\\Users\\CCL\\Desktop\\GOUZEPE_APP\\api\\server.js' ]
+}
+
+Node.js v24.6.0
+Schema init error Error: The server does not support SSL connections
+    at C:\Users\CCL\Desktop\GOUZEPE_APP\api\node_modules\pg-pool\index.js:45:11
+    at process.processTicksAndRejections (node:internal/process/task_queues:105:5)
+    at async ensureSchema (C:\Users\CCL\Desktop\GOUZEPE_APP\api\server.js:75:3)
+    at async C:\Users\CCL\Desktop\GOUZEPE_APP\api\server.js:452:5
+Schema init error Error: The server does not support SSL connections
+    at C:\Users\CCL\Desktop\GOUZEPE_APP\api\node_modules\pg-pool\index.js:45:11
+    at process.processTicksAndRejections (node:internal/process/task_queues:105:5)
+    at async ensureSchema (C:\Users\CCL\Desktop\GOUZEPE_APP\api\server.js:75:3)
+    at async C:\Users\CCL\Desktop\GOUZEPE_APP\api\server.js:452:5
+Schema init error Error: The server does not support SSL connections
+    at C:\Users\CCL\Desktop\GOUZEPE_APP\api\node_modules\pg-pool\index.js:45:11
+    at process.processTicksAndRejections (node:internal/process/task_queues:105:5)
+    at async ensureSchema (C:\Users\CCL\Desktop\GOUZEPE_APP\api\server.js:75:3)
+    at async C:\Users\CCL\Desktop\GOUZEPE_APP\api\server.js:452:5
+Schema init error Error: The server does not support SSL connections
+    at C:\Users\CCL\Desktop\GOUZEPE_APP\api\node_modules\pg-pool\index.js:45:11
+    at process.processTicksAndRejections (node:internal/process/task_queues:105:5)
+    at async ensureSchema (C:\Users\CCL\Desktop\GOUZEPE_APP\api\server.js:83:3)
+    at async C:\Users\CCL\Desktop\GOUZEPE_APP\api\server.js:539:5
+Schema init error Error: The server does not support SSL connections
+    at C:\Users\CCL\Desktop\GOUZEPE_APP\api\node_modules\pg-pool\index.js:45:11
+    at process.processTicksAndRejections (node:internal/process/task_queues:105:5)
+    at async ensureSchema (C:\Users\CCL\Desktop\GOUZEPE_APP\api\server.js:83:3)
+    at async C:\Users\CCL\Desktop\GOUZEPE_APP\api\server.js:539:5
+Schema init error Error: The server does not support SSL connections
+    at C:\Users\CCL\Desktop\GOUZEPE_APP\api\node_modules\pg-pool\index.js:45:11
+    at process.processTicksAndRejections (node:internal/process/task_queues:105:5)
+    at async ensureSchema (C:\Users\CCL\Desktop\GOUZEPE_APP\api\server.js:83:3)
+    at async C:\Users\CCL\Desktop\GOUZEPE_APP\api\server.js:539:5
+Schema init error Error: The server does not support SSL connections
+    at C:\Users\CCL\Desktop\GOUZEPE_APP\api\node_modules\pg-pool\index.js:45:11
+    at process.processTicksAndRejections (node:internal/process/task_queues:105:5)
+    at async ensureSchema (C:\Users\CCL\Desktop\GOUZEPE_APP\api\server.js:83:3)
+    at async C:\Users\CCL\Desktop\GOUZEPE_APP\api\server.js:539:5
+Schema init error Error: The server does not support SSL connections
+    at C:\Users\CCL\Desktop\GOUZEPE_APP\api\node_modules\pg-pool\index.js:45:11
+    at process.processTicksAndRejections (node:internal/process/task_queues:105:5)
+    at async ensureSchema (C:\Users\CCL\Desktop\GOUZEPE_APP\api\server.js:83:3)
+    at async C:\Users\CCL\Desktop\GOUZEPE_APP\api\server.js:530:5
+Schema init error Error: The server does not support SSL connections
+    at C:\Users\CCL\Desktop\GOUZEPE_APP\api\node_modules\pg-pool\index.js:45:11
+    at process.processTicksAndRejections (node:internal/process/task_queues:105:5)
+    at async ensureSchema (C:\Users\CCL\Desktop\GOUZEPE_APP\api\server.js:83:3)
+    at async C:\Users\CCL\Desktop\GOUZEPE_APP\api\server.js:530:5
+Schema init error Error: The server does not support SSL connections
+    at C:\Users\CCL\Desktop\GOUZEPE_APP\api\node_modules\pg-pool\index.js:45:11
+    at process.processTicksAndRejections (node:internal/process/task_queues:105:5)
+    at async ensureSchema (C:\Users\CCL\Desktop\GOUZEPE_APP\api\server.js:83:3)
+    at async C:\Users\CCL\Desktop\GOUZEPE_APP\api\server.js:530:5
+C:\Users\CCL\Desktop\GOUZEPE_APP\api\server.js:576
+const EMAIL_DOMAIN = process.env.EMAIL_DOMAIN || 'gz.local';
+      ^
+
+SyntaxError: Identifier 'EMAIL_DOMAIN' has already been declared
+    at wrapSafe (node:internal/modules/cjs/loader:1669:18)
+    at Module._compile (node:internal/modules/cjs/loader:1712:20)
+    at Object..js (node:internal/modules/cjs/loader:1871:10)
+    at Module.load (node:internal/modules/cjs/loader:1470:32)
+    at Module._load (node:internal/modules/cjs/loader:1290:12)
+    at TracingChannel.traceSync (node:diagnostics_channel:322:14)
+    at wrapModuleLoad (node:internal/modules/cjs/loader:238:24)
+    at Module.executeUserEntryPoint [as runMain] (node:internal/modules/run_main:154:5)
+    at node:internal/main/run_main_module:33:47
+
+Node.js v24.6.0
+Schema init error Error: The server does not support SSL connections
+    at C:\Users\CCL\Desktop\GOUZEPE_APP\api\node_modules\pg-pool\index.js:45:11
+    at process.processTicksAndRejections (node:internal/process/task_queues:105:5)
+    at async ensureSchema (C:\Users\CCL\Desktop\GOUZEPE_APP\api\server.js:83:3)
+    at async C:\Users\CCL\Desktop\GOUZEPE_APP\api\server.js:561:5
+Schema init error Error: The server does not support SSL connections
+    at C:\Users\CCL\Desktop\GOUZEPE_APP\api\node_modules\pg-pool\index.js:45:11
+    at process.processTicksAndRejections (node:internal/process/task_queues:105:5)
+    at async ensureSchema (C:\Users\CCL\Desktop\GOUZEPE_APP\api\server.js:83:3)
+    at async C:\Users\CCL\Desktop\GOUZEPE_APP\api\server.js:561:5
+node:internal/modules/cjs/loader:1413
+  throw err;
+  ^
+
+Error: Cannot find module 'multer'
+Require stack:
+- C:\Users\CCL\Desktop\GOUZEPE_APP\api\server.js
+    at Module._resolveFilename (node:internal/modules/cjs/loader:1410:15)
+    at defaultResolveImpl (node:internal/modules/cjs/loader:1051:19)
+    at resolveForCJSWithHooks (node:internal/modules/cjs/loader:1056:22)
+    at Module._load (node:internal/modules/cjs/loader:1219:37)
+    at TracingChannel.traceSync (node:diagnostics_channel:322:14)
+    at wrapModuleLoad (node:internal/modules/cjs/loader:238:24)
+    at Module.require (node:internal/modules/cjs/loader:1493:12)
+    at require (node:internal/modules/helpers:152:16)
+    at Object.<anonymous> (C:\Users\CCL\Desktop\GOUZEPE_APP\api\server.js:13:16)
+    at Module._compile (node:internal/modules/cjs/loader:1738:14) {
+  code: 'MODULE_NOT_FOUND',
+  requireStack: [ 'C:\\Users\\CCL\\Desktop\\GOUZEPE_APP\\api\\server.js' ]
+}
+
+Node.js v24.6.0
+Schema init error Error: The server does not support SSL connections
+    at C:\Users\CCL\Desktop\GOUZEPE_APP\api\node_modules\pg-pool\index.js:45:11
+    at process.processTicksAndRejections (node:internal/process/task_queues:105:5)
+    at async ensureSchema (C:\Users\CCL\Desktop\GOUZEPE_APP\api\server.js:70:3)
+    at async C:\Users\CCL\Desktop\GOUZEPE_APP\api\server.js:647:5
+Schema init error Error: The server does not support SSL connections
+    at C:\Users\CCL\Desktop\GOUZEPE_APP\api\node_modules\pg-pool\index.js:45:11
+    at process.processTicksAndRejections (node:internal/process/task_queues:105:5)
+    at async ensureSchema (C:\Users\CCL\Desktop\GOUZEPE_APP\api\server.js:70:3)
+    at async C:\Users\CCL\Desktop\GOUZEPE_APP\api\server.js:647:5
+Schema init error Error: The server does not support SSL connections
+    at C:\Users\CCL\Desktop\GOUZEPE_APP\api\node_modules\pg-pool\index.js:45:11
+    at process.processTicksAndRejections (node:internal/process/task_queues:105:5)
+    at async ensureSchema (C:\Users\CCL\Desktop\GOUZEPE_APP\api\server.js:69:1)
+    at async C:\Users\CCL\Desktop\GOUZEPE_APP\api\server.js:651:5
+Schema init error Error: The server does not support SSL connections
+    at C:\Users\CCL\Desktop\GOUZEPE_APP\api\node_modules\pg-pool\index.js:45:11
+    at process.processTicksAndRejections (node:internal/process/task_queues:105:5)
+    at async ensureSchema (C:\Users\CCL\Desktop\GOUZEPE_APP\api\server.js:69:1)
+    at async C:\Users\CCL\Desktop\GOUZEPE_APP\api\server.js:651:5
+Schema init error Error: The server does not support SSL connections
+    at C:\Users\CCL\Desktop\GOUZEPE_APP\api\node_modules\pg-pool\index.js:45:11
+    at process.processTicksAndRejections (node:internal/process/task_queues:105:5)
+    at async ensureSchema (C:\Users\CCL\Desktop\GOUZEPE_APP\api\server.js:69:1)
+    at async C:\Users\CCL\Desktop\GOUZEPE_APP\api\server.js:651:5
+Schema init error Error: The server does not support SSL connections
+    at C:\Users\CCL\Desktop\GOUZEPE_APP\api\node_modules\pg-pool\index.js:45:11
+    at process.processTicksAndRejections (node:internal/process/task_queues:105:5)
+    at async ensureSchema (C:\Users\CCL\Desktop\GOUZEPE_APP\api\server.js:69:1)
+    at async C:\Users\CCL\Desktop\GOUZEPE_APP\api\server.js:651:5
+Schema init error Error: The server does not support SSL connections
+    at C:\Users\CCL\Desktop\GOUZEPE_APP\api\node_modules\pg-pool\index.js:45:11
+    at process.processTicksAndRejections (node:internal/process/task_queues:105:5)
+    at async ensureSchema (C:\Users\CCL\Desktop\GOUZEPE_APP\api\server.js:92:1)
+    at async C:\Users\CCL\Desktop\GOUZEPE_APP\api\server.js:703:5
+Schema init error Error: The server does not support SSL connections
+    at C:\Users\CCL\Desktop\GOUZEPE_APP\api\node_modules\pg-pool\index.js:45:11
+    at process.processTicksAndRejections (node:internal/process/task_queues:105:5)
+    at async ensureSchema (C:\Users\CCL\Desktop\GOUZEPE_APP\api\server.js:92:1)
+    at async C:\Users\CCL\Desktop\GOUZEPE_APP\api\server.js:703:5
+Schema init error Error: The server does not support SSL connections
+    at C:\Users\CCL\Desktop\GOUZEPE_APP\api\node_modules\pg-pool\index.js:45:11
+    at process.processTicksAndRejections (node:internal/process/task_queues:105:5)
+    at async ensureSchema (C:\Users\CCL\Desktop\GOUZEPE_APP\api\server.js:92:1)
+    at async C:\Users\CCL\Desktop\GOUZEPE_APP\api\server.js:703:5
+Schema init error Error: The server does not support SSL connections
+    at C:\Users\CCL\Desktop\GOUZEPE_APP\api\node_modules\pg-pool\index.js:45:11
+    at process.processTicksAndRejections (node:internal/process/task_queues:105:5)
+    at async ensureSchema (C:\Users\CCL\Desktop\GOUZEPE_APP\api\server.js:92:1)
+    at async C:\Users\CCL\Desktop\GOUZEPE_APP\api\server.js:703:5
+Schema init error Error: The server does not support SSL connections
+    at C:\Users\CCL\Desktop\GOUZEPE_APP\api\node_modules\pg-pool\index.js:45:11
+    at process.processTicksAndRejections (node:internal/process/task_queues:105:5)
+    at async ensureSchema (C:\Users\CCL\Desktop\GOUZEPE_APP\api\server.js:92:1)
+    at async C:\Users\CCL\Desktop\GOUZEPE_APP\api\server.js:703:5
+Schema init error Error: The server does not support SSL connections
+    at C:\Users\CCL\Desktop\GOUZEPE_APP\api\node_modules\pg-pool\index.js:45:11
+    at process.processTicksAndRejections (node:internal/process/task_queues:105:5)
+    at async ensureSchema (C:\Users\CCL\Desktop\GOUZEPE_APP\api\server.js:92:1)
+    at async C:\Users\CCL\Desktop\GOUZEPE_APP\api\server.js:703:5
+Schema init error Error: The server does not support SSL connections
+    at C:\Users\CCL\Desktop\GOUZEPE_APP\api\node_modules\pg-pool\index.js:45:11
+    at process.processTicksAndRejections (node:internal/process/task_queues:105:5)
+    at async ensureSchema (C:\Users\CCL\Desktop\GOUZEPE_APP\api\server.js:92:1)
+    at async C:\Users\CCL\Desktop\GOUZEPE_APP\api\server.js:703:5
+Schema init error Error: The server does not support SSL connections
+    at C:\Users\CCL\Desktop\GOUZEPE_APP\api\node_modules\pg-pool\index.js:45:11
+    at process.processTicksAndRejections (node:internal/process/task_queues:105:5)
+    at async ensureSchema (C:\Users\CCL\Desktop\GOUZEPE_APP\api\server.js:92:1)
+    at async C:\Users\CCL\Desktop\GOUZEPE_APP\api\server.js:703:5
+Schema init error Error: The server does not support SSL connections
+    at C:\Users\CCL\Desktop\GOUZEPE_APP\api\node_modules\pg-pool\index.js:45:11
+    at process.processTicksAndRejections (node:internal/process/task_queues:105:5)
+    at async ensureSchema (C:\Users\CCL\Desktop\GOUZEPE_APP\api\server.js:92:1)
+    at async C:\Users\CCL\Desktop\GOUZEPE_APP\api\server.js:703:5
+Schema init error Error: The server does not support SSL connections
+    at C:\Users\CCL\Desktop\GOUZEPE_APP\api\node_modules\pg-pool\index.js:45:11
+    at process.processTicksAndRejections (node:internal/process/task_queues:105:5)
+    at async ensureSchema (C:\Users\CCL\Desktop\GOUZEPE_APP\api\server.js:92:1)
+    at async C:\Users\CCL\Desktop\GOUZEPE_APP\api\server.js:703:5
+Schema init error Error: The server does not support SSL connections
+    at C:\Users\CCL\Desktop\GOUZEPE_APP\api\node_modules\pg-pool\index.js:45:11
+    at process.processTicksAndRejections (node:internal/process/task_queues:105:5)
+    at async ensureSchema (C:\Users\CCL\Desktop\GOUZEPE_APP\api\server.js:92:1)
+    at async C:\Users\CCL\Desktop\GOUZEPE_APP\api\server.js:703:5
+Schema init error Error: The server does not support SSL connections
+    at C:\Users\CCL\Desktop\GOUZEPE_APP\api\node_modules\pg-pool\index.js:45:11
+    at process.processTicksAndRejections (node:internal/process/task_queues:105:5)
+    at async ensureSchema (C:\Users\CCL\Desktop\GOUZEPE_APP\api\server.js:92:1)
+    at async C:\Users\CCL\Desktop\GOUZEPE_APP\api\server.js:703:5
+Schema init error Error: The server does not support SSL connections
+    at C:\Users\CCL\Desktop\GOUZEPE_APP\api\node_modules\pg-pool\index.js:45:11
+    at process.processTicksAndRejections (node:internal/process/task_queues:105:5)
+    at async ensureSchema (C:\Users\CCL\Desktop\GOUZEPE_APP\api\server.js:92:1)
+    at async C:\Users\CCL\Desktop\GOUZEPE_APP\api\server.js:703:5
+Schema init error Error: The server does not support SSL connections
+    at C:\Users\CCL\Desktop\GOUZEPE_APP\api\node_modules\pg-pool\index.js:45:11
+    at process.processTicksAndRejections (node:internal/process/task_queues:105:5)
+    at async ensureSchema (C:\Users\CCL\Desktop\GOUZEPE_APP\api\server.js:92:1)
+    at async C:\Users\CCL\Desktop\GOUZEPE_APP\api\server.js:703:5
+Schema init error Error: The server does not support SSL connections
+    at C:\Users\CCL\Desktop\GOUZEPE_APP\api\node_modules\pg-pool\index.js:45:11
+    at process.processTicksAndRejections (node:internal/process/task_queues:105:5)
+    at async ensureSchema (C:\Users\CCL\Desktop\GOUZEPE_APP\api\server.js:92:1)
+    at async C:\Users\CCL\Desktop\GOUZEPE_APP\api\server.js:703:5
+Schema init error Error: The server does not support SSL connections
+    at C:\Users\CCL\Desktop\GOUZEPE_APP\api\node_modules\pg-pool\index.js:45:11
+    at process.processTicksAndRejections (node:internal/process/task_queues:105:5)
+    at async ensureSchema (C:\Users\CCL\Desktop\GOUZEPE_APP\api\server.js:92:1)
+    at async C:\Users\CCL\Desktop\GOUZEPE_APP\api\server.js:703:5
+Schema init error Error: The server does not support SSL connections
+    at C:\Users\CCL\Desktop\GOUZEPE_APP\api\node_modules\pg-pool\index.js:45:11
+    at process.processTicksAndRejections (node:internal/process/task_queues:105:5)
+    at async ensureSchema (C:\Users\CCL\Desktop\GOUZEPE_APP\api\server.js:92:1)
+    at async C:\Users\CCL\Desktop\GOUZEPE_APP\api\server.js:703:5
+Schema init error Error: The server does not support SSL connections
+    at C:\Users\CCL\Desktop\GOUZEPE_APP\api\node_modules\pg-pool\index.js:45:11
+    at process.processTicksAndRejections (node:internal/process/task_queues:105:5)
+    at async ensureSchema (C:\Users\CCL\Desktop\GOUZEPE_APP\api\server.js:92:1)
+    at async C:\Users\CCL\Desktop\GOUZEPE_APP\api\server.js:703:5
+Schema init error Error: The server does not support SSL connections
+    at C:\Users\CCL\Desktop\GOUZEPE_APP\api\node_modules\pg-pool\index.js:45:11
+    at process.processTicksAndRejections (node:internal/process/task_queues:105:5)
+    at async ensureSchema (C:\Users\CCL\Desktop\GOUZEPE_APP\api\server.js:92:1)
+    at async C:\Users\CCL\Desktop\GOUZEPE_APP\api\server.js:703:5
+Schema init error Error: The server does not support SSL connections
+    at C:\Users\CCL\Desktop\GOUZEPE_APP\api\node_modules\pg-pool\index.js:45:11
+    at process.processTicksAndRejections (node:internal/process/task_queues:105:5)
+    at async ensureSchema (C:\Users\CCL\Desktop\GOUZEPE_APP\api\server.js:92:1)
+    at async C:\Users\CCL\Desktop\GOUZEPE_APP\api\server.js:703:5
+Schema init error Error: The server does not support SSL connections
+    at C:\Users\CCL\Desktop\GOUZEPE_APP\api\node_modules\pg-pool\index.js:45:11
+    at process.processTicksAndRejections (node:internal/process/task_queues:105:5)
+    at async ensureSchema (C:\Users\CCL\Desktop\GOUZEPE_APP\api\server.js:92:1)
+    at async C:\Users\CCL\Desktop\GOUZEPE_APP\api\server.js:703:5
+Schema init error Error: The server does not support SSL connections
+    at C:\Users\CCL\Desktop\GOUZEPE_APP\api\node_modules\pg-pool\index.js:45:11
+    at process.processTicksAndRejections (node:internal/process/task_queues:105:5)
+    at async ensureSchema (C:\Users\CCL\Desktop\GOUZEPE_APP\api\server.js:92:1)
+    at async C:\Users\CCL\Desktop\GOUZEPE_APP\api\server.js:703:5
+Schema init error Error: The server does not support SSL connections
+    at C:\Users\CCL\Desktop\GOUZEPE_APP\api\node_modules\pg-pool\index.js:45:11
+    at process.processTicksAndRejections (node:internal/process/task_queues:105:5)
+    at async ensureSchema (C:\Users\CCL\Desktop\GOUZEPE_APP\api\server.js:92:1)
+    at async C:\Users\CCL\Desktop\GOUZEPE_APP\api\server.js:703:5
+Schema init error Error: The server does not support SSL connections
+    at C:\Users\CCL\Desktop\GOUZEPE_APP\api\node_modules\pg-pool\index.js:45:11
+    at process.processTicksAndRejections (node:internal/process/task_queues:105:5)
+    at async ensureSchema (C:\Users\CCL\Desktop\GOUZEPE_APP\api\server.js:92:1)
+    at async C:\Users\CCL\Desktop\GOUZEPE_APP\api\server.js:703:5
+Schema init error Error: The server does not support SSL connections
+    at C:\Users\CCL\Desktop\GOUZEPE_APP\api\node_modules\pg-pool\index.js:45:11
+    at process.processTicksAndRejections (node:internal/process/task_queues:105:5)
+    at async ensureSchema (C:\Users\CCL\Desktop\GOUZEPE_APP\api\server.js:92:1)
+    at async C:\Users\CCL\Desktop\GOUZEPE_APP\api\server.js:703:5
+Schema init error Error: The server does not support SSL connections
+    at C:\Users\CCL\Desktop\GOUZEPE_APP\api\node_modules\pg-pool\index.js:45:11
+    at process.processTicksAndRejections (node:internal/process/task_queues:105:5)
+    at async ensureSchema (C:\Users\CCL\Desktop\GOUZEPE_APP\api\server.js:92:1)
+    at async C:\Users\CCL\Desktop\GOUZEPE_APP\api\server.js:703:5
+Schema init error Error: The server does not support SSL connections
+    at C:\Users\CCL\Desktop\GOUZEPE_APP\api\node_modules\pg-pool\index.js:45:11
+    at process.processTicksAndRejections (node:internal/process/task_queues:105:5)
+    at async ensureSchema (C:\Users\CCL\Desktop\GOUZEPE_APP\api\server.js:92:1)
+    at async C:\Users\CCL\Desktop\GOUZEPE_APP\api\server.js:703:5
+Schema init error Error: The server does not support SSL connections
+    at C:\Users\CCL\Desktop\GOUZEPE_APP\api\node_modules\pg-pool\index.js:45:11
+    at process.processTicksAndRejections (node:internal/process/task_queues:105:5)
+    at async ensureSchema (C:\Users\CCL\Desktop\GOUZEPE_APP\api\server.js:92:1)
+    at async C:\Users\CCL\Desktop\GOUZEPE_APP\api\server.js:703:5
+Schema init error Error: The server does not support SSL connections
+    at C:\Users\CCL\Desktop\GOUZEPE_APP\api\node_modules\pg-pool\index.js:45:11
+    at process.processTicksAndRejections (node:internal/process/task_queues:105:5)
+    at async ensureSchema (C:\Users\CCL\Desktop\GOUZEPE_APP\api\server.js:92:1)
+    at async C:\Users\CCL\Desktop\GOUZEPE_APP\api\server.js:703:5
+Schema init error Error: The server does not support SSL connections
+    at C:\Users\CCL\Desktop\GOUZEPE_APP\api\node_modules\pg-pool\index.js:45:11
+    at process.processTicksAndRejections (node:internal/process/task_queues:105:5)
+    at async ensureSchema (C:\Users\CCL\Desktop\GOUZEPE_APP\api\server.js:92:1)
+    at async C:\Users\CCL\Desktop\GOUZEPE_APP\api\server.js:703:5
+Schema init error Error: The server does not support SSL connections
+    at C:\Users\CCL\Desktop\GOUZEPE_APP\api\node_modules\pg-pool\index.js:45:11
+    at process.processTicksAndRejections (node:internal/process/task_queues:105:5)
+    at async ensureSchema (C:\Users\CCL\Desktop\GOUZEPE_APP\api\server.js:92:1)
+    at async C:\Users\CCL\Desktop\GOUZEPE_APP\api\server.js:703:5
+Schema init error Error: The server does not support SSL connections
+    at C:\Users\CCL\Desktop\GOUZEPE_APP\api\node_modules\pg-pool\index.js:45:11
+    at process.processTicksAndRejections (node:internal/process/task_queues:105:5)
+    at async ensureSchema (C:\Users\CCL\Desktop\GOUZEPE_APP\api\server.js:92:1)
+    at async C:\Users\CCL\Desktop\GOUZEPE_APP\api\server.js:703:5
+Schema init error Error: The server does not support SSL connections
+    at C:\Users\CCL\Desktop\GOUZEPE_APP\api\node_modules\pg-pool\index.js:45:11
+    at process.processTicksAndRejections (node:internal/process/task_queues:105:5)
+    at async ensureSchema (C:\Users\CCL\Desktop\GOUZEPE_APP\api\server.js:92:1)
+    at async C:\Users\CCL\Desktop\GOUZEPE_APP\api\server.js:703:5
+Schema init error Error: The server does not support SSL connections
+    at C:\Users\CCL\Desktop\GOUZEPE_APP\api\node_modules\pg-pool\index.js:45:11
+    at process.processTicksAndRejections (node:internal/process/task_queues:105:5)
+    at async ensureSchema (C:\Users\CCL\Desktop\GOUZEPE_APP\api\server.js:92:1)
+    at async C:\Users\CCL\Desktop\GOUZEPE_APP\api\server.js:703:5
+Schema init error Error: The server does not support SSL connections
+    at C:\Users\CCL\Desktop\GOUZEPE_APP\api\node_modules\pg-pool\index.js:45:11
+    at process.processTicksAndRejections (node:internal/process/task_queues:105:5)
+    at async ensureSchema (C:\Users\CCL\Desktop\GOUZEPE_APP\api\server.js:92:1)
+    at async C:\Users\CCL\Desktop\GOUZEPE_APP\api\server.js:703:5
+Schema init error Error: The server does not support SSL connections
+    at C:\Users\CCL\Desktop\GOUZEPE_APP\api\node_modules\pg-pool\index.js:45:11
+    at process.processTicksAndRejections (node:internal/process/task_queues:105:5)
+    at async ensureSchema (C:\Users\CCL\Desktop\GOUZEPE_APP\api\server.js:92:1)
+    at async C:\Users\CCL\Desktop\GOUZEPE_APP\api\server.js:703:5
+Schema init error Error: The server does not support SSL connections
+    at C:\Users\CCL\Desktop\GOUZEPE_APP\api\node_modules\pg-pool\index.js:45:11
+    at process.processTicksAndRejections (node:internal/process/task_queues:105:5)
+    at async ensureSchema (C:\Users\CCL\Desktop\GOUZEPE_APP\api\server.js:92:1)
+    at async C:\Users\CCL\Desktop\GOUZEPE_APP\api\server.js:703:5
+Schema init error Error: The server does not support SSL connections
+    at C:\Users\CCL\Desktop\GOUZEPE_APP\api\node_modules\pg-pool\index.js:45:11
+    at process.processTicksAndRejections (node:internal/process/task_queues:105:5)
+    at async ensureSchema (C:\Users\CCL\Desktop\GOUZEPE_APP\api\server.js:92:1)
+    at async C:\Users\CCL\Desktop\GOUZEPE_APP\api\server.js:703:5
+Schema init error Error: The server does not support SSL connections
+    at C:\Users\CCL\Desktop\GOUZEPE_APP\api\node_modules\pg-pool\index.js:45:11
+    at process.processTicksAndRejections (node:internal/process/task_queues:105:5)
+    at async ensureSchema (C:\Users\CCL\Desktop\GOUZEPE_APP\api\server.js:92:1)
+    at async C:\Users\CCL\Desktop\GOUZEPE_APP\api\server.js:703:5
+Schema init error Error: The server does not support SSL connections
+    at C:\Users\CCL\Desktop\GOUZEPE_APP\api\node_modules\pg-pool\index.js:45:11
+    at process.processTicksAndRejections (node:internal/process/task_queues:105:5)
+    at async ensureSchema (C:\Users\CCL\Desktop\GOUZEPE_APP\api\server.js:92:1)
+    at async C:\Users\CCL\Desktop\GOUZEPE_APP\api\server.js:703:5
+Schema init error Error: The server does not support SSL connections
+    at C:\Users\CCL\Desktop\GOUZEPE_APP\api\node_modules\pg-pool\index.js:45:11
+    at process.processTicksAndRejections (node:internal/process/task_queues:105:5)
+    at async ensureSchema (C:\Users\CCL\Desktop\GOUZEPE_APP\api\server.js:92:1)
+    at async C:\Users\CCL\Desktop\GOUZEPE_APP\api\server.js:703:5
+Schema init error Error: The server does not support SSL connections
+    at C:\Users\CCL\Desktop\GOUZEPE_APP\api\node_modules\pg-pool\index.js:45:11
+    at process.processTicksAndRejections (node:internal/process/task_queues:105:5)
+    at async ensureSchema (C:\Users\CCL\Desktop\GOUZEPE_APP\api\server.js:92:1)
+    at async C:\Users\CCL\Desktop\GOUZEPE_APP\api\server.js:703:5
+Schema init error Error: The server does not support SSL connections
+    at C:\Users\CCL\Desktop\GOUZEPE_APP\api\node_modules\pg-pool\index.js:45:11
+    at process.processTicksAndRejections (node:internal/process/task_queues:105:5)
+    at async ensureSchema (C:\Users\CCL\Desktop\GOUZEPE_APP\api\server.js:92:1)
+    at async C:\Users\CCL\Desktop\GOUZEPE_APP\api\server.js:703:5
+Schema init error Error: The server does not support SSL connections
+    at C:\Users\CCL\Desktop\GOUZEPE_APP\api\node_modules\pg-pool\index.js:45:11
+    at process.processTicksAndRejections (node:internal/process/task_queues:105:5)
+    at async ensureSchema (C:\Users\CCL\Desktop\GOUZEPE_APP\api\server.js:92:1)
+    at async C:\Users\CCL\Desktop\GOUZEPE_APP\api\server.js:703:5
+Schema init error Error: The server does not support SSL connections
+    at C:\Users\CCL\Desktop\GOUZEPE_APP\api\node_modules\pg-pool\index.js:45:11
+    at process.processTicksAndRejections (node:internal/process/task_queues:105:5)
+    at async ensureSchema (C:\Users\CCL\Desktop\GOUZEPE_APP\api\server.js:92:1)
+    at async C:\Users\CCL\Desktop\GOUZEPE_APP\api\server.js:703:5
+Schema init error Error: The server does not support SSL connections
+    at C:\Users\CCL\Desktop\GOUZEPE_APP\api\node_modules\pg-pool\index.js:45:11
+    at process.processTicksAndRejections (node:internal/process/task_queues:105:5)
+    at async ensureSchema (C:\Users\CCL\Desktop\GOUZEPE_APP\api\server.js:92:1)
+    at async C:\Users\CCL\Desktop\GOUZEPE_APP\api\server.js:703:5
+Schema init error Error: The server does not support SSL connections
+    at C:\Users\CCL\Desktop\GOUZEPE_APP\api\node_modules\pg-pool\index.js:45:11
+    at process.processTicksAndRejections (node:internal/process/task_queues:105:5)
+    at async ensureSchema (C:\Users\CCL\Desktop\GOUZEPE_APP\api\server.js:92:1)
+    at async C:\Users\CCL\Desktop\GOUZEPE_APP\api\server.js:703:5
+Schema init error Error: The server does not support SSL connections
+    at C:\Users\CCL\Desktop\GOUZEPE_APP\api\node_modules\pg-pool\index.js:45:11
+    at process.processTicksAndRejections (node:internal/process/task_queues:105:5)
+    at async ensureSchema (C:\Users\CCL\Desktop\GOUZEPE_APP\api\server.js:92:1)
+    at async C:\Users\CCL\Desktop\GOUZEPE_APP\api\server.js:703:5
+Schema init error Error: The server does not support SSL connections
+    at C:\Users\CCL\Desktop\GOUZEPE_APP\api\node_modules\pg-pool\index.js:45:11
+    at process.processTicksAndRejections (node:internal/process/task_queues:105:5)
+    at async ensureSchema (C:\Users\CCL\Desktop\GOUZEPE_APP\api\server.js:92:1)
+    at async C:\Users\CCL\Desktop\GOUZEPE_APP\api\server.js:703:5
+Schema init error Error: The server does not support SSL connections
+    at C:\Users\CCL\Desktop\GOUZEPE_APP\api\node_modules\pg-pool\index.js:45:11
+    at process.processTicksAndRejections (node:internal/process/task_queues:105:5)
+    at async ensureSchema (C:\Users\CCL\Desktop\GOUZEPE_APP\api\server.js:92:1)
+    at async C:\Users\CCL\Desktop\GOUZEPE_APP\api\server.js:703:5
+Schema init error Error: The server does not support SSL connections
+    at C:\Users\CCL\Desktop\GOUZEPE_APP\api\node_modules\pg-pool\index.js:45:11
+    at process.processTicksAndRejections (node:internal/process/task_queues:105:5)
+    at async ensureSchema (C:\Users\CCL\Desktop\GOUZEPE_APP\api\server.js:92:1)
+    at async C:\Users\CCL\Desktop\GOUZEPE_APP\api\server.js:703:5
+Schema init error Error: The server does not support SSL connections
+    at C:\Users\CCL\Desktop\GOUZEPE_APP\api\node_modules\pg-pool\index.js:45:11
+    at process.processTicksAndRejections (node:internal/process/task_queues:105:5)
+    at async ensureSchema (C:\Users\CCL\Desktop\GOUZEPE_APP\api\server.js:92:1)
+    at async C:\Users\CCL\Desktop\GOUZEPE_APP\api\server.js:703:5
+Schema init error Error: The server does not support SSL connections
+    at C:\Users\CCL\Desktop\GOUZEPE_APP\api\node_modules\pg-pool\index.js:45:11
+    at process.processTicksAndRejections (node:internal/process/task_queues:105:5)
+    at async ensureSchema (C:\Users\CCL\Desktop\GOUZEPE_APP\api\server.js:92:1)
+    at async C:\Users\CCL\Desktop\GOUZEPE_APP\api\server.js:703:5
+Schema init error Error: The server does not support SSL connections
+    at C:\Users\CCL\Desktop\GOUZEPE_APP\api\node_modules\pg-pool\index.js:45:11
+    at process.processTicksAndRejections (node:internal/process/task_queues:105:5)
+    at async ensureSchema (C:\Users\CCL\Desktop\GOUZEPE_APP\api\server.js:92:1)
+    at async C:\Users\CCL\Desktop\GOUZEPE_APP\api\server.js:703:5
+Schema init error Error: The server does not support SSL connections
+    at C:\Users\CCL\Desktop\GOUZEPE_APP\api\node_modules\pg-pool\index.js:45:11
+    at process.processTicksAndRejections (node:internal/process/task_queues:105:5)
+    at async ensureSchema (C:\Users\CCL\Desktop\GOUZEPE_APP\api\server.js:92:1)
+    at async C:\Users\CCL\Desktop\GOUZEPE_APP\api\server.js:703:5
+Schema init error Error: The server does not support SSL connections
+    at C:\Users\CCL\Desktop\GOUZEPE_APP\api\node_modules\pg-pool\index.js:45:11
+    at process.processTicksAndRejections (node:internal/process/task_queues:105:5)
+    at async ensureSchema (C:\Users\CCL\Desktop\GOUZEPE_APP\api\server.js:92:1)
+    at async C:\Users\CCL\Desktop\GOUZEPE_APP\api\server.js:703:5
+Schema init error Error: The server does not support SSL connections
+    at C:\Users\CCL\Desktop\GOUZEPE_APP\api\node_modules\pg-pool\index.js:45:11
+    at process.processTicksAndRejections (node:internal/process/task_queues:105:5)
+    at async ensureSchema (C:\Users\CCL\Desktop\GOUZEPE_APP\api\server.js:92:1)
+    at async C:\Users\CCL\Desktop\GOUZEPE_APP\api\server.js:703:5
+Schema init error Error: The server does not support SSL connections
+    at C:\Users\CCL\Desktop\GOUZEPE_APP\api\node_modules\pg-pool\index.js:45:11
+    at process.processTicksAndRejections (node:internal/process/task_queues:105:5)
+    at async ensureSchema (C:\Users\CCL\Desktop\GOUZEPE_APP\api\server.js:92:1)
+    at async C:\Users\CCL\Desktop\GOUZEPE_APP\api\server.js:703:5
+Schema init error Error: The server does not support SSL connections
+    at C:\Users\CCL\Desktop\GOUZEPE_APP\api\node_modules\pg-pool\index.js:45:11
+    at process.processTicksAndRejections (node:internal/process/task_queues:105:5)
+    at async ensureSchema (C:\Users\CCL\Desktop\GOUZEPE_APP\api\server.js:92:1)
+    at async C:\Users\CCL\Desktop\GOUZEPE_APP\api\server.js:703:5
+Schema init error Error: The server does not support SSL connections
+    at C:\Users\CCL\Desktop\GOUZEPE_APP\api\node_modules\pg-pool\index.js:45:11
+    at process.processTicksAndRejections (node:internal/process/task_queues:105:5)
+    at async ensureSchema (C:\Users\CCL\Desktop\GOUZEPE_APP\api\server.js:92:1)
+    at async C:\Users\CCL\Desktop\GOUZEPE_APP\api\server.js:703:5
+Schema init error Error: The server does not support SSL connections
+    at C:\Users\CCL\Desktop\GOUZEPE_APP\api\node_modules\pg-pool\index.js:45:11
+    at process.processTicksAndRejections (node:internal/process/task_queues:105:5)
+    at async ensureSchema (C:\Users\CCL\Desktop\GOUZEPE_APP\api\server.js:92:1)
+    at async C:\Users\CCL\Desktop\GOUZEPE_APP\api\server.js:703:5
+Schema init error Error: The server does not support SSL connections
+    at C:\Users\CCL\Desktop\GOUZEPE_APP\api\node_modules\pg-pool\index.js:45:11
+    at process.processTicksAndRejections (node:internal/process/task_queues:105:5)
+    at async ensureSchema (C:\Users\CCL\Desktop\GOUZEPE_APP\api\server.js:92:1)
+    at async C:\Users\CCL\Desktop\GOUZEPE_APP\api\server.js:703:5
+Schema init error Error: The server does not support SSL connections
+    at C:\Users\CCL\Desktop\GOUZEPE_APP\api\node_modules\pg-pool\index.js:45:11
+    at process.processTicksAndRejections (node:internal/process/task_queues:105:5)
+    at async ensureSchema (C:\Users\CCL\Desktop\GOUZEPE_APP\api\server.js:92:1)
+    at async C:\Users\CCL\Desktop\GOUZEPE_APP\api\server.js:703:5
+Schema init error Error: The server does not support SSL connections
+    at C:\Users\CCL\Desktop\GOUZEPE_APP\api\node_modules\pg-pool\index.js:45:11
+    at process.processTicksAndRejections (node:internal/process/task_queues:105:5)
+    at async ensureSchema (C:\Users\CCL\Desktop\GOUZEPE_APP\api\server.js:92:1)
+    at async C:\Users\CCL\Desktop\GOUZEPE_APP\api\server.js:703:5
+Schema init error Error: The server does not support SSL connections
+    at C:\Users\CCL\Desktop\GOUZEPE_APP\api\node_modules\pg-pool\index.js:45:11
+    at process.processTicksAndRejections (node:internal/process/task_queues:105:5)
+    at async ensureSchema (C:\Users\CCL\Desktop\GOUZEPE_APP\api\server.js:92:1)
+    at async C:\Users\CCL\Desktop\GOUZEPE_APP\api\server.js:703:5
+Schema init error Error: The server does not support SSL connections
+    at C:\Users\CCL\Desktop\GOUZEPE_APP\api\node_modules\pg-pool\index.js:45:11
+    at process.processTicksAndRejections (node:internal/process/task_queues:105:5)
+    at async ensureSchema (C:\Users\CCL\Desktop\GOUZEPE_APP\api\server.js:92:1)
+    at async C:\Users\CCL\Desktop\GOUZEPE_APP\api\server.js:703:5
+Schema init error Error: The server does not support SSL connections
+    at C:\Users\CCL\Desktop\GOUZEPE_APP\api\node_modules\pg-pool\index.js:45:11
+    at process.processTicksAndRejections (node:internal/process/task_queues:105:5)
+    at async ensureSchema (C:\Users\CCL\Desktop\GOUZEPE_APP\api\server.js:92:1)
+    at async C:\Users\CCL\Desktop\GOUZEPE_APP\api\server.js:703:5
+Schema init error Error: The server does not support SSL connections
+    at C:\Users\CCL\Desktop\GOUZEPE_APP\api\node_modules\pg-pool\index.js:45:11
+    at process.processTicksAndRejections (node:internal/process/task_queues:105:5)
+    at async ensureSchema (C:\Users\CCL\Desktop\GOUZEPE_APP\api\server.js:92:1)
+    at async C:\Users\CCL\Desktop\GOUZEPE_APP\api\server.js:703:5
+Schema init error Error: The server does not support SSL connections
+    at C:\Users\CCL\Desktop\GOUZEPE_APP\api\node_modules\pg-pool\index.js:45:11
+    at process.processTicksAndRejections (node:internal/process/task_queues:105:5)
+    at async ensureSchema (C:\Users\CCL\Desktop\GOUZEPE_APP\api\server.js:92:1)
+    at async C:\Users\CCL\Desktop\GOUZEPE_APP\api\server.js:703:5
+Schema init error Error: The server does not support SSL connections
+    at C:\Users\CCL\Desktop\GOUZEPE_APP\api\node_modules\pg-pool\index.js:45:11
+    at process.processTicksAndRejections (node:internal/process/task_queues:105:5)
+    at async ensureSchema (C:\Users\CCL\Desktop\GOUZEPE_APP\api\server.js:92:1)
+    at async C:\Users\CCL\Desktop\GOUZEPE_APP\api\server.js:703:5
+Schema init error Error: The server does not support SSL connections
+    at C:\Users\CCL\Desktop\GOUZEPE_APP\api\node_modules\pg-pool\index.js:45:11
+    at process.processTicksAndRejections (node:internal/process/task_queues:105:5)
+    at async ensureSchema (C:\Users\CCL\Desktop\GOUZEPE_APP\api\server.js:92:1)
+    at async C:\Users\CCL\Desktop\GOUZEPE_APP\api\server.js:703:5
+Schema init error Error: The server does not support SSL connections
+    at C:\Users\CCL\Desktop\GOUZEPE_APP\api\node_modules\pg-pool\index.js:45:11
+    at process.processTicksAndRejections (node:internal/process/task_queues:105:5)
+    at async ensureSchema (C:\Users\CCL\Desktop\GOUZEPE_APP\api\server.js:92:1)
+    at async C:\Users\CCL\Desktop\GOUZEPE_APP\api\server.js:703:5
+Schema init error Error: The server does not support SSL connections
+    at C:\Users\CCL\Desktop\GOUZEPE_APP\api\node_modules\pg-pool\index.js:45:11
+    at process.processTicksAndRejections (node:internal/process/task_queues:105:5)
+    at async ensureSchema (C:\Users\CCL\Desktop\GOUZEPE_APP\api\server.js:92:1)
+    at async C:\Users\CCL\Desktop\GOUZEPE_APP\api\server.js:703:5
+Schema init error Error: The server does not support SSL connections
+    at C:\Users\CCL\Desktop\GOUZEPE_APP\api\node_modules\pg-pool\index.js:45:11
+    at process.processTicksAndRejections (node:internal/process/task_queues:105:5)
+    at async ensureSchema (C:\Users\CCL\Desktop\GOUZEPE_APP\api\server.js:92:1)
+    at async C:\Users\CCL\Desktop\GOUZEPE_APP\api\server.js:703:5
+Schema init error Error: The server does not support SSL connections
+    at C:\Users\CCL\Desktop\GOUZEPE_APP\api\node_modules\pg-pool\index.js:45:11
+    at process.processTicksAndRejections (node:internal/process/task_queues:105:5)
+    at async ensureSchema (C:\Users\CCL\Desktop\GOUZEPE_APP\api\server.js:92:1)
+    at async C:\Users\CCL\Desktop\GOUZEPE_APP\api\server.js:703:5
+Schema init error Error: The server does not support SSL connections
+    at C:\Users\CCL\Desktop\GOUZEPE_APP\api\node_modules\pg-pool\index.js:45:11
+    at process.processTicksAndRejections (node:internal/process/task_queues:105:5)
+    at async ensureSchema (C:\Users\CCL\Desktop\GOUZEPE_APP\api\server.js:92:1)
+    at async C:\Users\CCL\Desktop\GOUZEPE_APP\api\server.js:703:5
+Schema init error Error: The server does not support SSL connections
+    at C:\Users\CCL\Desktop\GOUZEPE_APP\api\node_modules\pg-pool\index.js:45:11
+    at process.processTicksAndRejections (node:internal/process/task_queues:105:5)
+    at async ensureSchema (C:\Users\CCL\Desktop\GOUZEPE_APP\api\server.js:92:1)
+    at async C:\Users\CCL\Desktop\GOUZEPE_APP\api\server.js:703:5
+Schema init error Error: The server does not support SSL connections
+    at C:\Users\CCL\Desktop\GOUZEPE_APP\api\node_modules\pg-pool\index.js:45:11
+    at process.processTicksAndRejections (node:internal/process/task_queues:105:5)
+    at async ensureSchema (C:\Users\CCL\Desktop\GOUZEPE_APP\api\server.js:92:1)
+    at async C:\Users\CCL\Desktop\GOUZEPE_APP\api\server.js:703:5
+Schema init error Error: The server does not support SSL connections
+    at C:\Users\CCL\Desktop\GOUZEPE_APP\api\node_modules\pg-pool\index.js:45:11
+    at process.processTicksAndRejections (node:internal/process/task_queues:105:5)
+    at async ensureSchema (C:\Users\CCL\Desktop\GOUZEPE_APP\api\server.js:92:1)
+    at async C:\Users\CCL\Desktop\GOUZEPE_APP\api\server.js:703:5
+Schema init error Error: The server does not support SSL connections
+    at C:\Users\CCL\Desktop\GOUZEPE_APP\api\node_modules\pg-pool\index.js:45:11
+    at process.processTicksAndRejections (node:internal/process/task_queues:105:5)
+    at async ensureSchema (C:\Users\CCL\Desktop\GOUZEPE_APP\api\server.js:92:1)
+    at async C:\Users\CCL\Desktop\GOUZEPE_APP\api\server.js:703:5
+Schema init error Error: The server does not support SSL connections
+    at C:\Users\CCL\Desktop\GOUZEPE_APP\api\node_modules\pg-pool\index.js:45:11
+    at process.processTicksAndRejections (node:internal/process/task_queues:105:5)
+    at async ensureSchema (C:\Users\CCL\Desktop\GOUZEPE_APP\api\server.js:92:1)
+    at async C:\Users\CCL\Desktop\GOUZEPE_APP\api\server.js:703:5
+Schema init error Error: The server does not support SSL connections
+    at C:\Users\CCL\Desktop\GOUZEPE_APP\api\node_modules\pg-pool\index.js:45:11
+    at process.processTicksAndRejections (node:internal/process/task_queues:105:5)
+    at async ensureSchema (C:\Users\CCL\Desktop\GOUZEPE_APP\api\server.js:92:1)
+    at async C:\Users\CCL\Desktop\GOUZEPE_APP\api\server.js:703:5
+Schema init error Error: The server does not support SSL connections
+    at C:\Users\CCL\Desktop\GOUZEPE_APP\api\node_modules\pg-pool\index.js:45:11
+    at process.processTicksAndRejections (node:internal/process/task_queues:105:5)
+    at async ensureSchema (C:\Users\CCL\Desktop\GOUZEPE_APP\api\server.js:92:1)
+    at async C:\Users\CCL\Desktop\GOUZEPE_APP\api\server.js:703:5
+Schema init error Error: The server does not support SSL connections
+    at C:\Users\CCL\Desktop\GOUZEPE_APP\api\node_modules\pg-pool\index.js:45:11
+    at process.processTicksAndRejections (node:internal/process/task_queues:105:5)
+    at async ensureSchema (C:\Users\CCL\Desktop\GOUZEPE_APP\api\server.js:92:1)
+    at async C:\Users\CCL\Desktop\GOUZEPE_APP\api\server.js:703:5
+Schema init error Error: The server does not support SSL connections
+    at C:\Users\CCL\Desktop\GOUZEPE_APP\api\node_modules\pg-pool\index.js:45:11
+    at process.processTicksAndRejections (node:internal/process/task_queues:105:5)
+    at async ensureSchema (C:\Users\CCL\Desktop\GOUZEPE_APP\api\server.js:92:1)
+    at async C:\Users\CCL\Desktop\GOUZEPE_APP\api\server.js:703:5
+Schema init error Error: The server does not support SSL connections
+    at C:\Users\CCL\Desktop\GOUZEPE_APP\api\node_modules\pg-pool\index.js:45:11
+    at process.processTicksAndRejections (node:internal/process/task_queues:105:5)
+    at async ensureSchema (C:\Users\CCL\Desktop\GOUZEPE_APP\api\server.js:92:1)
+    at async C:\Users\CCL\Desktop\GOUZEPE_APP\api\server.js:703:5
+Schema init error Error: The server does not support SSL connections
+    at C:\Users\CCL\Desktop\GOUZEPE_APP\api\node_modules\pg-pool\index.js:45:11
+    at process.processTicksAndRejections (node:internal/process/task_queues:105:5)
+    at async ensureSchema (C:\Users\CCL\Desktop\GOUZEPE_APP\api\server.js:92:1)
+    at async C:\Users\CCL\Desktop\GOUZEPE_APP\api\server.js:703:5
+Schema init error Error: The server does not support SSL connections
+    at C:\Users\CCL\Desktop\GOUZEPE_APP\api\node_modules\pg-pool\index.js:45:11
+    at process.processTicksAndRejections (node:internal/process/task_queues:105:5)
+    at async ensureSchema (C:\Users\CCL\Desktop\GOUZEPE_APP\api\server.js:92:1)
+    at async C:\Users\CCL\Desktop\GOUZEPE_APP\api\server.js:703:5
+Schema init error Error: The server does not support SSL connections
+    at C:\Users\CCL\Desktop\GOUZEPE_APP\api\node_modules\pg-pool\index.js:45:11
+    at process.processTicksAndRejections (node:internal/process/task_queues:105:5)
+    at async ensureSchema (C:\Users\CCL\Desktop\GOUZEPE_APP\api\server.js:92:1)
+    at async C:\Users\CCL\Desktop\GOUZEPE_APP\api\server.js:703:5
+Schema init error Error: The server does not support SSL connections
+    at C:\Users\CCL\Desktop\GOUZEPE_APP\api\node_modules\pg-pool\index.js:45:11
+    at process.processTicksAndRejections (node:internal/process/task_queues:105:5)
+    at async ensureSchema (C:\Users\CCL\Desktop\GOUZEPE_APP\api\server.js:92:1)
+    at async C:\Users\CCL\Desktop\GOUZEPE_APP\api\server.js:703:5
+Schema init error Error: The server does not support SSL connections
+    at C:\Users\CCL\Desktop\GOUZEPE_APP\api\node_modules\pg-pool\index.js:45:11
+    at process.processTicksAndRejections (node:internal/process/task_queues:105:5)
+    at async ensureSchema (C:\Users\CCL\Desktop\GOUZEPE_APP\api\server.js:92:1)
+    at async C:\Users\CCL\Desktop\GOUZEPE_APP\api\server.js:703:5
+Schema init error Error: The server does not support SSL connections
+    at C:\Users\CCL\Desktop\GOUZEPE_APP\api\node_modules\pg-pool\index.js:45:11
+    at process.processTicksAndRejections (node:internal/process/task_queues:105:5)
+    at async ensureSchema (C:\Users\CCL\Desktop\GOUZEPE_APP\api\server.js:130:1)
+    at async C:\Users\CCL\Desktop\GOUZEPE_APP\api\server.js:741:5
+Schema init error Error: The server does not support SSL connections
+    at C:\Users\CCL\Desktop\GOUZEPE_APP\api\node_modules\pg-pool\index.js:45:11
+    at process.processTicksAndRejections (node:internal/process/task_queues:105:5)
+    at async ensureSchema (C:\Users\CCL\Desktop\GOUZEPE_APP\api\server.js:92:1)
+    at async C:\Users\CCL\Desktop\GOUZEPE_APP\api\server.js:703:5
+Schema init error Error: The server does not support SSL connections
+    at C:\Users\CCL\Desktop\GOUZEPE_APP\api\node_modules\pg-pool\index.js:45:11
+    at process.processTicksAndRejections (node:internal/process/task_queues:105:5)
+    at async ensureSchema (C:\Users\CCL\Desktop\GOUZEPE_APP\api\server.js:92:1)
+    at async C:\Users\CCL\Desktop\GOUZEPE_APP\api\server.js:703:5
+Schema init error Error: The server does not support SSL connections
+    at C:\Users\CCL\Desktop\GOUZEPE_APP\api\node_modules\pg-pool\index.js:45:11
+    at process.processTicksAndRejections (node:internal/process/task_queues:105:5)
+    at async ensureSchema (C:\Users\CCL\Desktop\GOUZEPE_APP\api\server.js:92:1)
+    at async C:\Users\CCL\Desktop\GOUZEPE_APP\api\server.js:703:5
+Schema init error Error: The server does not support SSL connections
+    at C:\Users\CCL\Desktop\GOUZEPE_APP\api\node_modules\pg-pool\index.js:45:11
+    at process.processTicksAndRejections (node:internal/process/task_queues:105:5)
+    at async ensureSchema (C:\Users\CCL\Desktop\GOUZEPE_APP\api\server.js:92:1)
+    at async C:\Users\CCL\Desktop\GOUZEPE_APP\api\server.js:703:5
+Schema init error Error: The server does not support SSL connections
+    at C:\Users\CCL\Desktop\GOUZEPE_APP\api\node_modules\pg-pool\index.js:45:11
+    at process.processTicksAndRejections (node:internal/process/task_queues:105:5)
+    at async ensureSchema (C:\Users\CCL\Desktop\GOUZEPE_APP\api\server.js:92:1)
+    at async C:\Users\CCL\Desktop\GOUZEPE_APP\api\server.js:703:5
+Schema init error Error: The server does not support SSL connections
+    at C:\Users\CCL\Desktop\GOUZEPE_APP\api\node_modules\pg-pool\index.js:45:11
+    at process.processTicksAndRejections (node:internal/process/task_queues:105:5)
+    at async ensureSchema (C:\Users\CCL\Desktop\GOUZEPE_APP\api\server.js:92:1)
+    at async C:\Users\CCL\Desktop\GOUZEPE_APP\api\server.js:703:5
+Schema init error Error: The server does not support SSL connections
+    at C:\Users\CCL\Desktop\GOUZEPE_APP\api\node_modules\pg-pool\index.js:45:11
+    at process.processTicksAndRejections (node:internal/process/task_queues:105:5)
+    at async ensureSchema (C:\Users\CCL\Desktop\GOUZEPE_APP\api\server.js:92:1)
+    at async C:\Users\CCL\Desktop\GOUZEPE_APP\api\server.js:703:5
+Schema init error Error: The server does not support SSL connections
+    at C:\Users\CCL\Desktop\GOUZEPE_APP\api\node_modules\pg-pool\index.js:45:11
+    at process.processTicksAndRejections (node:internal/process/task_queues:105:5)
+    at async ensureSchema (C:\Users\CCL\Desktop\GOUZEPE_APP\api\server.js:92:1)
+    at async C:\Users\CCL\Desktop\GOUZEPE_APP\api\server.js:703:5
+Schema init error Error: The server does not support SSL connections
+    at C:\Users\CCL\Desktop\GOUZEPE_APP\api\node_modules\pg-pool\index.js:45:11
+    at process.processTicksAndRejections (node:internal/process/task_queues:105:5)
+    at async ensureSchema (C:\Users\CCL\Desktop\GOUZEPE_APP\api\server.js:126:3)
+    at async C:\Users\CCL\Desktop\GOUZEPE_APP\api\server.js:761:5
+Schema init error Error: The server does not support SSL connections
+    at C:\Users\CCL\Desktop\GOUZEPE_APP\api\node_modules\pg-pool\index.js:45:11
+    at process.processTicksAndRejections (node:internal/process/task_queues:105:5)
+    at async ensureSchema (C:\Users\CCL\Desktop\GOUZEPE_APP\api\server.js:126:3)
+    at async C:\Users\CCL\Desktop\GOUZEPE_APP\api\server.js:761:5
+Schema init error Error: The server does not support SSL connections
+    at C:\Users\CCL\Desktop\GOUZEPE_APP\api\node_modules\pg-pool\index.js:45:11
+    at process.processTicksAndRejections (node:internal/process/task_queues:105:5)
+    at async ensureSchema (C:\Users\CCL\Desktop\GOUZEPE_APP\api\server.js:126:3)
+    at async C:\Users\CCL\Desktop\GOUZEPE_APP\api\server.js:761:5
+Schema init error Error: The server does not support SSL connections
+    at C:\Users\CCL\Desktop\GOUZEPE_APP\api\node_modules\pg-pool\index.js:45:11
+    at process.processTicksAndRejections (node:internal/process/task_queues:105:5)
+    at async ensureSchema (C:\Users\CCL\Desktop\GOUZEPE_APP\api\server.js:126:3)
+    at async C:\Users\CCL\Desktop\GOUZEPE_APP\api\server.js:761:5
+Schema init error Error: The server does not support SSL connections
+    at C:\Users\CCL\Desktop\GOUZEPE_APP\api\node_modules\pg-pool\index.js:45:11
+    at process.processTicksAndRejections (node:internal/process/task_queues:105:5)
+    at async ensureSchema (C:\Users\CCL\Desktop\GOUZEPE_APP\api\server.js:126:3)
+    at async C:\Users\CCL\Desktop\GOUZEPE_APP\api\server.js:761:5
+Schema init error Error: The server does not support SSL connections
+    at C:\Users\CCL\Desktop\GOUZEPE_APP\api\node_modules\pg-pool\index.js:45:11
+    at process.processTicksAndRejections (node:internal/process/task_queues:105:5)
+    at async ensureSchema (C:\Users\CCL\Desktop\GOUZEPE_APP\api\server.js:138:3)
+    at async C:\Users\CCL\Desktop\GOUZEPE_APP\api\server.js:773:5
+Schema init error Error: The server does not support SSL connections
+    at C:\Users\CCL\Desktop\GOUZEPE_APP\api\node_modules\pg-pool\index.js:45:11
+    at process.processTicksAndRejections (node:internal/process/task_queues:105:5)
+    at async ensureSchema (C:\Users\CCL\Desktop\GOUZEPE_APP\api\server.js:138:3)
+    at async C:\Users\CCL\Desktop\GOUZEPE_APP\api\server.js:773:5
+Schema init error Error: The server does not support SSL connections
+    at C:\Users\CCL\Desktop\GOUZEPE_APP\api\node_modules\pg-pool\index.js:45:11
+    at process.processTicksAndRejections (node:internal/process/task_queues:105:5)
+    at async ensureSchema (C:\Users\CCL\Desktop\GOUZEPE_APP\api\server.js:126:3)
+    at async C:\Users\CCL\Desktop\GOUZEPE_APP\api\server.js:761:5
+Schema init error Error: The server does not support SSL connections
+    at C:\Users\CCL\Desktop\GOUZEPE_APP\api\node_modules\pg-pool\index.js:45:11
+    at process.processTicksAndRejections (node:internal/process/task_queues:105:5)
+    at async ensureSchema (C:\Users\CCL\Desktop\GOUZEPE_APP\api\server.js:126:3)
+    at async C:\Users\CCL\Desktop\GOUZEPE_APP\api\server.js:761:5
+Schema init error Error: The server does not support SSL connections
+    at C:\Users\CCL\Desktop\GOUZEPE_APP\api\node_modules\pg-pool\index.js:45:11
+    at process.processTicksAndRejections (node:internal/process/task_queues:105:5)
+    at async ensureSchema (C:\Users\CCL\Desktop\GOUZEPE_APP\api\server.js:126:3)
+    at async C:\Users\CCL\Desktop\GOUZEPE_APP\api\server.js:761:5
+Schema init error Error: The server does not support SSL connections
+    at C:\Users\CCL\Desktop\GOUZEPE_APP\api\node_modules\pg-pool\index.js:45:11
+    at process.processTicksAndRejections (node:internal/process/task_queues:105:5)
+    at async ensureSchema (C:\Users\CCL\Desktop\GOUZEPE_APP\api\server.js:126:3)
+    at async C:\Users\CCL\Desktop\GOUZEPE_APP\api\server.js:761:5
+Schema init error Error: The server does not support SSL connections
+    at C:\Users\CCL\Desktop\GOUZEPE_APP\api\node_modules\pg-pool\index.js:45:11
+    at process.processTicksAndRejections (node:internal/process/task_queues:105:5)
+    at async ensureSchema (C:\Users\CCL\Desktop\GOUZEPE_APP\api\server.js:126:3)
+    at async C:\Users\CCL\Desktop\GOUZEPE_APP\api\server.js:761:5
+Schema init error Error: The server does not support SSL connections
+    at C:\Users\CCL\Desktop\GOUZEPE_APP\api\node_modules\pg-pool\index.js:45:11
+    at process.processTicksAndRejections (node:internal/process/task_queues:105:5)
+    at async ensureSchema (C:\Users\CCL\Desktop\GOUZEPE_APP\api\server.js:126:3)
+    at async C:\Users\CCL\Desktop\GOUZEPE_APP\api\server.js:761:5
+Schema init error Error: The server does not support SSL connections
+    at C:\Users\CCL\Desktop\GOUZEPE_APP\api\node_modules\pg-pool\index.js:45:11
+    at process.processTicksAndRejections (node:internal/process/task_queues:105:5)
+    at async ensureSchema (C:\Users\CCL\Desktop\GOUZEPE_APP\api\server.js:88:3)
+    at async C:\Users\CCL\Desktop\GOUZEPE_APP\api\server.js:724:5

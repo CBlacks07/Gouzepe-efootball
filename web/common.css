@@ -117,3 +117,69 @@ dialog::backdrop{background:rgba(0,0,0,.4);backdrop-filter:blur(1.5px)}
 .dlg-body{padding:12px;text-align:center}
 .fade-in{animation:fade .25s ease}
 @keyframes fade{from{opacity:0; transform:translateY(2px)} to{opacity:1; transform:none}}
+
+/* --- Badge saison (vert, blink lent) --- */
+.season-badge{
+  margin-left:8px; padding:2px 10px; border-radius:999px;
+  border:1px solid color-mix(in oklab, var(--success, #22c55e) 35%, transparent);
+  background: color-mix(in oklab, #22c55e 12%, transparent);
+  color:#22c55e; font-weight:700; font-size:.95rem;
+}
+@keyframes softblink { 0%,100%{ opacity:1 } 50%{ opacity:.35 } }
+.blink-slow{ animation: softblink 2.6s ease-in-out infinite }
+
+/* Sticky première colonne pour lisibilité dans les tableaux */
+.table td:first-child, .table th:first-child{
+  position: sticky; left: 0; z-index: 2;
+  background: var(--card);
+}
+
+/* Confort tactile mobile */
+@media (max-width: 700px){
+  .btn{ width:100%; min-height:44px }
+  input, select, textarea{ font-size:16px; min-height:44px }
+}
+
+/* ==============================
+   MOBILE FIX PACK — Layout/UX
+   ============================== */
+
+/* Bouton(s) plus confortables au doigt */
+@media (max-width: 700px){
+  .btn{ width:100%; min-height:44px }
+  input, select, textarea{ font-size:16px; min-height:44px } /* anti-zoom iOS */
+}
+
+/* Conteneur scroll pour TOUTES les tables */
+.table-wrap{
+  overflow:auto;
+  border-radius: var(--radius-lg, 14px);
+  border:1px solid var(--border);
+  background: var(--card);
+  box-shadow: var(--shadow-1);
+}
+.table{
+  width:100%;
+  border-collapse: collapse;
+}
+.table th, .table td{
+  padding:10px;
+  border-bottom:1px solid var(--border);
+}
+.table thead th{
+  position: sticky; top: 0;
+  background: var(--card);
+  color: var(--muted);
+  z-index: 1;
+}
+/* 1ère colonne “figée” pour la lisibilité */
+.table td:first-child, .table th:first-child{
+  position: sticky; left: 0; z-index: 2;
+  background: var(--card);
+}
+
+/* Menu mobile (si présent dans la page) */
+@media (max-width: 840px){
+  .menu{ display:none }
+  .menu.open{ display:flex }
+}

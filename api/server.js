@@ -20,7 +20,7 @@ const EMAIL_DOMAIN = process.env.EMAIL_DOMAIN || 'gz.local';
 
 const useSSL = (process.env.PGSSL === 'true') || process.env.RENDER === 'true' || process.env.NODE_ENV === 'production';
 const pool = new Pool({
-  host: process.env.PGHOST || 'dpg-d2mvamh5pdvs739c7aj0-a',
+  host: process.env.PGHOST || '127.0.0.1',
   port: +(process.env.PGPORT || 5432),
   database: process.env.PGDATABASE || 'EFOOTBALL',
   user: process.env.PGUSER || 'postgres',
@@ -711,6 +711,36 @@ app.get('/matchdays/:date', auth, async (req,res)=>{
   if (!r.rowCount) return bad(res,404,'introuvable');
   res.json(r.rows[0].payload);
 });
+
+
+/* ---------- drafts (brouillons temps réel) ---------- */
+app.get('/matchdays/draft/:date', auth, async (req,res)=>{
+  const d = req.params.date;
+  try{
+    const r = await q('SELECT payload FROM draft WHERE day=$1',[d]);
+    if(!r.rowCount) return bad(res,404,'no draft');
+    ok(res,{ payload: r.rows[0].payload });
+  }catch(e){ bad(res,500,'draft get error'); }
+});
+app.put('/matchdays/draft/:date', auth, async (req,res)=>{
+  const d = req.params.date;
+  const payload = req.body || {};
+  try{
+    await q(`INSERT INTO draft(day,payload,updated_at)
+             VALUES ($1,$2,now())
+             ON CONFLICT (day) DO UPDATE SET payload=EXCLUDED.payload, updated_at=now()`,
+             [d, payload]);
+    io.to(`draft:${d}`).emit('draft:update', { date:d });
+    ok(res,{ ok:true });
+  }catch(e){ bad(res,500,'draft save error'); }
+});
+app.delete('/matchdays/draft/:date', auth, async (req,res)=>{
+  try{
+    await q('DELETE FROM draft WHERE day=$1',[req.params.date]);
+    ok(res,{ ok:true });
+  }catch(e){ bad(res,500,'draft delete error'); }
+});
+
 app.put('/matchdays/:day/season', auth, adminOnly, async (req,res)=>{
   const day = req.params.day;
   const { season_id } = req.body||{};
@@ -729,6 +759,10 @@ app.post('/matchdays/confirm', auth, adminOnly, async (req,res)=>{
            VALUES ($1,$2,$3,now())
            ON CONFLICT (day) DO UPDATE SET season_id=EXCLUDED.season_id, payload=EXCLUDED.payload`,
            [date, sid, payload]);
+  // supprimer un éventuel brouillon et notifier tout le monde
+  await q('DELETE FROM draft WHERE day=$1',[date]);
+  io.to(`draft:${date}`).emit('day:confirmed', { date });
+  io.emit('season:changed');
   ok(res,{ ok:true });
 });
 app.delete('/matchdays/:date', auth, adminOnly, async (req,res)=>{
@@ -850,10 +884,18 @@ app.get('/faceoff/:oppId', auth, async (req,res)=>{
     totals, legs, best_me, best_opp, leader
   });
 });
-
-/* ---------- presence (socket placeholder) ---------- */
-io.on('connection', (_socket)=>{ /* reservé */ });
-
+/* ---------- websockets ---------- */
+io.on('connection', (socket)=>{
+  // rejoindre une "room" (par date)
+  socket.on('join', ({room})=>{
+    if(room && typeof room === 'string') socket.join(room);
+  });
+  // relais des notifications de brouillon
+  socket.on('draft:update', ({date})=>{
+    if(!date) return;
+    io.to(`draft:${date}`).emit('draft:update', { date });
+  });
+});
 /* ---------- start ---------- */
 (async ()=>{
   try{

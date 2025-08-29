@@ -47,7 +47,7 @@
 }
 
 :root.light{
-  --bg:#f5f7fb;
+  --bg:hsl(220, 97%, 27%);
   --panel:#ffffff;
   --card:#ffffff;
   --border:#e5e7eb;
@@ -227,3 +227,216 @@ tbody tr:hover{ background:color-mix(in srgb, var(--info-600) 9%, transparent); 
 .shadow{ box-shadow:var(--shadow) }
 .round{ border-radius:12px }
 .border{ border:1px solid var(--border) }
+
+/* === Mobile: contraste & focus ring plus visibles === */
+@media (max-width: 700px){
+  :root.light{ --shadow: 0 10px 22px rgba(15,23,42,.10); --ring: 0 0 0 3px rgba(34,197,94,.28); }
+  :root{ --ring: 0 0 0 3px rgba(34,197,94,.36); }
+}
+
+
+.dot{display:inline-block;width:10px;height:10px;border-radius:50%;background:#475569;margin-right:6px;vertical-align:middle}
+.dot.online{background:#22c55e;box-shadow:0 0 0 0 rgba(34,197,94,.6);animation:pulse 1.2s ease-out infinite}
+@keyframes pulse{0%{box-shadow:0 0 0 0 rgba(34,197,94,.6)}70%{box-shadow:0 0 0 10px rgba(34,197,94,0)}100%{box-shadow:0 0 0 0 rgba(34,197,94,0)}}
+
+/* Menu mobile */
+.menu{position:fixed; top:60px; right:12px; background:var(--panel); border:1px solid var(--border);
+  border-radius:14px; padding:8px; display:none; box-shadow:0 12px 40px rgba(0,0,0,.35); z-index:60}
+.menu.open{display:block}
+.menu a{display:block; padding:10px 12px; border-radius:10px; color:var(--text); text-decoration:none}
+.menu a:hover{background:rgba(255,255,255,.06)}
+
+/* Modal "Journée" */
+dialog.day {
+  border: none;
+  width: min(96vw, 980px);
+  max-width: 980px;
+  padding: 0;
+  background: var(--panel);
+  color: var(--text);
+  border-radius: 16px;
+}
+dialog.day::backdrop { background: rgba(0,0,0,.45); }
+
+.day-head {
+  padding: 16px;
+  border-bottom: 1px solid var(--border);
+  display: flex; justify-content: space-between; align-items: center; gap: 10px;
+  position: sticky; top: 0; background: inherit; z-index: 1;
+}
+.day-body {
+  padding: 12px 16px;
+  max-height: 72vh;                 /* <= scroll vertical dans le modal */
+  overflow: auto;
+}
+
+/* Tables responsives dans le modal */
+.tableWrap {
+  overflow: auto;                   /* <= scroll horizontal si trop large */
+  -webkit-overflow-scrolling: touch;
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  margin: 8px 0 14px;
+}
+.tbl {
+  width: 100%;
+  border-collapse: separate;
+  border-spacing: 0;
+  min-width: 640px;                 /* <= évite l’écrasement des colonnes */
+}
+.tbl th, .tbl td { padding: 10px 12px; border-bottom: 1px solid rgba(255,255,255,.08); text-align: left; }
+
+/* ---- Classement Saison (même style que Classement général) ---- */
+.hid-m{display:table-cell}
+@media (max-width:520px){ .hid-m{display:none} }
+.grid2{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:6px}
+#seasonBlock .tableWrap{overflow:auto;-webkit-overflow-scrolling:touch;border:1px solid var(--border);border-radius:12px;margin-top:10px}
+#seasonBlock .tbl{width:100%;min-width:720px;border-collapse:separate;border-spacing:0}
+#seasonBlock .tbl th,#seasonBlock .tbl td{padding:10px 12px;border-bottom:1px solid rgba(255,255,255,.08);text-align:left}
+
+/* --- Tables responsives (utilise .table-wrap) --- */
+.table-wrap{
+  overflow:auto;                     /* scroll horizontal si nécessaire */
+  -webkit-overflow-scrolling:touch;
+  border:1px solid var(--border);
+  border-radius:12px;
+  margin:10px 0 14px;
+  background:var(--panel);
+}
+.table-wrap > table{
+  width:100%;
+  border-collapse:separate;
+  border-spacing:0;
+  min-width:720px;                   /* évite l’écrasement des colonnes */
+}
+.table-wrap th, .table-wrap td{
+  padding:10px 12px;
+  border-bottom:1px solid rgba(255,255,255,.08);
+  text-align:left;
+}
+
+/* --- Table des confrontations compactes --- */
+.compactScores td.mid{ text-align:center; white-space:nowrap }
+.compactScores input[type="text"]{ width:100%; min-width:120px; height:40px }
+.compactScores input[type="number"]{ width:56px; height:40px; text-align:center }
+
+/* Petites largeurs : actions qui passent à la ligne proprement */
+@media (max-width:640px){
+  .row{ gap:8px; flex-wrap:wrap }
+}
+
+.table-wrap thead th{
+  position:sticky; top:0; background:var(--panel); z-index:1;
+}
+
+/* === Filigrane : logo visible en entier derrière la page === */
+:root{
+  /* taille et opacité à ajuster si besoin */
+  --wm-size: min(80vmin, 70vw);
+  --wm-opacity: .08;
+}
+
+/* crée une couche "au dessus" du fond mais sous le contenu */
+body{
+  position: relative;
+  isolation: isolate; /* isole les calques pour bien gérer le z-index */
+}
+
+body::before{
+  content: "";
+  position: fixed;     /* reste en place au scroll */
+  inset: 0;
+  pointer-events: none;
+  z-index: 0;          /* sous le contenu */
+  background: url('assets/fond.png') center / contain no-repeat; /* <= chemin du logo */
+  opacity: var(--wm-opacity);
+}
+
+/* assure que le contenu passe par-dessus le filigrane */
+.wrap, main, header, .top, .card, .container{
+  position: relative;
+  z-index: 1;
+}
+
+/* Ajuste un peu en thème clair si tu veux plus visible */
+html.light body::before{
+  opacity: .12;
+  filter: grayscale(1) contrast(.9);
+}
+
+/* === Densité compacte mobile (global, toutes les pages) === */
+@media (max-width: 480px){
+  :root{
+    --fs-md:14px;          /* taille texte de base */
+    --fs-sm:13px;
+    --fs-xs:12px;
+    --gap-sm:8px;
+    --radius-sm:10px;
+  }
+
+  /* Typo & titres */
+  html, body { font-size: var(--fs-md); }
+  h1{font-size:1.25rem}
+  h2{font-size:1.10rem}
+  h3{font-size:1.00rem}
+  h4{font-size:.95rem}
+  label{font-size:var(--fs-sm)}
+
+  /* Cartes & layout */
+  .card{ border-radius:14px; }
+  .row{ gap:var(--gap-sm); flex-wrap:wrap; }
+  .grid{ gap:var(--gap-sm); }
+
+  /* Champs de saisie */
+  input, select, textarea{
+    padding:10px 12px;
+    border-radius: var(--radius-sm);
+    min-height:38px;
+    font-size:var(--fs-md);
+  }
+
+  /* Boutons */
+  .btn{
+    padding:10px 12px;
+    border-radius: var(--radius-sm);
+    font-size:var(--fs-md);
+  }
+  .iconbtn, .chip, .nav .btn{
+    padding:8px 10px;
+    border-radius: var(--radius-sm);
+    font-size:var(--fs-sm);
+  }
+
+  /* Tableaux */
+  .table-wrap{ overflow-x:auto; }
+  .table-wrap table{ font-size:var(--fs-sm); }
+  .table-wrap table th,
+  .table-wrap table td{ padding:6px 8px; }
+
+  /* Petites cases de score (saisie Aller/Retour, barrage, etc.) */
+  .compactScores input,
+  .score input{
+    width:140px; height:34px;
+    font-size:var(--fs-md);
+    text-align:center;
+    padding:0;
+  }
+  .dash{ padding:0 4px; }
+
+  /* Modales */
+  dialog{
+    width:96vw; max-width:96vw;
+    border-radius:14px;
+  }
+  .dlg-h,.dlg-b,.dlg-f{ padding:12px; }
+}
+
+/* Encore plus compact sur très petits écrans */
+@media (max-width: 360px){
+  html, body { font-size:13px; }
+  .btn{ padding:8px 10px; font-size:13px; }
+  input, select, textarea{ min-height:34px; padding:8px 10px; font-size:13px; }
+  .table-wrap table{ font-size:12px; }
+  .table-wrap table th, .table-wrap table td{ padding:5px 6px; }
+  .compactScores input, .score input{ width:110px; height:32px; font-size:13px; }
+}

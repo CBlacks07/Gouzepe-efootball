@@ -5,8 +5,7 @@
   const $$ = (s) => Array.from(document.querySelectorAll(s));
 
   const DEF_API = () => 'https://gouzepe-efootball.onrender.com';
-
-  const getAPI  = () => (localStorage.getItem('efoot.api') || DEF_API()).replace(/\/+$/, '');
+  const getAPI  = () => (localStorage.getItem('efoot.api') || window.EFOOT_API || DEF_API()).replace(/\/+$/, '');
   const getTok  = () => localStorage.getItem('efoot.token') || '';
   const getRole = () => (localStorage.getItem('efoot.role') || 'member').toLowerCase();
   const getExp  = () => +localStorage.getItem('efoot.expAt') || 0;

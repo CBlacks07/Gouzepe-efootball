@@ -5,6 +5,8 @@
 <title>GOUZEPE — Admin Joueurs</title>
 <meta name="viewport" content="width=device-width, initial-scale=1" />
 <link rel="stylesheet" href="theme.css">
+<link rel="stylesheet" href="common.css">
+
 <meta name="color-scheme" content="dark light">
 
 <style>
@@ -49,22 +51,20 @@
   input,select{border:1px solid var(--border);border-radius:12px;padding:10px 12px;background:#0b1020;color:var(--text)}
   html.light input,html.light select{background:#fff}
   table{width:100%;border-collapse:collapse;border:1px solid var(--border);background:var(--card);border-radius:12px;overflow:hidden}
-  th,td{padding:10px;border-bottom:1px solid var(--border)}
+  th,td{padding:10px;border-bottom:1px solid var(--border);text-align:center}
   th{color:var(--muted)}
   .muted{color:var(--muted)}
-  /* Dialog générique */
-dialog{border:none;border-radius:14px;max-width:520px;width:min(92vw,520px);padding:0;background:var(--panel);color:var(--text)}
-dialog::backdrop{background:rgba(0,0,0,.35)}
-.dlg-h{padding:14px 16px;border-bottom:1px solid var(--border);font-weight:700}
-.dlg-b{padding:14px 16px;display:grid;gap:10px}
-.dlg-f{padding:14px 16px;border-top:1px solid var(--border);display:flex;gap:10px;justify-content:flex-end}
-
-/* Afficher l’ID tel que saisi (aucune transformation) */
-.keepcase{text-transform:none !important}
-
+  dialog{border:none;border-radius:14px;max-width:520px;width:min(92vw,520px);padding:0;background:var(--panel);color:var(--text)}
+  dialog::backdrop{background:rgba(0,0,0,.35)}
+  .dlg-h{padding:14px 16px;border-bottom:1px solid var(--border);font-weight:700}
+  .dlg-b{padding:14px 16px;display:grid;gap:10px}
+  .dlg-f{padding:14px 16px;border-top:1px solid var(--border);display:flex;gap:10px;justify-content:flex-end}
+  .keepcase{text-transform:none !important}
+  
 </style>
 </head>
-<!-- ======= Edit joueur ======= -->
+
+<!-- ======= Modal édition joueur (+ liaison compte) ======= -->
 <dialog id="editDlg">
   <div class="dlg-h">Modifier le joueur</div>
   <div class="dlg-b">
@@ -80,11 +80,19 @@ dialog::backdrop{background:rgba(0,0,0,.35)}
       <option value="INVITE">INVITE</option>
     </select>
 
+    <hr style="border:none;border-top:1px solid var(--border)">
+    <div class="muted">Compte membre associé (pour connexion <b>nom@gz</b>)</div>
+    <label>Email (par défaut : nom@gz.local)</label>
+    <input id="e_email" placeholder="ex: zidane@gz.local">
+    <label>Nouveau mot de passe (optionnel)</label>
+    <input id="e_pwd" type="password" placeholder="••••••">
+
     <div id="editMsg" class="muted">—</div>
   </div>
   <div class="dlg-f">
     <button class="iconbtn" id="editCancel">Annuler</button>
-    <button class="btn" id="editSave">Enregistrer</button>
+    <button class="btn" id="linkUser">Lier/MAJ compte</button>
+    <button class="btn primary" id="editSave">Enregistrer</button>
   </div>
 </dialog>
 
@@ -93,10 +101,10 @@ dialog::backdrop{background:rgba(0,0,0,.35)}
   <div class="top">
     <div class="nav">
       <div class="logo" aria-hidden="true"></div>
-      <h1 style="margin:0;font-size:20px">Administration — Joueurs</h1>
+      <h1 id="pageTitle" style="margin:0;font-size:20px">Administration — Joueurs</h1>
     </div>
     <button id="menuToggle" class="menu-toggle" aria-label="Ouvrir le menu" aria-expanded="false" aria-controls="menu">☰</button>
-    <div id="menu" class="menu">
+    <div id="menu" class="menu top">
       <a class="btn" href="Accueil.html">🏟️ Accueil</a>
       <a class="btn" href="Classement-general.html">📊 Classements</a>
       <a class="btn adminOnly" href="Admin-Utilisateurs.html">🛡️ Admin-Utilisateurs</a>
@@ -105,7 +113,7 @@ dialog::backdrop{background:rgba(0,0,0,.35)}
     </div>
   </div>
 
-  <section class="card" style="margin-top:12px">
+  <section class="card adminOnly" style="margin-top:12px">
     <h3 style="margin:6px 0">Créer / modifier un joueur</h3>
     <div class="row">
       <input id="pid" placeholder="ID (ex: CBlacks_GZ)" style="min-width:160px">
@@ -128,7 +136,7 @@ dialog::backdrop{background:rgba(0,0,0,.35)}
       </div>
     </div>
     <table style="text-align: center;">
-      <thead><tr><th>ID</th><th>Nom</th><th>Status</th><th>Actions</th></tr></thead>
+      <thead><tr><th>ID</th><th>Nom</th><th>Status</th><th>Compte</th><th class="adminOnly">Actions</th></tr></thead>
       <tbody id="list"></tbody>
     </table>
   </section>
@@ -136,148 +144,219 @@ dialog::backdrop{background:rgba(0,0,0,.35)}
 
 <script src="common.js"></script>
 <script>
-/* Page-specific: Admin-Joueurs (players CRUD) */
+/* Auth & visibilité */
+const API=(localStorage.getItem('efoot.api')||((location.protocol.startsWith('http')?location.protocol:'http:')+'//'+location.hostname+':3000')).replace(/\/+$/,'');
+const token=localStorage.getItem('efoot.token');
+const role =(localStorage.getItem('efoot.role')||'member').toLowerCase();
+document.querySelectorAll('.adminOnly').forEach(el=>el.style.display=(role==='admin')?'inline-flex':'none');
+if(!token){ location.href='login.html' }
+
+/* thème + menu + logout */
+(function(){
+  const k='efoot.theme';
+  const apply=m=>{document.documentElement.classList.toggle('light',m==='light');localStorage.setItem(k,m);document.getElementById('theme').textContent=m==='light'?'🌙':'☀️'};
+  apply(localStorage.getItem(k)||'dark');
+  document.getElementById('theme').onclick=()=>apply(document.documentElement.classList.contains('light')?'dark':'light');
+})();
+(function(){
+  const menu=document.getElementById('menu'), toggle=document.getElementById('menuToggle');
+  function open(v){menu.classList.toggle('open',v);toggle.setAttribute('aria-expanded',v?'true':'false')}
+  toggle?.addEventListener('click',()=>open(!menu.classList.contains('open')));
+  document.addEventListener('click',(e)=>{
+    if(!menu.classList.contains('open'))return;
+    if(e.target===toggle||menu.contains(e.target))return;
+    open(false);
+  },true);
+})();
+document.getElementById('logoutBtn')?.addEventListener('click',()=>{
+  if(confirm('Voulez-vous vraiment vous déconnecter ?')){
+    ['efoot.token','efoot.role','efoot.expAt'].forEach(k=>localStorage.removeItem(k));
+    location.href='login.html';
+  }
+});
+
 /* list/load */
 let players=[];
 async function load(){
   try{
     const r=await fetch(`${API}/players`,{headers:{'Authorization':`Bearer ${token}`}});
     const d=await r.json(); players=d.players||[];
+    await loadPresence();      // <— new
     render();
-    $('#msg').textContent='';
+    document.getElementById('msg').textContent='';
   }catch(e){
-    $('#msg').textContent='Impossible de charger les joueurs';
+    document.getElementById('msg').textContent='Impossible de charger les joueurs';
   }
 }
+
+
+let ONLINE = new Set();
+async function loadPresence(){
+  try{
+    const r = await fetch(`${API}/presence/players`, { headers:{Authorization:`Bearer ${token}`} });
+    const d = await r.json();
+    ONLINE = new Set(d.online || []);
+  }catch(_){ ONLINE = new Set(); }
+}
+
+
 function render(){
-  const q=($('#q').value||'');
-  const rows=players.filter(p=>p.player_id.includes(q)||(p.name||'').includes(q));
-  const tb=$('#list'); tb.innerHTML='';
+  const q=(document.getElementById('q').value||'').toLowerCase();
+  const rows=players.filter(p=>(p.player_id||'').toLowerCase().includes(q)||(p.name||'').toLowerCase().includes(q));
+  const tb=document.getElementById('list'); tb.innerHTML='';
+  const isAdmin = (window.role || localStorage.getItem('efoot.role') || '').toLowerCase() === 'admin';
+
   rows.forEach(p=>{
     const tr=document.createElement('tr');
-    tr.innerHTML=`<td>${p.player_id}</td>
-      <td>${p.name||''}</td>
-      <td>${p.role||'MEMBRE'}</td>
-      <td>
-        <button class="btn" data-edit="${p.player_id}">Modifier</button>
-        <button class="btn danger" data-del="${p.player_id}">Supprimer</button>
-      </td>`;
+    const online = ONLINE.has(p.player_id);
+    tr.innerHTML =
+      `<td>${p.player_id}</td>
+       <td>${p.name||''}</td>
+       <td>${p.role||'MEMBRE'}</td>
+       ${
+         isAdmin
+         ? `<td>${p.user_email ? '✅ '+p.user_email : '—'}</td>`
+         : `<td>${online ? '<span class="dot online"></span> En ligne' : '<span class="dot"></span> Hors ligne'}</td>`
+       }
+       ${isAdmin ? `<td>
+          <button class="btn" data-edit="${p.player_id}">Modifier</button>
+          <button class="btn danger" data-del="${p.player_id}">Supprimer</button>
+        </td>` : `<td class="adminOnly"></td>`}`;
     tb.appendChild(tr);
   });
 }
 
-/* add/update/delete */
-async function ensurePlayersWrite(method,url,body){
-  try{
-    const r=await fetch(url,{method,headers:{'Content-Type':'application/json','Authorization':`Bearer ${token}`},body: body?JSON.stringify(body):undefined});
-    if(r.status===404||r.status===405){ throw new Error("Les endpoints admin/players ne sont pas activés sur l'API."); }
-    if(!r.ok){ const d=await r.json().catch(()=>({})); throw new Error(d.error||`Erreur ${r.status}`); }
-    return await r.json().catch(()=>({ok:true}));
-  }catch(e){ throw e; }
+
+/* helpers */
+async function write(method,url,body){
+  const opt={method,headers:{'Authorization':`Bearer ${token}`}};
+  if(body){opt.headers['Content-Type']='application/json';opt.body=JSON.stringify(body);}
+  const r=await fetch(url,opt); const d=await r.json().catch(()=>({}));
+  if(!r.ok) throw new Error(d.error||`Erreur ${r.status}`);
+  return d;
 }
-$('#addBtn').onclick=async ()=>{
-  const player_id=$('#pid').value.trim()
-  const name=$('#pname').value.trim();
-  const roleSel=$('#prole').value||'MEMBRE';
-  if(!player_id||!name){ $('#msg').textContent='ID et Nom requis'; return; }
-  $('#msg').textContent='Enregistrement…';
+
+/* add/update/delete (CRUD basique) */
+document.getElementById('addBtn').onclick=async ()=>{
+  const player_id=document.getElementById('pid').value.trim()
+  const name=document.getElementById('pname').value.trim();
+  const roleSel=document.getElementById('prole').value||'MEMBRE';
+  if(!player_id||!name){ document.getElementById('msg').textContent='ID et Nom requis'; return; }
+  document.getElementById('msg').textContent='Enregistrement…';
   try{
-    await ensurePlayersWrite('POST',`${API}/admin/players`,{player_id,name,role:roleSel});
-    $('#msg').textContent='OK';
+    await write('POST',`${API}/admin/players`,{player_id,name,role:roleSel});
+    document.getElementById('msg').textContent='OK';
     await load();
   }catch(e){
-    $('#msg').textContent=e.message||'Erreur';
+    document.getElementById('msg').textContent=e.message||'Erreur';
   }
 };
-$('#list').addEventListener('click',async (e)=>{
+document.getElementById('list').addEventListener('click',async (e)=>{
   const id = e.target.dataset.edit || e.target.dataset.del;
   if(!id) return;
   if(e.target.dataset.edit){
-    const p=players.find(x=>x.player_id===id); if(!p) return;
-    const name=prompt('Nom du joueur', p.name||''); if(name==null) return;
-    const roleSel=prompt('Rôle (MEMBRE/INVITE)', p.role||'MEMBRE')||'MEMBRE';
-    $('#msg').textContent='Mise à jour…';
-    try{
-      await ensurePlayersWrite('PUT',`${API}/admin/players/${encodeURIComponent(id)}`,{name,role:roleSel.toUpperCase()});
-      $('#msg').textContent='OK';
-      await load();
-    }catch(err){ $('#msg').textContent=err.message||'Erreur'; }
+    openEditPlayer(id);
   }else if(e.target.dataset.del){
     if(!confirm('Supprimer ce joueur ?')) return;
-    $('#msg').textContent='Suppression…';
     try{
-      await ensurePlayersWrite('DELETE',`${API}/admin/players/${encodeURIComponent(id)}`);
-      $('#msg').textContent='OK';
+      await write('DELETE',`${API}/admin/players/${encodeURIComponent(id)}`);
       await load();
-    }catch(err){ $('#msg').textContent=err.message||'Erreur'; }
+    }catch(err){ alert(err.message||'Erreur'); }
   }
 });
-$('#reload').onclick=load;
-$('#q').addEventListener('input',render);
+document.getElementById('reload').onclick=load;
+document.getElementById('q').addEventListener('input',render);
 
-/* init */
-load();
-// Utilise ta fonction ensurePlayersWrite si elle existe, sinon fallback fetch
-async function playersWrite(method, url, body){
-  const opt = { method, headers: { 'Authorization': `Bearer ${token}` } };
-  if (body) { opt.headers['Content-Type'] = 'application/json'; opt.body = JSON.stringify(body); }
-  const r = await fetch(url, opt);
-  if (!r.ok) { const d = await r.json().catch(()=>({})); throw new Error(d.error || `Erreur ${r.status}`); }
-  return r.json().catch(()=>({ ok:true }));
+/* == EDIT MODAL == */
+function slugifyNameToEmail(name){
+  const domain = (localStorage.getItem('efoot.emailDomain')||'gz.local');
+  const loc = (name||'')
+    .normalize('NFD').replace(/[\u0300-\u036f]/g,'')
+    .toLowerCase().replace(/[^a-z0-9]+/g,'.').replace(/\.+/g,'.').replace(/^\.|\.$/g,'');
+  return (loc||'membre')+'@'+domain;
 }
-const writePlayer = (typeof ensurePlayersWrite === 'function') ? ensurePlayersWrite : playersWrite;
-
-// Ouvre le formulaire d’édition
-function openEditPlayer(id){
-  const p = (window.players || []).find(x => x.player_id === id);
-  if (!p) return;
-
+async function openEditPlayer(id){
+  const p=players.find(x=>x.player_id===id); if(!p) return;
   const dlg   = document.getElementById('editDlg');
   const pid   = document.getElementById('e_pid');
   const pname = document.getElementById('e_name');
   const prole = document.getElementById('e_role');
+  const pemail= document.getElementById('e_email');
+  const ppwd  = document.getElementById('e_pwd');
   const msg   = document.getElementById('editMsg');
 
   pid.value   = p.player_id || '';
   pname.value = p.name || '';
   prole.value = (p.role || 'MEMBRE').toUpperCase();
+  pemail.value= p.user_email || slugifyNameToEmail(p.name||p.player_id);
+  ppwd.value  = '';
   msg.textContent = '—';
   dlg.showModal();
 
-  const btnSave   = document.getElementById('editSave');
-  const btnCancel = document.getElementById('editCancel');
+  document.getElementById('editCancel').onclick=()=>dlg.close();
 
-  const cleanup = () => {
-    btnSave.removeEventListener('click', onSave);
-    btnCancel.removeEventListener('click', onCancel);
-  };
-  const onCancel = () => { cleanup(); dlg.close(); };
-  const onSave   = async () => {
+  document.getElementById('editSave').onclick = async ()=>{
     try{
-      msg.textContent = 'Mise à jour…';
-      await writePlayer('PUT', `${API}/admin/players/${encodeURIComponent(id)}`, {
-        name: pname.value.trim(),
-        role: prole.value
+      msg.textContent='Mise à jour…';
+      await write('PUT',`${API}/admin/players/${encodeURIComponent(id)}`,{
+        name: pname.value.trim(), role: prole.value
       });
-      msg.textContent = 'OK';
-      cleanup(); dlg.close();
-      await (window.load && window.load()); // recharge la liste
-    }catch(e){ msg.textContent = e.message || 'Erreur'; }
+      msg.textContent='OK';
+      dlg.close(); await load();
+    }catch(e){ msg.textContent=e.message||'Erreur'; }
   };
 
-  btnSave.addEventListener('click', onSave);
-  btnCancel.addEventListener('click', onCancel);
+  document.getElementById('linkUser').onclick = async ()=>{
+    try{
+      msg.textContent='Liaison du compte…';
+      const payload={ email: pemail.value.trim(), password: ppwd.value.trim()||undefined };
+      const r = await write('POST', `${API}/admin/players/${encodeURIComponent(id)}/attach_user`, payload);
+      msg.textContent='Compte lié : '+(r.user?.email||pemail.value.trim());
+      await load();
+    }catch(e){ msg.textContent=e.message||'Erreur'; }
+  };
 }
 
-// Câblage sur le tableau (boutons “Modifier” doivent avoir data-edit="ID")
-document.getElementById('list').addEventListener('click', (e)=>{
-  if (e.target && e.target.dataset && e.target.dataset.edit) {
-    openEditPlayer(e.target.dataset.edit);
+/* init */
+(function(){
+  const role = (localStorage.getItem('efoot.role') || 'member').toLowerCase();
+  if (role !== 'admin') {
+    const t = document.getElementById('pageTitle');
+    if (t) t.textContent = 'Liste des membres';
+    const lm = document.getElementById('linkMembers');
+    if (lm) lm.textContent = '👥 Liste des membres';
+    // Le reste (ajout/suppression/modif) reste masqué via .adminOnly déjà en place
   }
-});
+})();
+// === Menu mobile robuste (id: menuToggle OR menuBtn)
+(function(){
+  const menu = document.getElementById('menu');
+  const toggle = document.getElementById('menuToggle') || document.getElementById('menuBtn');
+  if(!menu || !toggle) return;
+  function open(v){
+    menu.classList.toggle('open', v);
+    toggle.setAttribute('aria-expanded', v?'true':'false');
+  }
+  toggle.addEventListener('click', (e)=>{ e.stopPropagation(); open(!menu.classList.contains('open')); });
+  document.addEventListener('click', (e)=>{
+    if(!menu.classList.contains('open')) return;
+    if(e.target===toggle || menu.contains(e.target)) return;
+    open(false);
+  }, true);
+  document.addEventListener('keydown', (e)=>{ if(e.key==='Escape') open(false); });
+})();
 
+(function(){
+  const k='efoot.theme';
+  const apply=m=>{document.documentElement.classList.toggle('light',m==='light');localStorage.setItem(k,m);$('#theme').textContent=m==='light'?'🌙':'☀️'};
+  apply(localStorage.getItem(k)||'dark');
+  $('#theme').onclick=()=>apply(document.documentElement.classList.contains('light')?'dark':'light');
+})();
+
+
+load();
 </script>
-<footer style="text-align: center; font-family:cursive;">Copyright © -GOUZEPE GAMING CLUB 2025</footer>
+<footer style="text-align: center; font-family:'Gill Sans', 'Gill Sans MT', Calibri, 'Trebuchet MS', sans-serif;">Copyright © -GOUZEPE GAMING CLUB 2025</footer>
 
 </body>
 </html>

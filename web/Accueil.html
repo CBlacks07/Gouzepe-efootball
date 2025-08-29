@@ -1,10 +1,14 @@
+<!-- Accueil.html -->
 <!doctype html>
 <html lang="fr">
 <head>
 <meta charset="utf-8" />
 <title>GOUZEPE eFOOTBALL — Accueil</title>
 <meta name="viewport" content="width=device-width, initial-scale=1" />
+<link rel="stylesheet" href="theme.css">
 <link rel="stylesheet" href="common.css">
+
+
 
 <style>
   :root{
@@ -79,7 +83,6 @@
   #status{transition:opacity .25s}
   .bad{outline:2px solid #ef4444}
 
-  /* Scores compacts entre les deux joueurs */
   .compactScores th.mid{width:230px}
   .scoresCell{display:grid;grid-template-rows:auto auto;gap:6px;justify-items:center}
   .compactScores .score input{width:44px;text-align:center}
@@ -134,8 +137,28 @@
       return _fetch(url, opt);
     };
   })();
+
+  // Montrer "Mon profil" en premier pour les membres
+(function(){
+  const r = (localStorage.getItem('efoot.role')||'member').toLowerCase();
+  const b = document.getElementById('btnProfile');
+  if(b && r !== 'admin'){ b.style.display='inline-flex'; b.parentNode.insertBefore(b, b.parentNode.firstChild); }
+})();
+
+// PING présence pour les membres
+(function(){
+  const r = (localStorage.getItem('efoot.role')||'member').toLowerCase();
+  if(!token || r==='admin') return;
+  const ping = ()=> fetch(`${API}/presence/ping`, { method:'POST', headers:{Authorization:`Bearer ${token}`}})
+                    .catch(()=>{});
+  ping();
+  setInterval(ping, 15000);
+})();
+
+
 </script>
 </head>
+
 <body>
 <div class="wrap">
 
@@ -143,11 +166,13 @@
     <div class="nav">
       <div class="logo" aria-hidden="true"></div>
       <h1 style="margin:0;font-size:16px">GOUZEPE GAMING CLUB <br>Championnat eFootball</h1>
+      <span id="season-badge" class="season-badge blink-slow" style="display:none">Saison : <span id="season-text"></span></span>
     </div>
     <button id="menuToggle" class="menu-toggle" aria-label="Ouvrir le menu" aria-expanded="false" aria-controls="menu">☰</button>
-    <div id="menu" class="menu">
+    <div id="menu" class="menu top">
+      <a class="btn" id="btnProfile" href="Panel-Membre.html" style="display:none">👤 Mon profil</a>
       <a class="btn" href="Classement-general.html" title="Voir le classement général de la saison">📊 Classements</a>
-      <a class="btn adminOnly" href="Admin-Joueurs.html">👥 Admin-Joueurs</a>
+      <a class="btn" id="linkMembers" href="Admin-Joueurs.html">👥 Admin-Joueurs</a>
       <a class="btn adminOnly" href="Admin-Utilisateurs.html">🛡️ Admin-Utilisateurs</a>
       <button id="theme" class="btn" title="Basculer thème">☀️</button>
       <button id="logoutBtn" class="btn danger">Déconnexion</button>
@@ -159,9 +184,9 @@
       <span>Samedi :</span>
       <input id="samediSelect" type="date" />
     </div>
-    <button id="newDay" class="btn warn adminOnly">Nouveau (vierge)</button>
+    <button id="newDay" class="btn warn adminOnly" style="margin-bottom: 8px;">Nouveau (vierge)</button>
     <span style="opacity:.4">|</span>
-    <button id="saveBtn" class="btn strong adminOnly">Enregistrer & Terminer</button>
+    <button id="saveBtn" class="btn strong adminOnly" style="margin-bottom: 8px;">Enregistrer & Terminer</button>
     <button id="saveEditBtn" class="btn strong adminOnly" style="display:none">Enregistrer les modifications</button>
   </div>
 
@@ -176,6 +201,7 @@
         </div>
       </div>
       <div class="muted">Confrontations</div>
+      <div class="table-wrap">
       <table id="d1_matches" class="compactScores">
         <thead>
           <tr>
@@ -187,14 +213,18 @@
         </thead>
         <tbody></tbody>
       </table>
+      </div>
 
       <h4 style="margin:14px 0 6px">Classement D1</h4>
+      <div class="table-wrap">
+
       <table id="d1_tab">
         <thead>
           <tr><th>Joueur</th><th>J</th><th>V</th><th>N</th><th>D</th><th>BM</th><th>BC</th><th>Diff</th><th>PTS</th></tr>
         </thead>
         <tbody></tbody>
       </table>
+      </div>
     </section>
 
     <section id="d2" class="card">
@@ -206,6 +236,7 @@
         </div>
       </div>
       <div class="muted">Confrontations</div>
+      <div class="table-wrap">
       <table id="d2_matches" class="compactScores">
         <thead>
           <tr>
@@ -217,61 +248,63 @@
         </thead>
         <tbody></tbody>
       </table>
-
+      </div>
       <h4 style="margin:14px 0 6px">Classement D2</h4>
+      <div class="table-wrap">
       <table id="d2_tab">
         <thead>
           <tr><th>Joueur</th><th>J</th><th>V</th><th>N</th><th>D</th><th>BM</th><th>BC</th><th>Diff</th><th>PTS</th></tr>
         </thead>
         <tbody></tbody>
       </table>
+      </div>
     </section>
   </div>
 
-  <section class="card">
-    <h3 style="margin:6px 0">Barrage D2 ↔ D1 (Best of 3)</h3>
-    <div class="muted">Règle : <b>2ᵉ D2 (MEMBRE)</b> vs <b>avant-dernier D1 (MEMBRE)</b>. Les INVITÉS sont exclus.</div>
+<section class="card">
+  <h3 style="margin:6px 0">Barrage D2 ↔ D1 (Best of 3)</h3>
+  <div class="muted">Règle : <b>2ᵉ D2 (MEMBRE)</b> vs <b>avant-dernier D1 (MEMBRE)</b>. Les INVITÉS sont exclus.</div>
 
-    <div class="row" style="margin:8px 0">
-      <label>Affiche (auto)</label>
-      <input id="barrage_ids" list="players" placeholder="ID_D1 (D1) – ID_D2 (D2)" style="flex-wrap: wrap;" />
-      <button id="b_auto" class="btn adminOnly">↺ Proposer</button>
-    </div>
+  <div class="row" style="margin:8px 0">
+    <label>Affiche (auto)</label>
+    <input id="barrage_ids" list="players" placeholder="ID_D1 (D1) – ID_D2 (D2)" style="flex-wrap: wrap;" />
+    <button id="b_auto" class="btn adminOnly">↺ Proposer</button>
+  </div>
 
-    <div class="grid" style="grid-template-columns:repeat(3,minmax(180px,1fr));gap:10px">
-      <div>
-        <div class="muted">Match 1</div>
-        <div class="score">
-          <input id="b1_a" inputmode="numeric" maxlength="2" />
-          <span class="dash">–</span>
-          <input id="b1_b" inputmode="numeric" maxlength="2" />
-        </div>
-      </div>
-      <div>
-        <div class="muted">Match 2</div>
-        <div class="score">
-          <input id="b2_a" inputmode="numeric" maxlength="2" />
-          <span class="dash">–</span>
-          <input id="b2_b" inputmode="numeric" maxlength="2" />
-        </div>
-      </div>
-      <div>
-        <div class="muted">Match 3</div>
-        <div class="score">
-          <input id="b3_a" inputmode="numeric" maxlength="2" />
-          <span class="dash">–</span>
-          <input id="b3_b" inputmode="numeric" maxlength="2" />
-        </div>
+  <div class="grid" style="grid-template-columns:repeat(3,minmax(180px,1fr));gap:10px">
+    <div>
+      <div class="muted">Match 1</div>
+      <div class="score">
+        <input id="b1_a" inputmode="numeric" maxlength="2" />
+        <span class="dash">–</span>
+        <input id="b1_b" inputmode="numeric" maxlength="2" />
       </div>
     </div>
-
-    <div id="b_label" class="muted" style="margin-top:8px">—</div>
-
-    <div class="row" style="margin-top:10px">
-      <label>Notes / commentaires</label>
-      <textarea id="notes" style="width:100%;min-height:90px;padding:10px 12px;border-radius:12px;border:1px solid var(--border);background:#0b1020;color:var(--text)"></textarea>
+    <div>
+      <div class="muted">Match 2</div>
+      <div class="score">
+        <input id="b2_a" inputmode="numeric" maxlength="2" />
+        <span class="dash">–</span>
+        <input id="b2_b" inputmode="numeric" maxlength="2" />
+      </div>
     </div>
-  </section>
+    <div>
+      <div class="muted">Match 3</div>
+      <div class="score">
+        <input id="b3_a" inputmode="numeric" maxlength="2" />
+        <span class="dash">–</span>
+        <input id="b3_b" inputmode="numeric" maxlength="2" />
+      </div>
+    </div>
+  </div>
+
+  <div id="b_label" class="muted" style="margin-top:8px">—</div>
+
+  <div class="row" style="margin-top:10px">
+    <label>Notes / commentaires</label>
+    <textarea id="notes" style="width:100%;min-height:90px;padding:10px 12px;border-radius:12px;border:1px solid var(--border);background:#0b1020;color:var(--text)"></textarea>
+  </div>
+</section>
 
   <datalist id="players"></datalist>
   <div class="foot"><span id="status" class="muted"></span></div>
@@ -335,6 +368,12 @@ const __params = new URLSearchParams(location.search);
 const EDIT_MODE  = __params.get('edit') === '1';
 const DATE_PARAM = __params.get('date');
 const IS_ADMIN = (role === 'admin');
+window.EDIT_SEASON_ID = (() => {
+  const sid = __params.get('sid');
+  const n = +sid;
+  return Number.isFinite(n) && n > 0 ? n : null;
+})();
+
 
 (function guard(){
   const here = (location.pathname.split('/').pop()||'').toLowerCase();
@@ -841,7 +880,11 @@ async function persistDay(adminJwt){
   const r=await fetch(`${API}/matchdays/confirm`,{
     method:'POST',
     headers:{'Content-Type':'application/json','Authorization':`Bearer ${adminJwt}`},
-    body:JSON.stringify({...payload,date:getDateKey()})
+body: JSON.stringify({
+  ...payload,
+  date: getDateKey(),
+  ...(window.EDIT_SEASON_ID ? { season_id: window.EDIT_SEASON_ID } : {})
+})
   });
   const d=await r.json().catch(()=>({})); 
   if(!r.ok) throw new Error(d.error||`${r.status} ${r.statusText}`);
@@ -904,7 +947,43 @@ $('#newDay').onclick=async ()=>{
   enforceReadOnlyForMembers();
 })();
 
+(function(){
+  const role = (localStorage.getItem('efoot.role') || 'member').toLowerCase();
+  const btn = document.getElementById('btnProfile');
+  const lm  = document.getElementById('linkMembers');
+  const menu = document.getElementById('menu');
+
+  if (role === 'admin') {
+    if (btn) btn.style.display = 'none';
+    if (lm)  lm.textContent = '👥 Admin-Joueurs';
+  } else {
+    if (btn) {
+      btn.style.display = 'inline-flex';
+      btn.href = 'Panel-Membre.html';
+      // le mettre en premier dans le menu
+      if (menu && btn.parentNode === menu) menu.insertBefore(btn, menu.firstChild);
+    }
+    if (lm) {
+      lm.textContent = '👥 Liste des membres';
+      lm.href = 'Admin-Joueurs.html'; // même page, mais en lecture seule côté membre
+    }
+  }
+})();
+
 window.addEventListener('pageshow', checkDayStatusAndLock);
 </script>
+<script>
+  (function showSeasonBadge(){
+    const season = (window.ACTIVE_SEASON || localStorage.getItem('ACTIVE_SEASON') || window.currentSeason || '').toString().trim();
+    const badge = document.getElementById('season-badge');
+    const text = document.getElementById('season-text');
+    if (season && badge && text){
+      text.textContent = season;
+      badge.style.display = 'inline-flex';
+    }
+  })();
+</script>
+<footer style="text-align: center; font-family:'Gill Sans', 'Gill Sans MT', Calibri, 'Trebuchet MS', sans-serif;">Copyright © -GOUZEPE GAMING CLUB 2025</footer>
+
 </body>
 </html>

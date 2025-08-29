@@ -15,16 +15,16 @@ const dayjs = require('dayjs');
 
 const PORT = parseInt(process.env.PORT || '3000', 10);
 const CORS_ORIGIN = process.env.CORS_ORIGIN || '*';
-const JWT_SECRET = process.env.JWT_SECRET || 'change-me';
+const JWT_SECRET = process.env.JWT_SECRET || '1XS1r4QJNp6AtkjORvKUU01RZRfzbGV+echJsio9gq8lAOc2NW7sSYsQuncE6+o9';
 const EMAIL_DOMAIN = process.env.EMAIL_DOMAIN || 'gz.local';
 
 const useSSL = (process.env.PGSSL === 'true') || process.env.RENDER === 'true' || process.env.NODE_ENV === 'production';
 const pool = new Pool({
-  host: process.env.PGHOST || '127.0.0.1',
+  host: process.env.PGHOST || 'dpg-d2mvamh5pdvs739c7aj0-a',
   port: +(process.env.PGPORT || 5432),
-  database: process.env.PGDATABASE || 'gz_efoot',
+  database: process.env.PGDATABASE || 'EFOOTBALL',
   user: process.env.PGUSER || 'postgres',
-  password: process.env.PGPASSWORD || 'postgres',
+  password: process.env.PGPASSWORD || 'Admin123',
   ssl: useSSL ? { rejectUnauthorized: false } : false,
 });
 

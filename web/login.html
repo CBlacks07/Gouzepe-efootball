@@ -177,7 +177,7 @@
 })();
 
 /* ===== helpers ===== */
- const DEF_API = () => 'https://gouzepe-efootball.onrender.com';
+const DEF_API = () => (location.protocol.startsWith('http') ? location.protocol : 'http:') + '//' +  gouzepe-efootball.onrender.com';
 function getAPI(){ return (localStorage.getItem('efoot.api')||DEF_API()).replace(/\/+$/,''); }
 function setAPI(v){ localStorage.setItem('efoot.api', v.replace(/\/+$/,'')); }
 function showErr(msg){ const el=document.getElementById('err'); el.textContent=msg||''; }

@@ -53,6 +53,7 @@
     .menu.open{display:flex}
   }
 
+
   .btn{border:1px solid var(--border);border-radius:12px;padding:10px 14px;background:#10192c;color:var(--text);cursor:pointer}
   html.light .btn{background:#fff}
   .btn.primary{background:var(--okbg);border-color:var(--ok);color:#d1fae5}
@@ -77,17 +78,58 @@
   th{color:var(--muted)}
   .muted{color:var(--muted)}
   .dash{opacity:.6}
-  .score{display:flex;align-items:center;gap:6px}
-  .score input{width:52px;text-align:center}
   .foot{display:flex;gap:10px;justify-content:flex-end;margin-top:10px;flex-wrap:wrap}
   #status{transition:opacity .25s}
   .bad{outline:2px solid #ef4444}
 
-  .compactScores th.mid{width:230px}
+  .compactScores th.mid{width:270px}
   .scoresCell{display:grid;grid-template-rows:auto auto;gap:6px;justify-items:center}
   .compactScores .score input{width:44px;text-align:center}
+  /* ====== PACK MOBILE matches (resserrer tout) ====== */
+@media (max-width: 700px){
 
-  @media (max-width: 560px){
+  /* Colonnes fixes pour éviter le grand vide sur "Joueur 2" */
+  #d1_matches, #d2_matches{ table-layout: fixed; }
+
+  /* 1re & 3e colonnes = largeur fixe (ID) */
+  #d1_matches th:first-child, #d1_matches td:first-child,
+  #d1_matches th:nth-child(3), #d1_matches td:nth-child(3),
+  #d2_matches th:first-child, #d2_matches td:first-child,
+  #d2_matches th:nth-child(3), #d2_matches td:nth-child(3){
+    width: 124px;           /* petit rectangle pour l'ID */
+    text-align: center;
+    margin: auto;
+  }
+
+  /* Colonne du milieu (scores) un peu plus compacte */
+  #d1_matches th.mid, #d2_matches th.mid{ width: 190px; margin: auto; } /* avant ≈230px :contentReference[oaicite:1]{index=1} */
+
+  /* Dernière colonne = juste la poubelle, pas d’espace mort */
+  #d1_matches td:last-child, #d2_matches td:last-child{
+    width: 1%;
+    padding: 4px 6px;
+    white-space: nowrap;
+  }
+
+  /* Réduire légèrement le padding général des cases */
+  #d1_matches td, #d2_matches td{ padding: 8px; }
+
+  /* Champs ID compacts et rectangulaires */
+  #d1_matches input.p1, #d1_matches input.p2,
+  #d2_matches input.p1, #d2_matches input.p2{
+    width: 14ch;            /* tient un pseudo/nom court */
+    max-width: 100%;
+    padding: 8px 10px;
+    border-radius: 10px;
+  }
+
+  /* Rapprocher les scores (aller / retour) */
+  .scoresCell{ gap: 4px; }              /* avant 6px :contentReference[oaicite:2]{index=2} */
+  .compactScores .score input{ width: 40px; } /* avant 44–52px :contentReference[oaicite:3]{index=3} */
+}
+
+
+  @media (max-width: 380px){
     .row.toolbar{display:grid; grid-template-columns:1fr 1fr; gap:8px}
     .row.toolbar .pill{grid-column:1 / -1}
   }
@@ -196,11 +238,11 @@
       <div class="row" style="justify-content:space-between;align-items:center">
         <h3 style="margin:6px 0">Division 1 — Confrontations & Classement</h3>
         <div class="row">
-          <button class="btn adminOnly" data-add="d1">+ Match</button>
-          <button class="btn warn adminOnly" data-clear="d1">Effacer scores</button>
+          <button type="button" class="btn primary adminOnly" style="width: 120px; height: 45px;" data-add="d1">+ Match</button>
+          <button type="button" class="btn danger adminOnly" style="width: 120px; height: 45px;" data-clear="d1">Effacer scores</button>
         </div>
       </div>
-      <div class="muted">Confrontations</div>
+      <div class="muted"  style="font-size: medium;">Confrontations</div>
       <div class="table-wrap">
       <table id="d1_matches" class="compactScores">
         <thead>
@@ -231,11 +273,11 @@
       <div class="row" style="justify-content:space-between;align-items:center">
         <h3 style="margin:6px 0">Division 2 — Confrontations & Classement</h3>
         <div class="row">
-          <button class="btn adminOnly" data-add="d2">+ Match</button>
-          <button class="btn warn adminOnly" data-clear="d2">Effacer scores</button>
+          <button type="button" class="btn primary adminOnly" style="width: 120px; height: 45px;" data-add="d2">+ Match</button>
+          <button type="button" class="btn danger adminOnly" style="width: 120px; height: 45px;" data-clear="d2">Effacer scores</button>
         </div>
       </div>
-      <div class="muted">Confrontations</div>
+      <div class="muted" style="font-size: medium;">Confrontations</div>
       <div class="table-wrap">
       <table id="d2_matches" class="compactScores">
         <thead>
@@ -261,7 +303,7 @@
     </section>
   </div>
 
-<section class="card">
+<section class="card row">
   <h3 style="margin:6px 0">Barrage D2 ↔ D1 (Best of 3)</h3>
   <div class="muted">Règle : <b>2ᵉ D2 (MEMBRE)</b> vs <b>avant-dernier D1 (MEMBRE)</b>. Les INVITÉS sont exclus.</div>
 
@@ -271,7 +313,7 @@
     <button id="b_auto" class="btn adminOnly">↺ Proposer</button>
   </div>
 
-  <div class="grid" style="grid-template-columns:repeat(3,minmax(180px,1fr));gap:10px">
+  <div class="row" style="grid-template-columns:repeat(3,minmax(100px,1fr));gap:10px">
     <div>
       <div class="muted">Match 1</div>
       <div class="score">
@@ -599,7 +641,7 @@ function row(div, m={}){
       </div>
     </td>
     <td><input list="players" class="p2" placeholder="ID" value="${m.p2||''}"></td>
-    <td><button class="btn danger del adminOnly">🗑️</button></td>
+    <td><button type="button" class="btn danger del adminOnly" style="width: 32px; height: 32px; padding: 0;">🗑️</button></td>
   `;
   document.querySelector(`#${div}_matches tbody`).appendChild(tr);
 }
@@ -856,13 +898,12 @@ async function pollDraft(){
 function setupSocket(){
   if(!window.io) return;
   try{
-    const u=new URL(API); const ws=`${u.protocol}//${u.hostname}:${u.port||'3000'}`;
-    const socket=window.io(ws,{transports:['websocket','polling']});
-    window.socketIO=socket;
-    const join=()=>socket.emit('join',{room:`draft:${getDateKey()}`});
-    socket.on('connect',join);
-    $('#samediSelect').addEventListener('change',()=>{join(); pollDraft()});
-    socket.on('draft:update',payload=>{ if(!payload||payload.date!==getDateKey()) return; lastRev = ''; pollDraft(); });
+    const socket = window.io(API, { transports:['websocket','polling'] });
+    window.socketIO = socket;
+    const join = ()=> socket.emit('join',{ room:`draft:${getDateKey()}` });
+    socket.on('connect', join);
+    document.getElementById('samediSelect').addEventListener('change', ()=>{ join(); pollDraft(); });
+    socket.on('draft:update', payload=>{ if(!payload || payload.date!==getDateKey()) return; lastRev=''; pollDraft(); });
     ['day:confirmed','day:deleted','season:changed','season:closed','season:opened'].forEach(evt=>{
       socket.on(evt, ()=>{ confirmedDaysList = []; checkDayStatusAndLock(); });
     });

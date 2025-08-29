@@ -32,7 +32,7 @@
   }
 
   function requireAdmin(){
-    if (getRole() !== 'admin') location.replace('Accueil.html');
+    if (getRole() !== 'admin') location.replace('accueil.html');
   }
 
   // Expose minimal API globale
@@ -43,6 +43,28 @@
   window.expAt = getExp();
   window.App = { $, $$, getAPI, getToken: getTok, getRole, getExp, toast, safeFetch, logout, requireAdmin };
 
+  /* auto-discovery de l’API (premier chargement, sans action utilisateur) */
+  (async function autoDiscoverAPI(){
+    if (localStorage.getItem('efoot.api')) return;
+    const candidates = [];
+    const h = location.hostname;
+    if (h.endsWith('.onrender.com')) {
+      if (h.includes('-static')) candidates.push('https://' + h.replace('-static', '-api'));
+      candidates.push('https://' + h.replace('-static', ''));
+    }
+    candidates.push(DEF_API());
+    for (const base of candidates) {
+      try {
+        const r = await safeFetch(base.replace(/\/+$/,'') + '/health', { cache:'no-store' }, 2500);
+        if (r && r.ok) {
+          localStorage.setItem('efoot.api', base.replace(/\/+$/,''));
+          location.reload();
+          return;
+        }
+      } catch (_) {}
+    }
+  })();
+
   // ---------- Auth guard (toutes pages sauf login) ----------
   (function guard(){
     const here = (location.pathname.split('/').pop() || '').toLowerCase();
@@ -52,11 +74,13 @@
     const tok = getTok(), exp = getExp();
     if (!tok || Date.now() >= exp) { location.replace('login.html'); return; }
 
-    // Pages admin → rôle admin obligatoire
-    if (here.startsWith('admin-') && getRole() !== 'admin') {
-      location.replace('Accueil.html');
+    // Pages admin : tout sauf Admin-Joueurs reste réservé aux admins
+    if (here.startsWith('admin-')) {
+      const isAdmin = (getRole() || '').toLowerCase() === 'admin';
+      const isPlayersAdmin = here === 'admin-joueurs.html';
+      
     }
-  })();
+})();
 
   // ---------- Affichage "adminOnly" ----------
   $$('.adminOnly').forEach(el => el.style.display = (getRole() === 'admin') ? 'inline-flex' : 'none');
@@ -76,19 +100,26 @@
   })();
 
   // ---------- Menu mobile ----------
-  (function mobileMenu(){
-    const menu = document.querySelector('#menu'), toggle = document.querySelector('#menuToggle');
-    if (!menu || !toggle) return;
-    function open(v){ menu.classList.toggle('open', v); toggle.setAttribute('aria-expanded', v ? 'true' : 'false'); }
-    toggle.addEventListener('click', () => open(!menu.classList.contains('open')));
+  (function menu(){
+    const btn = document.querySelector('#menuToggle');
+    const menu = document.querySelector('#menu');
+    if (!btn || !menu) return;
+    btn.addEventListener('click', () => {
+      const open = menu.classList.toggle('open');
+      btn.setAttribute('aria-expanded', open ? 'true' : 'false');
+      btn.setAttribute('aria-label', open ? 'Fermer le menu' : 'Ouvrir le menu');
+    });
     document.addEventListener('click', (e) => {
       if (!menu.classList.contains('open')) return;
-      if (e.target === toggle || menu.contains(e.target)) return;
-      open(false);
-    }, true);
+      if (e.target === btn || menu.contains(e.target)) return;
+      menu.classList.remove('open');
+      btn.setAttribute('aria-expanded', 'false');
+      btn.setAttribute('aria-label', 'Ouvrir le menu');
+    });
   })();
 
   // ---------- Logout ----------
   const logoutBtn = document.querySelector('#logoutBtn');
   if (logoutBtn) logoutBtn.addEventListener('click', logout);
 })();
+

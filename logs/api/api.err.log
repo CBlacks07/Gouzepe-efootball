@@ -9203,3 +9203,8 @@ Schema init error Error: The server does not support SSL connections
     at process.processTicksAndRejections (node:internal/process/task_queues:105:5)
     at async ensureSchema (C:\Users\CCL\Desktop\GOUZEPE_APP\api\server.js:88:3)
     at async C:\Users\CCL\Desktop\GOUZEPE_APP\api\server.js:724:5
+Schema init error Error: The server does not support SSL connections
+    at C:\Users\CCL\Desktop\GOUZEPE_APP\api\node_modules\pg-pool\index.js:45:11
+    at process.processTicksAndRejections (node:internal/process/task_queues:105:5)
+    at async ensureSchema (C:\Users\CCL\Desktop\GOUZEPE_APP\api\server.js:88:3)
+    at async C:\Users\CCL\Desktop\GOUZEPE_APP\api\server.js:724:5

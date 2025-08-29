@@ -7,6 +7,8 @@
 <meta http-equiv="Cache-Control" content="no-store" />
 <link rel="stylesheet" href="theme.css">
 <meta name="color-scheme" content="dark light">
+<link rel="stylesheet" href="common.css">
+
 
 <style>
   /* === Thème & couleurs === */
@@ -48,7 +50,7 @@
   /* === Carte === */
   .card{
     position:relative; margin-inline:auto; width:min(560px,94vw);
-    background:linear-gradient(to bottom right, var(--panel), var(--panel)) /* solid fallback */;
+    background:linear-gradient(to bottom right, var(--panel), var(--panel));
     border:1px solid var(--border); border-radius:18px;
     box-shadow:0 14px 60px rgba(0,0,0,.45);
     overflow:hidden;
@@ -105,17 +107,13 @@
     display:flex; gap:12px; align-items:center; justify-content:space-between;
   }
 
-  /* Empilement sur mobile : bouton pleine largeur */
   @media (max-width: 520px){
     .footer{flex-direction:column; align-items:stretch}
     .btn{width:100%}
   }
-
-  /* Préférence accessibilité */
   @media (prefers-reduced-motion:reduce){
     .btn, input{transition:none}
   }
-  /* Utilités */
   .gear{position:fixed; right:16px; bottom:16px; z-index:30}
   dialog{border:none; border-radius:14px; max-width:520px; width:min(92vw,520px); padding:0; background:var(--panel); color:var(--text)}
   dialog::backdrop{background:rgba(0,0,0,.35)}
@@ -147,7 +145,7 @@
       <div id="err" class="error"></div>
 
       <div class="footer">
-        <span class="muted">Session : 24h (déconnexion ensuite)</span>
+        <span class="muted">Session : 24h (déconnexion ensuite)</span>
         <button id="submit" class="btn" type="submit">Se connecter</button>
       </div>
     </form>
@@ -183,26 +181,28 @@ const DEF_API = () => (location.protocol.startsWith('http') ? location.protocol 
 function getAPI(){ return (localStorage.getItem('efoot.api')||DEF_API()).replace(/\/+$/,''); }
 function setAPI(v){ localStorage.setItem('efoot.api', v.replace(/\/+$/,'')); }
 function showErr(msg){ const el=document.getElementById('err'); el.textContent=msg||''; }
-
-/* ===== boucle killer + redirection sûre ===== */
 async function safeFetch(url, opt={}, ms=4000){
   const ctrl = new AbortController();
   const t = setTimeout(()=>ctrl.abort(), ms);
   try{ return await fetch(url, {signal:ctrl.signal, ...opt}); }
   finally{ clearTimeout(t); }
 }
-function redirect(role){
-  if(sessionStorage.getItem('efoot.navlock')==='1') return;
-  sessionStorage.setItem('efoot.navlock','1');
-  setTimeout(()=>sessionStorage.removeItem('efoot.navlock'), 3000);
-  if((role||'').toLowerCase()==='admin') location.replace('Admin-Utilisateurs.html');
-  else location.replace('Accueil.html');
+function goAfterLogin(role){
+  const r=(role||'member').toLowerCase();
+  location.replace(r==='admin' ? 'Accueil.html' : 'Panel-Membre.html');
 }
 
-/* toggle password */
-(function(){ const btn=document.getElementById('togglePwd'); if(btn){ btn.addEventListener('click', ()=>{ const i=document.getElementById('pwd'); if(!i) return; const t=i.getAttribute('type')==='password'?'text':'password'; i.setAttribute('type', t); btn.textContent=(t==='password')?'👁️':'🙈'; }); } })();
+/* ===== si déjà loggé (token encore valide) ⇒ redirection immédiate ===== */
+(function quickRedirect(){
+  const token = localStorage.getItem('efoot.token');
+  const expAt = +localStorage.getItem('efoot.expAt') || 0;
+  if (token && Date.now() < expAt) {
+    const role = (localStorage.getItem('efoot.role') || 'member').toLowerCase();
+    goAfterLogin(role);
+  }
+})();
 
-/* ===== test token existant → redirection (sans boucle) ===== */
+/* ===== validation token côté API (plus sûre) ===== */
 (async function autoRedirect(){
   const token=localStorage.getItem('efoot.token');
   const expAt=parseInt(localStorage.getItem('efoot.expAt')||'0',10);
@@ -211,8 +211,22 @@ function redirect(role){
     const r=await safeFetch(getAPI()+'/auth/me',{headers:{Authorization:'Bearer ' + token}},4000);
     if(!r || !r.ok) throw 0;
     const d=await r.json();
-    redirect((d.user&&d.user.role)||localStorage.getItem('efoot.role')||'member');
+    const role=(d.user&&d.user.role)||localStorage.getItem('efoot.role')||'member';
+    goAfterLogin(role);
   }catch(_){ /* on garde le formulaire visible */ }
+})();
+
+/* ===== toggle password ===== */
+(function(){
+  const btn=document.getElementById('togglePwd');
+  if(!btn) return;
+  btn.addEventListener('click', ()=>{
+    const i=document.getElementById('pwd');
+    if(!i) return;
+    const t=i.getAttribute('type')==='password'?'text':'password';
+    i.setAttribute('type', t);
+    btn.textContent=(t==='password')?'👁️':'🙈';
+  });
 })();
 
 /* ===== formulaire ===== */
@@ -223,7 +237,8 @@ document.getElementById('f').addEventListener('submit', async (e)=>{
   btn.disabled=true; btn.textContent='Connexion…';
   let email=(document.getElementById('email').value||'').trim();
   const password=document.getElementById('pwd').value||'';
-  if(email && !email.includes('@')) email = email+'@gz.local';
+  if(email && !email.includes('@')) email = email+'@gz.local'; // nom -> nom@gz.local
+
   try{
     const r=await safeFetch(getAPI()+'/auth/login', {
       method:'POST',
@@ -232,11 +247,16 @@ document.getElementById('f').addEventListener('submit', async (e)=>{
     }, 7000);
     const d=await r.json().catch(()=>({}));
     if(!r || !r.ok){ throw new Error((d&&d.error)||'Identifiants invalides'); }
-    const token=d.token, role=(d.user&&d.user.role)||'member';
+
+    const token=d.token;
+    const role=(d.user&&d.user.role)||'member';
+    const expHours = Number(d.expHours||24); // si l’API renvoie expHours, on l’utilise
+
     localStorage.setItem('efoot.token', token);
-    localStorage.setItem('efoot.role', role);
-    localStorage.setItem('efoot.expAt', String(Date.now()+24*60*60*1000));
-    redirect(role);
+    localStorage.setItem('efoot.role', role.toLowerCase());
+    localStorage.setItem('efoot.expAt', String(Date.now()+expHours*3600*1000));
+
+    goAfterLogin(role);
   }catch(err){
     console.error(err);
     showErr(err.message||'Erreur réseau');
@@ -265,7 +285,7 @@ document.getElementById('f').addEventListener('submit', async (e)=>{
   };
 })();
 </script>
-<footer style="text-align: center; font-family:cursive;">Copyright © -GOUZEPE GAMING CLUB 2025</footer>
 
+<footer style="text-align: center; font-family:cursive;">Copyright © -GOUZEPE GAMING CLUB 2025</footer>
 </body>
 </html>

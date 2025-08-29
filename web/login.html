@@ -9,7 +9,6 @@
 <meta name="color-scheme" content="dark light">
 <link rel="stylesheet" href="common.css">
 
-
 <style>
   /* === Thème & couleurs === */
   :root{
@@ -134,11 +133,11 @@
       <h2>Connexion</h2>
 
       <label>Email</label>
-      <input id="email" type="email" placeholder="admin@gz.local" required>
+      <input id="email" type="email" placeholder="admin@gz.local" required autocomplete="username" autofocus>
 
       <label>Mot de passe</label>
       <div class="field">
-        <input id="pwd" type="password" placeholder="••••••••" required>
+        <input id="pwd" type="password" placeholder="••••••••" required autocomplete="current-password">
         <button type="button" id="togglePwd" class="toggle" title="Afficher / masquer">👁️</button>
       </div>
 
@@ -155,7 +154,7 @@
   <dialog id="cfg">
     <div class="dlg-h">Configuration de l’API</div>
     <div class="dlg-b">
-      <label>Adresse (ex: http://192.168.1.117:3000)</label>
+      <label>Adresse (ex: http://192.168.1.117:3000 ou https://ton-api.onrender.com)</label>
       <input id="apiUrl">
       <div id="cfgMsg" class="muted">—</div>
     </div>
@@ -171,15 +170,42 @@
 /* ===== thème ===== */
 (function(){
   const k='efoot.theme';
-  const apply=m=>{document.documentElement.classList.toggle('light',m==='light'); localStorage.setItem(k,m); document.getElementById('theme').textContent=m==='light'?'🌙':'☀️'}
+  const apply=m=>{
+    document.documentElement.classList.toggle('light',m==='light');
+    localStorage.setItem(k,m);
+    document.getElementById('theme').textContent=m==='light'?'🌙':'☀️';
+  };
   apply(localStorage.getItem(k)||'dark');
   document.getElementById('theme').onclick=()=>apply(document.documentElement.classList.contains('light')?'dark':'light');
 })();
 
 /* ===== helpers ===== */
-const DEF_API = () => (location.protocol.startsWith('http') ? location.protocol : 'http:') + '//' +  gouzepe-efootball.onrender.com';
-function getAPI(){ return (localStorage.getItem('efoot.api')||DEF_API()).replace(/\/+$/,''); }
-function setAPI(v){ localStorage.setItem('efoot.api', v.replace(/\/+$/,'')); }
+const _LAN_RE = /^(localhost|127\.0\.0\.1|192\.168\.|10\.|172\.(1[6-9]|2\d|3[0-1])\.)$/;
+const DEF_API = () => {
+  const proto = location.protocol.startsWith('http') ? location.protocol : 'http:';
+  const host  = location.hostname;
+  // Dev/LAN -> :3000 ; Public -> même origine (sans :3000)
+  return _LAN_RE.test(host) ? `${proto}//${host}:3000` : `${proto}//${host}`;
+};
+function normalizeApiUrl(u){
+  if(!u) return DEF_API();
+  u = (u||'').trim().replace(/\/+$/,'');
+  try{
+    // Autoriser "192.168.1.10:3000" ou "api.example.com" sans schéma
+    const url = new URL(/^https?:/i.test(u) ? u : `${location.protocol}//${u}`);
+    const publicHost = !_LAN_RE.test(url.hostname);
+    // Si la page est en https et l’API publique en http → upgrade https
+    if(location.protocol==='https:' && url.protocol==='http:' && publicHost){
+      url.protocol = 'https:';
+    }
+    return url.toString().replace(/\/+$/,'');
+  }catch{ return DEF_API(); }
+}
+function getAPI(){
+  // ordre: localStorage → (optionnel) variable globale → défaut
+  return normalizeApiUrl(localStorage.getItem('efoot.api') || (window.EFOOT_API||''));
+}
+function setAPI(v){ localStorage.setItem('efoot.api', normalizeApiUrl(v)); }
 function showErr(msg){ const el=document.getElementById('err'); el.textContent=msg||''; }
 async function safeFetch(url, opt={}, ms=4000){
   const ctrl = new AbortController();
@@ -277,8 +303,8 @@ document.getElementById('f').addEventListener('submit', async (e)=>{
   document.getElementById('cfgTest').onclick=async()=>{
     msg.textContent='Test…';
     try{
-      const u=(input.value||'').trim().replace(/\/+$/,'')||DEF_API();
-      const r=await safeFetch(u+'/health',{cache:'no-store'},4000);
+      const u = normalizeApiUrl(input.value);
+      const r = await safeFetch(u+'/health',{cache:'no-store'},4000);
       if(!r || !r.ok) throw 0;
       msg.textContent='OK ✅';
     }catch(_){ msg.textContent="Échec ❌ — vérifie l'IP/port"; }

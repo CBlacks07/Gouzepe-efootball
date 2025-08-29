@@ -120,6 +120,11 @@
   .dlg-b{padding:14px 16px; display:grid; gap:10px}
   .dlg-f{padding:14px 16px; border-top:1px solid var(--border); display:flex; gap:10px; justify-content:flex-end}
 </style>
+
+<!-- ✅ API par défaut forcée sur ton service Render -->
+<script>
+  window.EFOOT_API = 'https://gouzepe-efootball.onrender.com';
+</script>
 </head>
 <body>
 <div class="wrap">
@@ -154,7 +159,7 @@
   <dialog id="cfg">
     <div class="dlg-h">Configuration de l’API</div>
     <div class="dlg-b">
-      <label>Adresse (ex: http://192.168.1.117:3000 ou https://ton-api.onrender.com)</label>
+      <label>Adresse (ex: http://192.168.1.117:3000 ou https://gouzepe-efootball.onrender.com)</label>
       <input id="apiUrl">
       <div id="cfgMsg" class="muted">—</div>
     </div>
@@ -184,7 +189,7 @@ const _LAN_RE = /^(localhost|127\.0\.0\.1|192\.168\.|10\.|172\.(1[6-9]|2\d|3[0-1
 const DEF_API = () => {
   const proto = location.protocol.startsWith('http') ? location.protocol : 'http:';
   const host  = location.hostname;
-  // Dev/LAN -> :3000 ; Public -> même origine (sans :3000)
+  // Dev/LAN -> :3000 ; sinon on laisse l'origine courante (mais window.EFOOT_API prime)
   return _LAN_RE.test(host) ? `${proto}//${host}:3000` : `${proto}//${host}`;
 };
 function normalizeApiUrl(u){
@@ -202,7 +207,7 @@ function normalizeApiUrl(u){
   }catch{ return DEF_API(); }
 }
 function getAPI(){
-  // ordre: localStorage → (optionnel) variable globale → défaut
+  // ordre: localStorage → variable globale → défaut
   return normalizeApiUrl(localStorage.getItem('efoot.api') || (window.EFOOT_API||''));
 }
 function setAPI(v){ localStorage.setItem('efoot.api', normalizeApiUrl(v)); }

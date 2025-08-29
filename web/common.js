@@ -4,7 +4,7 @@
   const $  = (s) => document.querySelector(s);
   const $$ = (s) => Array.from(document.querySelectorAll(s));
 
-  const DEF_API = () => 'https://gouzepe-api.onrender.com';
+  const DEF_API = () => 'https://https://gouzepe-efootball.onrender.com';
 
   const getAPI  = () => (localStorage.getItem('efoot.api') || DEF_API()).replace(/\/+$/, '');
   const getTok  = () => localStorage.getItem('efoot.token') || '';

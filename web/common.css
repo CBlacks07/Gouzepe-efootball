@@ -183,3 +183,11 @@ dialog::backdrop{background:rgba(0,0,0,.4);backdrop-filter:blur(1.5px)}
   .menu{ display:none }
   .menu.open{ display:flex }
 }
+
+/* Harmonisation rapide globale (optionnel) */
+.btn, input, select{
+  height:40px; border-radius:12px;
+}
+.badge.win  { background:#064e3b; color:#b7fbdc; }
+.badge.draw { background:#1f2937; color:#e5e7eb; }
+.badge.lose { background:#5b0b0b; color:#fed7d7; }

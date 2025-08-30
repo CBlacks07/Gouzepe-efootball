@@ -263,3 +263,55 @@ dialog::backdrop{background:rgba(0,0,0,.4);backdrop-filter:blur(1.5px)}
   #d1_matches input.p1, #d1_matches input.p2,
   #d2_matches input.p1, #d2_matches input.p2{ height: 34px; width: 11ch; }
   }
+
+
+/* ====== Confrontations — inputs compacts (mobile) ====== */
+@media (max-width: 700px){
+
+  /* Réduit l'air dans la table/carte */
+  .compactScores th,
+  .compactScores td{ padding:4px 4px !important; }
+
+  /* Bloc scores = SANS espace entre les cases */
+  .scoresCell{ gap:0 !important; justify-items:center; }
+  .compactScores .score{ display:flex; align-items:center; gap:0 !important; }
+
+  /* Cases de score mini */
+  .compactScores .score input{
+    width:28px !important;
+    height:28px !important;
+    padding:0 !important;
+    margin:0 !important;         /* ⬅️ élimine toute marge résiduelle */
+    text-align:center;
+    border-radius:8px;
+  }
+
+  /* Le tiret/ séparateur entre les 2 cases : ultra fin */
+  .scoresCell .sep,
+  .scoresCell .dash,
+  .compactScores .score .sep{
+    margin:0 !important;
+    padding:0 2px !important;
+  }
+
+  /* Inputs d'ID (Joueur 1 / Joueur 2) petits & rectangulaires */
+  #d1_matches input.p1, #d1_matches input.p2,
+  #d2_matches input.p1, #d2_matches input.p2{
+    width:9ch !important;        /* ~9 caractères */
+    height:32px !important;
+    padding:4px 6px !important;
+    margin:0 !important;
+    border-radius:8px;
+  }
+
+  /* Icône poubelle compacte */
+  .trashBtn, .btn-del, .btn-danger{
+    width:32px !important; height:32px !important;
+    padding:0 !important; border-radius:10px;
+  }
+}
+
+/* Désactive la molette sur les number (et supprime les "spinners") */
+input[type=number]::-webkit-outer-spin-button,
+input[type=number]::-webkit-inner-spin-button{ -webkit-appearance:none; margin:0; }
+input[type=number]{ -moz-appearance:textfield; appearance:textfield; }

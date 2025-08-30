@@ -8,8 +8,6 @@
   <link rel="stylesheet" href="common.css"/>
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300..800&display=swap" rel="stylesheet">
-  <script>window.EFOOT_API='https://gouzepe-efootball.onrender.com';</script>
-
   <style>
     :root{
       --font-ui:"Inter", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, "Noto Sans", "Apple Color Emoji", "Segoe UI Emoji", sans-serif;
@@ -69,6 +67,58 @@
     /* tables scrollables sur mobile */
     @media (max-width:480px){ .tableWrap{overflow:auto; max-height:55vh} .tbl{min-width:600px} }
     
+     #h2hModal{max-width:980px;width:min(96vw,980px);border:none;border-radius:16px;padding:0;background:var(--panel);color:var(--text)}
+  #h2hModal .h{display:flex;align-items:center;gap:12px;padding:14px 16px;border-bottom:1px solid var(--border);font-weight:700}
+  #h2hModal .b{padding:14px 16px;display:grid;gap:10px}
+  #h2hModal .f{padding:12px 16px;border-top:1px solid var(--border);display:flex;gap:10px;justify-content:flex-end}
+
+  /* Toolbar */
+  .h2h-toolbar{display:flex;flex-wrap:wrap;gap:8px;align-items:center}
+  .chip{border:1px solid var(--border);border-radius:999px;padding:6px 10px;background:transparent;cursor:pointer}
+  .chip[aria-pressed="true"]{background:rgba(37,99,235,.18);border-color:#2563eb}
+
+  /* Résumé header */
+  .h2h-hero{display:flex;align-items:center;gap:14px;border:1px solid var(--border);border-radius:14px;padding:10px 12px}
+  .h2h-hero img{width:40px;height:40px;border-radius:10px;object-fit:cover;border:1px solid var(--border)}
+  .h2h-hero .wdl{display:flex;gap:8px;margin-left:auto}
+  .badge{display:inline-block;padding:4px 8px;border-radius:999px;border:1px solid var(--border);font-weight:600}
+  .badge.win{background:#064e3b;color:#b7fbdc}
+  .badge.draw{background:#1f2937;color:#e5e7eb}
+  .badge.lose{background:#5b0b0b;color:#fed7d7}
+
+  /* Tableau */
+  .tableWrap{border-radius:14px;overflow:clip}
+  #h2hTable{width:100%;border-collapse:separate;border-spacing:0}
+  #h2hTable thead th{position:sticky;top:0;background:var(--panel);z-index:1}
+  #h2hTable tbody tr:nth-child(odd){background:rgba(255,255,255,.02)}
+  #h2hTable tbody tr:hover{background:rgba(37,99,235,.08)}
+  #h2hTable th,#h2hTable td{padding:12px 14px;border-bottom:1px solid rgba(255,255,255,.06)}
+
+  /* Score coloré */
+  .score-pill{display:inline-block;min-width:46px;text-align:center;padding:4px 8px;border-radius:10px;border:1px solid var(--border);font-weight:700}
+  .score-pill.win{background:#064e3b;color:#b7fbdc}
+  .score-pill.draw{background:#1f2937;color:#e5e7eb}
+  .score-pill.lose{background:#5b0b0b;color:#fed7d7}
+
+  /* Timeline (mobile, détaillé) */
+  .timeline{display:none}
+  .day-group{border:1px solid var(--border);border-radius:14px;padding:10px 12px}
+  .day-head{display:flex;align-items:center;gap:8px;margin-bottom:8px;font-weight:700}
+  .leg-row{display:grid;grid-template-columns:1fr auto 1fr;align-items:center;gap:10px;padding:8px;border-radius:10px}
+  .leg-row + .leg-row{margin-top:6px}
+  .me,.opp{display:flex;align-items:center;gap:6px;min-width:0}
+  .name{white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+  
+  @media (max-width: 720px){
+    .timeline{display:grid;gap:10px}
+    .tableWrap{display:flex;overflow: auto;}
+  }
+  @media (max-width:480px){
+    #h2hTable th,#h2hTable td{padding:10px 12px}
+  }
+  
+  
+
   </style>
 
   
@@ -212,22 +262,62 @@
     </dialog>
 
     <!-- Dialog Face-à-face -->
-    <dialog id="h2hModal">
-      <div style="padding:14px;border-bottom:1px solid var(--border);font-weight:700" id="h2hTitle">Face-à-face</div>
-      <div style="padding:14px;display:grid;gap:10px">
-        <div id="h2hSummary" class="muted">—</div>
-        <div class="tableWrap">
-          <table class="tbl">
-            <thead><tr><th>Date</th><th>Division</th><th>Manche</th><th>Score</th></tr></thead>
-            <tbody id="h2hBody"></tbody>
-          </table>
+   <dialog id="h2hModal">
+  <form method="dialog" style="margin:0">
+    <div class="h">
+      <div id="h2hTitle">Face-à-face</div>
+      <button class="iconbtn" value="close" aria-label="Fermer">✖</button>
+    </div>
+
+    <div class="b">
+      <!-- Toolbar -->
+      <div class="h2h-toolbar">
+        <select id="h2hSeason" title="Saison">
+          <option value="current">Saison en cours</option>
+          <option value="previous">Saison précédente</option>
+        </select>
+
+        <select id="h2hDay" title="Journée">
+          <option value="">Toutes journées</option>
+          <!-- rempli dynamiquement avec les dates -->
+        </select>
+
+        <span class="muted" style="margin-left:6px">Filtrer :</span>
+        <button id="h2hD1" class="chip" type="button" aria-pressed="false">D1</button>
+        <button id="h2hD2" class="chip" type="button" aria-pressed="false">D2</button>
+        <button id="h2hAller"  class="chip" type="button" aria-pressed="false">Aller</button>
+        <button id="h2hRetour" class="chip" type="button" aria-pressed="false">Retour</button>
+      </div>
+
+      <!-- Résumé -->
+      <div class="h2h-hero">
+        <img id="h2hMePic"  src="assets/fond.png" alt="">
+        <div id="h2hNames">Moi vs Adversaire</div>
+        <div class="wdl">
+          <span class="badge win"  id="h2hW">V 0</span>
+          <span class="badge draw" id="h2hD">N 0</span>
+          <span class="badge lose" id="h2hL">D 0</span>
+          <span class="badge"      id="h2hGFGA">0-0</span>
         </div>
       </div>
-      <div style="padding:12px;border-top:1px solid var(--border);display:flex;gap:10px;justify-content:flex-end">
-        <button class="btn" onclick="document.getElementById('h2hModal').close()">Fermer</button>
-      </div>
-    </dialog>
 
+      <!-- Timeline (mobile) -->
+      <div class="timeline" id="h2hTimeline"></div>
+
+      <!-- Tableau (desktop) -->
+      <div class="tableWrap">
+        <table class="tbl" id="h2hTable">
+          <thead><tr><th>Date</th><th>Division</th><th>Manche</th><th>Score</th></tr></thead>
+          <tbody id="h2hBody"></tbody>
+        </table>
+      </div>
+    </div>
+
+    <div class="f">
+      <button class="btn" value="close">Fermer</button>
+    </div>
+  </form>
+</dialog>
     <!-- Classement -->
   <section id="seasonBlock" class="card" style="margin-top:12px">
   <div style="display:flex;justify-content:space-between;align-items:center;gap:10px;flex-wrap:wrap">
@@ -394,25 +484,34 @@ document.getElementById('logoutBtn').onclick=()=>{ localStorage.clear(); locatio
 
 /* ===== Recherche / Aperçu joueur / Face-à-face ===== */
 async function searchPlayers(){
-  const q = document.getElementById('pSearch').value.trim(); const box = document.getElementById('pResults'); box.innerHTML='';
+  const q = document.getElementById('pSearch').value.trim();
+  const box = document.getElementById('pResults'); box.innerHTML='';
   if(!q) return;
-  const r = await fetch(App.getAPI()+'/players/search?q='+encodeURIComponent(q), { headers:{Authorization:'Bearer '+(App.getToken?.()||localStorage.getItem('efoot.token'))} });
+
+  const r = await fetch(App.getAPI()+'/players/search?q='+encodeURIComponent(q), {
+    headers:{Authorization:'Bearer '+(App.getToken?.()||localStorage.getItem('efoot.token'))}
+  });
   const d = await r.json();
+
   (d.players||[]).forEach(p=>{
     const card=document.createElement('div'); card.className='card';
     const img = p.profile_pic_url ? (App.getAPI()+p.profile_pic_url) : 'assets/fond.png';
-    card.innerHTML = `<div style="display:flex;gap:10px;align-items:center">
-      <img src="${img}" style="width:48px;height:48px;border-radius:50%;object-fit:cover;border:1px solid var(--border)">
-      <div><div style="font-weight:700">${p.name||p.player_id}</div><div class="muted">${p.player_id}</div></div>
-      <div style="flex:1"></div>
-      <button class="btn" data-p="${p.player_id}">Aperçu</button>
-    </div>`;
-    card.querySelector('button').onclick=()=> openPlayerPreview(p.player_id);
+    card.innerHTML = `
+      <div style="display:flex;gap:10px;align-items:center">
+        <img src="${img}" style="width:48px;height:48px;border-radius:50%;object-fit:cover;border:1px solid var(--border)">
+        <div><div style="font-weight:700">${p.name||p.player_id}</div><div class="muted">${p.player_id}</div></div>
+        <div style="flex:1"></div>
+        <div style="display:flex;gap:8px">
+          <button class="btn" data-preview="${p.player_id}">Aperçu</button>
+          <button class="btn" data-h2h="${p.player_id}">Face-à-face</button>
+        </div>
+      </div>`;
+    card.querySelector('button[data-preview]').onclick = ()=> openPlayerPreview(p.player_id);
+    card.querySelector('button[data-h2h]').onclick     = ()=> openH2H(p.player_id);
     box.appendChild(card);
   });
 }
 document.getElementById('pSearchBtn').onclick = searchPlayers;
-
 async function openPlayerPreview(pid){
   const modal = document.getElementById('pModal');
   const seasonSel = document.getElementById('pmSeason');
@@ -586,9 +685,159 @@ loadSeason();
   $('#theme').onclick=()=>apply(document.documentElement.classList.contains('light')?'dark':'light');
 })();
 
+(function(){
+  const API = () => (window.App?.getAPI?.() || window.EFOOT_API || ((location.protocol.startsWith('http')?location.protocol:'http:')+'//'+location.hostname+':3000')).replace(/\/+$/,'');
+  const TOK = () => (window.App?.getToken?.() || localStorage.getItem('efoot.token') || '');
+  const $  = s => document.querySelector(s);
+  const _pressed = el => el.getAttribute('aria-pressed')==='true';
+  const _toggle  = el => el.setAttribute('aria-pressed', _pressed(el)?'false':'true');
+
+  let ME = {name:'Moi', pic:'assets/fond.png'};
+  let OPP = {name:'Adversaire'};
+  let ALL = [];           // toutes les "legs" (aller/retour) brutes
+  let GROUPS = {};        // par journée (yyyy-mm-dd -> legs[])
+
+  function fmtDate(d){ return new Date(d).toLocaleDateString('fr-FR'); }
+  function legKey(date){ return new Date(date).toISOString().slice(0,10); } // yyyy-mm-dd
+
+  function computeGroups(){
+    GROUPS = {};
+    ALL.forEach(L=>{
+      const k = legKey(L.date);
+      (GROUPS[k]||(GROUPS[k]=[])).push(L);
+    });
+  }
+
+  function fillDaySelect(){
+    const sel = $('#h2hDay');
+    const keys = Object.keys(GROUPS).sort((a,b)=> b.localeCompare(a)); // desc
+    sel.innerHTML = `<option value="">Toutes journées</option>` +
+      keys.map(k=>`<option value="${k}">${fmtDate(k)}</option>`).join('');
+  }
+
+  function applyFilters(){
+    const wantD1 = _pressed($('#h2hD1')), wantD2 = _pressed($('#h2hD2'));
+    const wantA  = _pressed($('#h2hAller')), wantR  = _pressed($('#h2hRetour'));
+    const daySel = $('#h2hDay').value; // '' ou yyyy-mm-dd
+
+    const keep = L=>{
+      if (daySel && legKey(L.date)!==daySel) return false;
+      if (wantD1 || wantD2){
+        if (wantD1 && L.division==='D1') {} else if (wantD2 && L.division==='D2') {} else return false;
+      }
+      if (wantA || wantR){
+        if (wantA && /Aller/i.test(L.leg)) {} else if (wantR && /Retour/i.test(L.leg)) {} else return false;
+      }
+      return true;
+    };
+
+    const rows = ALL.filter(keep).sort((a,b)=> new Date(b.date)-new Date(a.date));
+    renderTable(rows);
+    renderTimeline(rows);
+    renderSummary(rows);
+  }
+
+  function renderSummary(rows){
+    let w=0,d=0,l=0,gf=0,ga=0;
+    rows.forEach(L=>{
+      gf+=+L.gf; ga+=+L.ga;
+      if(L.result==='W') w++; else if(L.result==='L') l++; else d++;
+    });
+    $('#h2hNames').textContent = `${ME.name} vs ${OPP.name}`;
+    $('#h2hMePic').src = ME.pic || 'assets/fond.png';
+    $('#h2hW').textContent = `V ${w}`;
+    $('#h2hD').textContent = `N ${d}`;
+    $('#h2hL').textContent = `D ${l}`;
+    $('#h2hGFGA').textContent = `${gf}-${ga}`;
+  }
+
+  function renderTable(rows){
+    const tb = $('#h2hBody'); tb.innerHTML='';
+    rows.forEach(L=>{
+      const k = L.result==='W'?'win':(L.result==='L'?'lose':'draw');
+      const tr = document.createElement('tr');
+      tr.innerHTML = `<td>${fmtDate(L.date)}</td>
+                      <td>${L.division||''}</td>
+                      <td>${L.leg||''}</td>
+                      <td><span class="score-pill ${k}">${L.gf}&nbsp;–&nbsp;${L.ga}</span></td>`;
+      tb.appendChild(tr);
+    });
+  }
+
+  function renderTimeline(rows){
+    const host = $('#h2hTimeline'); host.innerHTML='';
+    // groupe par journée
+    const G = {};
+    rows.forEach(L=>{
+      const k = legKey(L.date);
+      (G[k]||(G[k]=[])).push(L);
+    });
+    Object.keys(G).sort((a,b)=> b.localeCompare(a)).forEach(k=>{
+      const legs = G[k];
+      const wrap = document.createElement('div');
+      wrap.className='day-group';
+      wrap.innerHTML = `<div class="day-head">${fmtDate(k)} • ${legs[0]?.division||''}</div>`;
+      legs.sort((a,b)=> (a.leg>b.leg?1:-1)).forEach(L=>{
+        const cls = L.result==='W'?'win':(L.result==='L'?'lose':'draw');
+        wrap.insertAdjacentHTML('beforeend', `
+          <div class="leg-row" style="background:${cls==='win'?'#062e24':cls==='lose'?'#2e0d0d':'#111827'}">
+            <div class="me"><span class="name">${ME.name}</span></div>
+            <div class="score-pill ${cls}">${L.gf}&nbsp;–&nbsp;${L.ga}</div>
+            <div class="opp" style="justify-content:flex-end"><span class="name">${OPP.name}</span></div>
+          </div>`);
+      });
+      host.appendChild(wrap);
+    });
+  }
+
+  async function load(oppId){
+    const season = $('#h2hSeason').value || 'current';
+    const r = await fetch(`${API()}/faceoff/${encodeURIComponent(oppId)}?season=${encodeURIComponent(season)}`, {
+      headers:{Authorization:'Bearer '+TOK()}
+    });
+    const d = await r.json().catch(()=>({}));
+    if(!r.ok) throw new Error(d.error||('HTTP '+r.status));
+
+    // identités
+    ME  = { name: d.me?.name || 'Moi', pic: d.me?.profile_pic_url ? (API()+d.me.profile_pic_url) : 'assets/fond.png' };
+    OPP = { name: d.opponent?.name || oppId };
+    $('#h2hTitle').textContent = `Face-à-face : ${ME.name} vs ${OPP.name}`;
+
+    // Legs brutes + normalisation
+    ALL = Array.isArray(d.legs) ? d.legs.map(L=>({
+      date:L.date, division:L.division, leg:L.leg,
+      gf:+L.gf, ga:+L.ga,
+      result:(+L.gf > +L.ga) ? 'W' : (+L.gf < +L.ga ? 'L' : 'D')
+    })) : [];
+
+    computeGroups();
+    fillDaySelect();
+    applyFilters();
+  }
+
+  // Expose une fonction globale pour ouvrir la modale
+  window.openH2H = function(oppId){
+    const dlg = document.getElementById('h2hModal');
+    if(!dlg._bound){
+      $('#h2hSeason').addEventListener('change', ()=> load(dlg._oppId).catch(console.error));
+      $('#h2hDay').addEventListener('change', applyFilters);
+      ['h2hD1','h2hD2','h2hAller','h2hRetour'].forEach(id=>{
+        document.getElementById(id).addEventListener('click', (e)=>{ _toggle(e.currentTarget); applyFilters(); });
+      });
+      dlg._bound = true;
+    }
+    dlg._oppId = oppId;
+    dlg.showModal();
+    load(oppId).catch(err=>{
+      console.error(err);
+      document.getElementById('h2hBody').innerHTML='';
+      document.getElementById('h2hTimeline').innerHTML='';
+    });
+  };
+})();
+
 </script>
 
 <footer style="text-align: center; font-family:'Gill Sans', 'Gill Sans MT', Calibri, 'Trebuchet MS', sans-serif;">Copyright © -GOUZEPE GAMING CLUB 2025</footer>
 </body>
 </html>
-

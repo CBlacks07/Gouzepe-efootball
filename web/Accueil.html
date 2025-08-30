@@ -7,8 +7,6 @@
 <meta name="viewport" content="width=device-width, initial-scale=1" />
 <link rel="stylesheet" href="theme.css">
 <link rel="stylesheet" href="common.css">
-<script>window.EFOOT_API='https://gouzepe-efootball.onrender.com';</script>
-
 
 
 
@@ -204,7 +202,7 @@
 </head>
 
 <body>
-<div class="wrap">
+<div class="row">
 
   <div class="top">
     <div class="nav">
@@ -223,20 +221,19 @@
     </div>
   </div>
 
-  <div class="row toolbar" style="margin:12px 0 8px">
+  <div class="row toolbar" style="margin:12px 0;align-items:center">
     <div class="pill">
-      <span>Samedi :</span>
+      <span style="margin-left: auto;">Samedi :</span>
       <input id="samediSelect" type="date" />
     </div>
     <button id="newDay" class="btn warn adminOnly" style="margin-bottom: 8px;">Nouveau (vierge)</button>
-    <span style="opacity:.4">|</span>
-    <button id="saveBtn" class="btn strong adminOnly" style="margin-bottom: 8px;">Enregistrer & Terminer</button>
-    <button id="saveEditBtn" class="btn strong adminOnly" style="display:none">Enregistrer les modifications</button>
+    <button type="button" id="saveBtn" class="btn strong adminOnly" style="margin-bottom: 8px;">Enregistrer & Terminer</button>
+    <button type="button" id="saveEditBtn" class="btn strong adminOnly" style="display:none">Enregistrer les modifications</button>
   </div>
 
 
-  <div class="row cards3">
-    <section id="d1" class="card">
+<div class="row" style="width: 100%;">
+    <section id="d1" class="card col-xs-6 col-md-4" style="max-width: 100%;">
       <div class="row" style="justify-content:space-between;align-items:center">
         <h3 style="margin:6px 0">Division 1 — Confrontations & Classement</h3>
         <div class="row">
@@ -271,7 +268,7 @@
       </div>
     </section>
 
-    <section id="d2" class="card">
+    <section id="d2" class="card col-xs-6 col-md-4" style="max-width: 100%;">
       <div class="row" style="justify-content:space-between;align-items:center">
         <h3 style="margin:6px 0">Division 2 — Confrontations & Classement</h3>
         <div class="row">
@@ -303,9 +300,8 @@
       </table>
       </div>
     </section>
-  </div>
 
-<section class="card row">
+    <section class="card col-xs-6 col-md-4"  style="max-width: 100%;">
   <h3 style="margin:6px 0">Barrage D2 ↔ D1 (Best of 3)</h3>
   <div class="muted">Règle : <b>2ᵉ D2 (MEMBRE)</b> vs <b>avant-dernier D1 (MEMBRE)</b>. Les INVITÉS sont exclus.</div>
 
@@ -349,6 +345,8 @@
     <textarea id="notes" style="width:100%;min-height:90px;padding:10px 12px;border-radius:12px;border:1px solid var(--border);background:#0b1020;color:var(--text)"></textarea>
   </div>
 </section>
+
+  </div>
 
   <datalist id="players"></datalist>
   <div class="foot"><span id="status" class="muted"></span></div>
@@ -399,6 +397,8 @@
   </dialog>
 
 </div>
+
+
 
 <script>
 /* ===== helpers / auth ===== */
@@ -644,7 +644,7 @@ function row(div, m={}){
     </td>
     <td><input list="players" class="p2" placeholder="ID" value="${m.p2||''}"></td>
     <td><button type="button" class="btn danger del adminOnly" style="width: 32px; height: 32px; padding: 0;">🗑️</button></td>
-    `;
+  `;
   document.querySelector(`#${div}_matches tbody`).appendChild(tr);
 }
 

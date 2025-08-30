@@ -641,10 +641,12 @@ function row(div, m={}){
         <span class="dash">–</span>
         <input class="r2" inputmode="numeric" maxlength="2" value="${m.r2??''}">
       </div>
-    </td>
     <td><input list="players" class="p2" placeholder="ID" value="${m.p2||''}"></td>
     <td><button type="button" class="btn danger del adminOnly" style="width: 32px; height: 32px; padding: 0;">🗑️</button></td>
-  `;
+
+    </td>
+    `;
+
   document.querySelector(`#${div}_matches tbody`).appendChild(tr);
 }
 

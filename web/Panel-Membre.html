@@ -68,7 +68,97 @@
     .badge.lose{background:#5b0b0b;color:#fecaca}
     /* tables scrollables sur mobile */
     @media (max-width:480px){ .tableWrap{overflow:auto; max-height:55vh} .tbl{min-width:600px} }
-    
+
+    /* ===================== Pack B — Ajouts UI ===================== */
+
+/* Échelle typographique & espacements cohérents */
+:root{
+  --space-1:4px; --space-2:8px; --space-3:12px; --space-4:16px; --space-5:24px;
+  --radius-1:10px; --radius-2:12px; --radius-3:14px; --radius-4:16px;
+}
+
+/* Header/menu plus sobre */
+.top{
+  backdrop-filter:saturate(1.1) blur(4px);
+  border-radius:var(--radius-3);
+}
+
+/* Boutons & inputs unifiés (mêmes hauteurs/rayons) */
+.btn, .top .btn, input, select{
+  height:40px;
+  border-radius:var(--radius-2);
+  display:inline-flex; align-items:center; gap:8px;
+}
+.btn{ padding:0 14px; }
+input, select{ padding:0 12px; }
+
+/* Table: entête sticky, zebra, hover */
+.tableWrap{ border-radius:var(--radius-3); overflow:clip; }
+.tbl thead th{
+  position:sticky; top:0; z-index:1;
+  background:var(--panel);
+}
+.tbl tbody tr:nth-child(odd){ background:rgba(255,255,255,.02); }
+.tbl tbody tr:hover{ background:rgba(37,99,235,.08); }
+
+/* Badges résultats plus doux */
+.badge.win  { background:#064e3b; color:#b7fbdc; }
+.badge.draw { background:#1f2937; color:#e5e7eb; }
+.badge.lose { background:#5b0b0b; color:#fed7d7; }
+
+/* Cartes mobile du classement */
+#seasonCards{ display:grid; gap:10px; margin-block:10px; }
+#seasonCards .card{
+  border-radius:var(--radius-3);
+  border:1px solid var(--border);
+  padding:12px;
+  background:var(--card);
+}
+
+/* Skeleton loaders */
+.skeleton .skel{
+  border-radius:8px; height:12px;
+  background:linear-gradient(90deg, rgba(255,255,255,.06), rgba(255,255,255,.18), rgba(255,255,255,.06));
+  background-size:200% 100%;
+  animation:skel 1.2s linear infinite;
+}
+@keyframes skel{
+  0%{background-position:200% 0} 100%{background-position:-200% 0}
+}
+
+/* Toasts */
+#toast{
+  position:fixed; left:16px; bottom:16px; z-index:2000;
+  display:grid; gap:8px;
+}
+.toast{
+  border:1px solid var(--border);
+  background:#0f172a; color:#e5e7eb;
+  padding:10px 12px; border-radius:var(--radius-2);
+  box-shadow:0 6px 24px rgba(0,0,0,.3);
+}
+html.light .toast{ background:#fff; color:#0f172a; }
+
+/* Chip profil */
+.chip{
+  display:inline-flex; align-items:center; gap:8px;
+  border:1px solid var(--border); border-radius:999px; padding:6px 10px;
+  background:transparent; color:inherit; cursor:pointer;
+}
+
+/* Accessibilité & perf */
+section{ content-visibility:auto; contain-intrinsic-size: 400px; }
+
+/* Fond mobile plus fluide */
+@media (max-width: 840px){
+  body{ background-attachment:scroll !important; }
+}
+
+/* Tables scrollables mobile (déjà en place) : on allège un peu */
+@media (max-width:480px){
+  .tableWrap{ overflow:auto; max-height:60vh }
+  .tbl{ min-width:600px }
+    }
   </style>
 
   
@@ -586,9 +676,114 @@ loadSeason();
   $('#theme').onclick=()=>apply(document.documentElement.classList.contains('light')?'dark':'light');
 })();
 
+  <!-- Toast container -->
+<div id="toast" aria-live="polite" aria-atomic="true"></div>
+/* ===== Pack B — JS utilitaires (skeleton, toasts, chip, wrap) ===== */
+(function(){
+  const $ = (s)=>document.querySelector(s);
+
+  /* Toasts */
+  function showToast(msg, type='ok', ms=2200){
+    const host = $('#toast'); if(!host) return;
+    const div = document.createElement('div');
+    div.className = 'toast';
+    div.textContent = (type==='error' ? '⚠️ ' : '✅ ') + (msg||'');
+    host.appendChild(div);
+    setTimeout(()=>{ div.style.opacity='0'; div.style.transform='translateY(6px)'; }, ms);
+    setTimeout(()=>div.remove(), ms+300);
+  }
+  window.showToast = showToast;
+
+  /* Skeleton pour le classement */
+  function showSkeleton(on=true){
+    const tb = document.querySelector('#seasonTable tbody');
+    const cards = document.getElementById('seasonCards');
+    if(!tb || !cards) return;
+    if(on){
+      tb.innerHTML = '';
+      const ROWS = 8;
+      for(let i=0;i<ROWS;i++){
+        const tr = document.createElement('tr');
+        tr.className = 'skeleton';
+        tr.innerHTML = `
+          <td><div class="skel" style="width:20px"></div></td>
+          <td><div class="skel" style="width:140px"></div></td>
+          <td class="hid-m"><div class="skel" style="width:90px"></div></td>
+          <td><div class="skel" style="width:48px"></div></td>
+          <td><div class="skel" style="width:48px"></div></td>
+          <td><div class="skel" style="width:48px"></div></td>
+          <td><div class="skel" style="width:48px"></div></td>
+          <td><div class="skel" style="width:70px"></div></td>
+          <td><div class="skel" style="width:70px"></div></td>
+          <td><div class="skel" style="width:90px"></div></td>`;
+        tb.appendChild(tr);
+      }
+      cards.innerHTML = '';
+      for(let i=0;i<6;i++){
+        const c = document.createElement('div');
+        c.className = 'card skeleton';
+        c.innerHTML = `
+          <div class="skel" style="height:16px;width:40%"></div>
+          <div style="display:flex;gap:8px;margin-top:10px">
+            <div class="skel" style="height:14px;width:30%"></div>
+            <div class="skel" style="height:14px;width:18%"></div>
+            <div class="skel" style="height:14px;width:22%"></div>
+          </div>`;
+        cards.appendChild(c);
+      }
+    }else{
+      tb.innerHTML = '';
+      cards.innerHTML = '';
+    }
+  }
+  window.showSkeleton = showSkeleton;
+
+  /* Chip profil (ajouté dans le menu, avant Déconnexion) */
+  (function profileChip(){
+    const menu = document.getElementById('menu');
+    const logout = document.getElementById('logoutBtn');
+    if(!menu || !logout) return;
+    const name = (localStorage.getItem('efoot.email')||'Membre').split('@')[0];
+    const chip = document.createElement('button');
+    chip.type = 'button';
+    chip.className = 'chip';
+    chip.id = 'profileChip';
+    chip.title = 'Profil';
+    chip.textContent = '👤 ' + name;
+    chip.addEventListener('click', ()=>showToast('Connecté en tant que ' + name));
+    menu.insertBefore(chip, logout);
+  })();
+
+  /* Envelopper loadSeason() pour injecter skeleton + toasts */
+  const _origLoadSeason = window.loadSeason;
+  if(typeof _origLoadSeason === 'function'){
+    window.loadSeason = async function(){
+      showSkeleton(true);
+      try{
+        await _origLoadSeason();
+        showToast('Classement mis à jour');
+      }catch(e){
+        console.error(e);
+        showToast('Erreur de chargement du classement','error');
+      }finally{
+        showSkeleton(false);
+      }
+    };
+  }
+
+  /* Renforce le bouton "Rafraîchir" */
+  document.getElementById('seasonReload')?.addEventListener('click', ()=>{
+    // l’enveloppe de loadSeason gère déjà le skeleton + toast
+  });
+
+  // Optionnel: relancer un refresh après 60s si la page reste ouverte
+  setInterval(()=>{ try{ window.loadSeason?.(); }catch(_){} }, 60000);
+})();
+
 </script>
 
 <footer style="text-align: center; font-family:'Gill Sans', 'Gill Sans MT', Calibri, 'Trebuchet MS', sans-serif;">Copyright © -GOUZEPE GAMING CLUB 2025</footer>
 </body>
 </html>
+
 

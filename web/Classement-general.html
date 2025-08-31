@@ -6,8 +6,7 @@
 <title>GOUZEPE eFOOTBALL — Classement Général</title>
 <meta name="viewport" content="width=device-width, initial-scale=1" />
 <link rel="stylesheet" href="theme.css">
-  <script>window.EFOOT_API='https://gouzepe-efootball.onrender.com';</script>
-
+<script>window.EFOOT_API='https://gouzepe-efootball.onrender.com';</script>
 
 <style>
   :root{
@@ -59,6 +58,11 @@
   select,input{border:1px solid var(--border);border-radius:12px;padding:10px 12px;background:#0b1020;color:var(--text)}
   html.light select,html.light input{background:#fff}
   .muted{color:var(--muted)}
+
+  /* puces de tri */
+  .chip{border:1px solid var(--border);background:transparent;border-radius:999px;padding:8px 12px;cursor:pointer}
+  .chip[aria-pressed="true"]{border-color:var(--accent);box-shadow:0 0 0 3px rgba(37,99,235,.18) inset}
+
   table{width:100%;border-collapse:collapse;border:1px solid var(--border);border-radius:12px;overflow:hidden;background:var(--card)}
   th,td{padding:10px;border-bottom:1px solid var(--border);text-align:center}
   th{color:var(--muted);position:sticky;top:0;background:var(--card)}
@@ -101,12 +105,21 @@
     </div>
   </div>
 
-
-  <div class="row" style="margin:12px 0; display:flex; gap:10px; flex-wrap:wrap">
+  <!-- FILTRE & ACTIONS -->
+  <div class="row" style="margin:12px 0; display:flex; gap:10px; flex-wrap:wrap; align-items:center">
     <label class="muted">Saison :</label>
     <select id="seasonSelect" style="min-width:220px"></select>
     <button id="newSeason" class="btn adminOnly">Créer saison</button>
+
     <input id="search" placeholder="Rechercher joueur (nom ou ID)…" style="flex:1;min-width:220px">
+
+    <!-- ▼ ajout tri + CSV -->
+    <span class="muted">Tri :</span>
+    <button id="triMoy" class="chip" aria-pressed="true" title="Trier par moyenne">Moyenne</button>
+    <button id="triPts" class="chip" aria-pressed="false" title="Trier par points">Points</button>
+    <button id="csvBtn" class="btn" title="Exporter CSV">⬇️ CSV</button>
+    <!-- ▲ -->
+
     <button id="printSeason" class="btn">Imprimer la saison</button>
     <button id="refresh" class="btn">Rafraîchir</button>
   </div>
@@ -117,9 +130,7 @@
     <button id="viewDay" class="btn">Afficher</button>
     <button id="editDay" class="btn primary adminOnly" disabled>Modifier (admin)</button>
     <button id="printDay" class="btn" disabled>Imprimer cette journée</button>
-    <!-- ▼ AJOUT : bouton suppression admin -->
     <button id="deleteDay" class="btn danger adminOnly" disabled>Supprimer cette journée</button>
-    <!-- ▲ -->
   </div>
 
   <table id="seasonTable">
@@ -146,8 +157,7 @@
       <div id="dayTitle" style="font-weight:700">Journée</div>
       <button class="btn" onclick="document.getElementById('dayModal').close()">Fermer</button>
     </div>
-    <div id="day-body" style="padding:12px">
-    </div>
+    <div id="day-body" style="padding:12px"></div>
   </dialog>
 
 </div>
@@ -205,63 +215,93 @@ async function loadPlayers(){
 function nameOf(id){ return NAME_BY_ID.get(id)||id||''; }
 function roleOf(id){ return (ROLE_BY_ID.get(id)||'MEMBRE').toUpperCase(); }
 
-/* ===== fetch saison ===== */
-let seasonData=[];
+/* ===== helpers : tri ===== */
+function sortByMoyenne(list){
+  return [...(list||[])].sort((a,b)=>{
+    const am=+a.moyenne||0, bm=+b.moyenne||0;
+    if(bm!==am) return bm-am;                    // 1) moyenne
+    const at=+a.total||0, bt=+b.total||0;
+    if(bt!==at) return bt-at;                    // 2) total
+    return (a.name||a.id||'').localeCompare(b.name||b.id||''); // 3) nom
+  });
+}
+function sortByPoints(list){
+  return [...(list||[])].sort((a,b)=>{
+    const at=+a.total||0, bt=+b.total||0;
+    if(bt!==at) return bt-at;                    // 1) total
+    const am=+a.moyenne||0, bm=+b.moyenne||0;
+    if(bm!==am) return bm-am;                    // 2) moyenne (backup)
+    return (a.name||a.id||'').localeCompare(b.name||b.id||''); // 3) nom
+  });
+}
+function esc(t){return String(t||'').replace(/[&<>"']/g,m=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;','\'':'&#39;'}[m]));}
+
+/* ===== état classement ===== */
+let BASE_DATA=[];   // brut API
+let VIEW_DATA=[];   // trié + _rank
+let SORT_MODE='moyenne'; // 'moyenne' | 'points'
+
+/* ===== chargement saisons (liste) ===== */
 async function loadSeasons(){
   const r = await fetch(`${API}/seasons`, { headers:{Authorization:`Bearer ${token}`} });
   const d = await r.json();
   const sel = document.getElementById('seasonSelect');
   sel.innerHTML = '';
-
   (d.seasons || []).forEach(s=>{
     const o = document.createElement('option');
     o.value = s.id;
     o.textContent = `${s.name}${s.is_closed ? ' (clôturée)' : ''}`;
     sel.appendChild(o);
   });
-
   return d.seasons || [];
 }
-function escapeHtml(t){return String(t||'').replace(/[&<>"']/g,m=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;','\'':'&#39;'}[m]));}
 
-async function selectCurrentSeasonIfPossible(){
-  let current = null;
-  try {
-    const r = await fetch(`${API}/season/current`, { headers:{Authorization:`Bearer ${token}`} });
-    if (r.ok) current = await r.json(); // { id, name }
-  } catch(_){}
+/* ===== standings de la saison sélectionnée ===== */
+async function loadSeason(){
+  const sid = +document.getElementById('seasonSelect').value;
+  const r = await fetch(`${API}/seasons/${sid}/standings`,{headers:{Authorization:`Bearer ${token}`}});
+  const d = await r.json();
 
-  const sel = document.getElementById('seasonSelect');
-  if (!sel) return;
+  // calcule moyenne si absente (sécurité)
+  BASE_DATA = (d.standings||[]).map(p=>{
+    const part = +p.participations||0;
+    const moy = (p.moyenne!=null) ? +p.moyenne : (part ? (+p.total||0)/part : 0);
+    return {...p, moyenne: +moy};
+  });
+  applySort();
 
-  if (current) {
-    // sélectionne la saison courante si elle est listée
-    for (const opt of sel.options) {
-      if (+opt.value === +current.id) { sel.value = String(current.id); break; }
-    }
-    const badge = document.getElementById('season-badge');
-    const txt   = document.getElementById('season-text');
-    if (txt)   txt.textContent = current.name || `Saison ${current.id}`;
-    if (badge) badge.style.display = 'inline-flex';
-  } else {
-    // pas de saison courante détectée : masque le badge
-    const badge = document.getElementById('season-badge');
-    if (badge) badge.style.display = 'none';
-  }
-
-  // Déclenche le chargement standings + journées pour la saison sélectionnée
-  sel.dispatchEvent(new Event('change'));
+  // journées de la saison
+  const r2 = await fetch(`${API}/seasons/${sid}/matchdays`,{headers:{Authorization:`Bearer ${token}`}});
+  const d2 = await r2.json();
+  const selDay = document.getElementById('daySelect'); selDay.innerHTML='';
+  (d2.days||[]).forEach(dt=>{
+    const o=document.createElement('option'); o.value=dt; o.textContent=dt; selDay.appendChild(o);
+  });
+  const has=!!selDay.value;
+  document.getElementById('editDay').disabled=(role!=='admin')||!has;
+  document.getElementById('printDay').disabled=!has;
+  document.getElementById('deleteDay').disabled=(role!=='admin')||!has;
 }
 
+/* ===== applique tri courant et rend ===== */
+function applySort(){
+  const sorted = (SORT_MODE==='points') ? sortByPoints(BASE_DATA) : sortByMoyenne(BASE_DATA);
+  VIEW_DATA = sorted.map((p,i)=> ({...p, _rank:i+1}));
+  renderSeason();
+}
+
+/* ===== rendu ===== */
 function renderSeason(){
   const q=($('#search').value||'').toLowerCase();
-  const data = seasonData.filter(x=>(x.name||'').toLowerCase().includes(q) || (x.id||'').toLowerCase().includes(q));
+  const data = VIEW_DATA.filter(x=>(x.name||'').toLowerCase().includes(q) || (x.id||'').toLowerCase().includes(q));
+
   const tb=$('#seasonTable tbody'); tb.innerHTML='';
-  data.forEach((p,i)=>{
+  data.forEach((p)=>{
     const tr=document.createElement('tr');
-    tr.innerHTML = '<td>'+(i+1)+'</td>'
-      + '<td>'+escapeHtml(p.name||p.id||'')+'</td>'
-      + '<td class="hid-m">'+escapeHtml(p.id||'')+'</td>'
+    tr.innerHTML =
+        '<td>'+(p._rank||'')+'</td>'
+      + '<td>'+esc(p.name||p.id||'')+'</td>'
+      + '<td class="hid-m">'+esc(p.id||'')+'</td>'
       + '<td>'+(p.total??0)+'</td>'
       + '<td>'+(p.participations??0)+'</td>'
       + '<td>'+((p.moyenne??0).toFixed? (p.moyenne||0).toFixed(2): (p.moyenne??0))+'</td>'
@@ -272,12 +312,12 @@ function renderSeason(){
   });
 
   const cards=$('#seasonCards'); cards.innerHTML='';
-  data.forEach((p,i)=>{
+  data.forEach((p)=>{
     const div=document.createElement('div');
     div.className='card';
-    div.innerHTML='<div style="font-weight:700;margin-bottom:4px">'+(i+1)+'. '+escapeHtml(p.name||p.id||'')+'</div>'
+    div.innerHTML='<div style="font-weight:700;margin-bottom:4px">'+(p._rank||'')+'. '+esc(p.name||p.id||'')+'</div>'
       + '<div class="grid2">'
-      + '<div><span class="muted">ID:</span> '+escapeHtml(p.id||'')+'</div>'
+      + '<div><span class="muted">ID:</span> '+esc(p.id||'')+'</div>'
       + '<div><span class="muted">Total:</span> '+(p.total??0)+'</div>'
       + '<div><span class="muted">Part.:</span> '+(p.participations??0)+'</div>'
       + '<div><span class="muted">Moy.:</span> '+((p.moyenne??0).toFixed? (p.moyenne||0).toFixed(2): (p.moyenne??0))+'</div>'
@@ -300,14 +340,13 @@ async function loadDays(){
   const has=!!sel.value;
   $('#editDay').disabled = !has || role!=='admin';
   $('#printDay').disabled=!has;
-  $('#deleteDay').disabled = !has || role!=='admin'; // ← AJOUT
+  $('#deleteDay').disabled = !has || role!=='admin';
 }
 async function viewSelectedDay(openModal=true){
   await loadPlayers();
   const day=$('#daySelect').value;
   if(!day){ alert('Choisis une date'); return; }
-  const r=await fetch(`${API}/matchdays/${day}`,{headers:{'Authorization':`Bearer ${token}`}});
-  if(!r.ok){ alert('Journée introuvable'); return; }
+  const r=await fetch(`${API}/matchdays/${day}`,{headers:{'Authorization':`Bearer ${token}`}}); if(!r.ok){ alert('Journée introuvable'); return; }
   const payload=await r.json();
 
   if(openModal){
@@ -318,7 +357,7 @@ async function viewSelectedDay(openModal=true){
   return payload;
 }
 
-/* ====== calculs de classement (par journée) ====== */
+/* ===== calculs pour l'affichage d'une journée ===== */
 function computeStandings(rows){
   const agg={};
   function add(A,B,ga,gb){
@@ -348,39 +387,18 @@ function splitAndRankDaily(st){
   inv.forEach(r=> r.RANK='—');
   return {main,inv};
 }
-
-function enhanceTables(){
-  // force le min-width sur tous les tableaux dans .table-wrap
-  document.querySelectorAll('.table-wrap > table').forEach(t=>{
-    if(!t.style.minWidth) t.style.minWidth = '720px';
-  });
-  // clavier numérique sur tous les inputs de score
-  document.querySelectorAll('table input[type=number]').forEach(inp=>{
-    inp.setAttribute('inputmode','numeric');
-    inp.setAttribute('pattern','[0-9]*');
-  });
-};
-
 function standingsTableHTML(title, rowsMain, rowsInv){
   const head='<table class="tbl"><thead><tr><th>Rang</th><th>Nom</th><th>ID</th><th>J</th><th>V</th><th>N</th><th>D</th><th>BM</th><th>BC</th><th>Diff</th><th>PTS</th></tr></thead><tbody>';
-  const row = (r)=> `<tr><td>${r.RANK}</td><td>${escapeHtml(nameOf(r.id))}</td><td>${escapeHtml(r.id)}</td><td>${r.J}</td><td>${r.V}</td><td>${r.N}</td><td>${r.D}</td><td>${r.BP}</td><td>${r.BC}</td><td>${r.DIFF}</td><td>${r.PTS}</td></tr>`;
-  let body='';
-  rowsMain.forEach(r=> body+=row(r));
-  if(rowsInv.length){
-    body+=`<tr class="sepRow"><td colspan="11">Invités (non classés)</td></tr>`;
-    rowsInv.forEach(r=> body+=row(r));
-  }
+  const row = (r)=> `<tr><td>${r.RANK}</td><td>${esc(nameOf(r.id))}</td><td>${esc(r.id)}</td><td>${r.J}</td><td>${r.V}</td><td>${r.N}</td><td>${r.D}</td><td>${r.BP}</td><td>${r.BC}</td><td>${r.DIFF}</td><td>${r.PTS}</td></tr>`;
+  let body=''; rowsMain.forEach(r=> body+=row(r));
+  if(rowsInv.length){ body+=`<tr class="sepRow"><td colspan="11">Invités (non classés)</td></tr>`; rowsInv.forEach(r=> body+=row(r)); }
   return `<div class="sectionTitle">${title}</div>${head}${body}</tbody></table>`;
 }
-
-
-
-/* ===== rendu de la journée ===== */
 function renderMatchesTable(rows){
   let h='<table class="tbl"><thead><tr><th>Domicile</th><th>Extérieur</th><th>Aller</th><th>Retour</th></tr></thead><tbody>';
   (rows||[]).forEach(m=>{
     const a=(m.a1!=null||m.a2!=null)?((m.a1??'')+' - '+(m.a2??'')):''; const r=(m.r1!=null||m.r2!=null)?((m.r1??'')+' - '+(m.r2??'')):''; 
-    h+= `<tr><td>${escapeHtml(m.p1||'')}</td><td>${escapeHtml(m.p2||'')}</td><td>${escapeHtml(a)}</td><td>${escapeHtml(r)}</td></tr>`;
+    h+= `<tr><td>${esc(m.p1||'')}</td><td>${esc(m.p2||'')}</td><td>${esc(a)}</td><td>${esc(r)}</td></tr>`;
   });
   h+='</tbody></table>';
   return h;
@@ -398,26 +416,25 @@ function renderDayContent(payload){
 
   let html = '';
   html += '<div class="sectionTitle">SCORES D1</div>'+renderMatchesTable(payload.d1||[]);
-  html += `<div class="champ">🏆${escapeHtml(c1.id||'—')} — CHAMPION avec ${escapeHtml(team1)}</div>`;
+  html += `<div class="champ">🏆${esc(c1.id||'—')} — CHAMPION avec ${esc(team1)}</div>`;
   html += standingsTableHTML('CLASSEMENT D1', main1, inv1);
 
   html += '<div class="sectionTitle" style="margin-top:16px">SCORES D2</div>'+renderMatchesTable(payload.d2||[]);
-  html += `<div class="champ">🏆${escapeHtml(c2.id||'—')} — CHAMPION avec ${escapeHtml(team2)}</div>`;
+  html += `<div class="champ">🏆${esc(c2.id||'—')} — CHAMPION avec ${esc(team2)}</div>`;
   html += standingsTableHTML('CLASSEMENT D2', main2, inv2);
 
   html += '<div class="sectionTitle" style="margin-top:16px">BARRAGES</div>';
   html += '<table class="tbl"><thead><tr><th>Affiche</th><th>Aller</th><th>Retour</th><th>Match 3</th></tr></thead><tbody>';
-  html += `<tr><td>${escapeHtml((barr.ids?.d1||'—')+' - '+(barr.ids?.d2||'—'))}</td><td>${escapeHtml(mg((payload.barrage||{}).m1||{}))}</td><td>${escapeHtml(mg((payload.barrage||{}).m2||{}))}</td><td>${escapeHtml(mg((payload.barrage||{}).m3||{}))}</td></tr>`;
+  html += `<tr><td>${esc((barr.ids?.d1||'—')+' - '+(barr.ids?.d2||'—'))}</td><td>${esc(mg((payload.barrage||{}).m1||{}))}</td><td>${esc(mg((payload.barrage||{}).m2||{}))}</td><td>${esc(mg((payload.barrage||{}).m3||{}))}</td></tr>`;
   html += '</tbody></table>';
-  html += `<div class="verdict">*** ${escapeHtml((payload.barrage?.label)||'—')}</div>`;
-
+  html += `<div class="verdict">*** ${esc((payload.barrage?.label)||'—')}</div>`;
   if(payload.barrage?.notes){
-    html += '<div style="margin-top:10px"><span class="muted">Notes :</span><br>'+escapeHtml(payload.barrage.notes).replace(/\r?\n/g,'<br>')+'</div>';
+    html += '<div style="margin-top:10px"><span class="muted">Notes :</span><br>'+esc(payload.barrage.notes).replace(/\r?\n/g,'<br>')+'</div>';
   }
   return html;
 }
 
-/* ===== Impression ===== */
+/* ===== Impression classement ===== */
 async function logoDataURL(){
   const tryFetch = async (path)=>{
     try{
@@ -431,19 +448,20 @@ async function logoDataURL(){
   return (await tryFetch('assets/logo.png')) || (await tryFetch('assets/fond.png'));
 }
 async function printSeason(){
-  const rows = seasonData.slice();
+  const rows = VIEW_DATA.slice();
   const css='@page{size:A4;margin:12mm;}body{font:12px/1.35 Segoe UI,Roboto,Arial,sans-serif;color:#111;}h1{font-size:18px;margin:0 0 8px;display:flex;align-items:center;gap:8px}h1 img{height:26px}table{width:100%;border-collapse:collapse;border:1px solid #444}th,td{border:1px solid #444;padding:4px 6px;text-align:center}thead th{background:#efefef}';
   const logo = await logoDataURL();
   let html='<!doctype html><html><head><meta charset="utf-8"><title>Classement Saison</title><style>'+css+'</style></head><body onload="window.print()">';
-  html+='<h1>'+(logo?`<img src="${logo}" alt="logo">`:'')+'Classement Général — Saison</h1>';
+  html+='<h1>'+(logo?`<img src="${logo}" alt="logo">`:'')+'Classement Général — Tri : '+(SORT_MODE==='points'?'Points':'Moyenne')+'</h1>';
   html+='<table><thead><tr><th>#</th><th>Nom</th><th>ID</th><th>Total</th><th>Part.</th><th>Moy.</th><th>Gagnés D1</th><th>Gagnés D2</th><th>Équipes diff.</th></tr></thead><tbody>';
-  rows.forEach((p,i)=>{
-    html+='<tr><td>'+(i+1)+'</td><td>'+escapeHtml(p.name||p.id||'')+'</td><td>'+escapeHtml(p.id||'')+'</td><td>'+(p.total??0)+'</td><td>'+(p.participations??0)+'</td><td>'+((p.moyenne??0).toFixed ? (p.moyenne||0).toFixed(2):(p.moyenne??0))+'</td><td>'+(p.won_d1??0)+'</td><td>'+(p.won_d2??0)+'</td><td>'+(p.teams_used??0)+'</td></tr>';
+  rows.forEach((p)=>{
+    html+='<tr><td>'+(p._rank||'')+'</td><td>'+esc(p.name||p.id||'')+'</td><td>'+esc(p.id||'')+'</td><td>'+(p.total??0)+'</td><td>'+(p.participations??0)+'</td><td>'+((p.moyenne??0).toFixed ? (p.moyenne||0).toFixed(2):(p.moyenne??0))+'</td><td>'+(p.won_d1??0)+'</td><td>'+(p.won_d2??0)+'</td><td>'+(p.teams_used??0)+'</td></tr>';
   });
   html+='</tbody></table></body></html>';
   const w=window.open('','_blank'); w.document.open(); w.document.write(html); w.document.close(); w.focus();
 }
 
+/* ===== Impression journée ===== */
 async function printSelectedDay(){
   await loadPlayers();
   const day=$('#daySelect').value; if(!day) return;
@@ -456,19 +474,19 @@ async function printSelectedDay(){
   const {main:main2,inv:inv2} = splitAndRankDaily(st2);
 
   const css='@page{size:A4;margin:12mm;}body{font:12px/1.35 "Segoe UI",Roboto,Arial,sans-serif;color:#111;}h1{font-size:18px;margin:0 0 8px;display:flex;align-items:center;gap:8px}h1 img{height:28px} h2{font-size:14px;margin:10px 0 6px;} .tbl{width:100%;border-collapse:collapse;border:1px solid #444;} .tbl th,.tbl td{border:1px solid #444;padding:4px 6px;text-align:center} .tbl thead th{background:#efefef;} .champ{text-align:center;margin:6px 0 10px;font-weight:900;color:#cc0000;font-size:17px;} .verdict{margin-top:8px;font-weight:800;color:#1d4ed8;text-align:center;font-size:15px;} .sepRow td{background:#f7f7f7;font-style:italic}';
-  const esc = (t)=>String(t||'').replace(/[&<>"']/g,m=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[m]));
+  const escHtml = (t)=>String(t||'').replace(/[&<>"']/g,m=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;','\'':'&#39;'}[m]));
   const mg=o=> (o && o.A!=null && o.B!=null) ? (o.A+' - '+o.B) : '';
   const tblMatches = (rows)=>{
     let h='<table class="tbl"><thead><tr><th>Domicile</th><th>Extérieur</th><th>Aller</th><th>Retour</th></tr></thead><tbody>';
     (rows||[]).forEach(m=>{
       const a=(m.a1!=null||m.a2!=null)?((m.a1??'')+' - '+(m.a2??'')):''; const r=(m.r1!=null||m.r2!=null)?((m.r1??'')+' - '+(m.r2??'')):''; 
-      h+= `<tr><td>${esc(m.p1||'')}</td><td>${esc(m.p2||'')}</td><td>${esc(a)}</td><td>${esc(r)}</td></tr>`;
+      h+= `<tr><td>${escHtml(m.p1||'')}</td><td>${escHtml(m.p2||'')}</td><td>${escHtml(a)}</td><td>${escHtml(r)}</td></tr>`;
     });
     return h+'</tbody></table>';
   };
   const tblStand = (title, main, inv)=>{
-    let h = `<h2>${esc(title)}</h2><table class="tbl"><thead><tr><th>Rang</th><th>Nom</th><th>ID</th><th>J</th><th>V</th><th>N</th><th>D</th><th>BM</th><th>BC</th><th>Diff</th><th>PTS</th></tr></thead><tbody>`;
-    const row = (r)=> `<tr><td>${r.RANK}</td><td>${esc(nameOf(r.id))}</td><td>${esc(r.id)}</td><td>${r.J}</td><td>${r.V}</td><td>${r.N}</td><td>${r.D}</td><td>${r.BP}</td><td>${r.BC}</td><td>${r.DIFF}</td><td>${r.PTS}</td></tr>`;
+    let h = `<h2>${escHtml(title)}</h2><table class="tbl"><thead><tr><th>Rang</th><th>Nom</th><th>ID</th><th>J</th><th>V</th><th>N</th><th>D</th><th>BM</th><th>BC</th><th>Diff</th><th>PTS</th></tr></thead><tbody>`;
+    const row = (r)=> `<tr><td>${r.RANK}</td><td>${escHtml(nameOf(r.id))}</td><td>${escHtml(r.id)}</td><td>${r.J}</td><td>${r.V}</td><td>${r.N}</td><td>${r.D}</td><td>${r.BP}</td><td>${r.BC}</td><td>${r.DIFF}</td><td>${r.PTS}</td></tr>`;
     main.forEach(r=>h+=row(r));
     if(inv.length){ h+=`<tr class="sepRow"><td colspan="11">Invités (non classés)</td></tr>`; inv.forEach(r=>h+=row(r)); }
     return h+'</tbody></table>';
@@ -480,237 +498,123 @@ async function printSelectedDay(){
   html+= `<h1>${logo?`<img src="${logo}" alt="logo">`:''}GOUZEPE GAMING CLUB — Journée du ${new Date(day).toLocaleDateString('fr-FR')}</h1>`;
 
   html+= '<h2>SCORES D1</h2>'+tblMatches(payload.d1||[]);
-  html+= `<div class="champ">🏆${esc(c1.id||'—')} — CHAMPION avec ${esc(team1)}</div>`;
+  html+= `<div class="champ">🏆${escHtml(c1.id||'—')} — CHAMPION avec ${escHtml(team1)}</div>`;
   html+= tblStand('CLASSEMENT D1', main1, inv1);
 
   html+= '<h2>SCORES D2</h2>'+tblMatches(payload.d2||[]);
-  html+= `<div class="champ">🏆${esc(c2.id||'—')} — CHAMPION avec ${esc(team2)}</div>`;
+  html+= `<div class="champ">🏆${escHtml(c2.id||'—')} — CHAMPION avec ${escHtml(team2)}</div>`;
   html+= tblStand('CLASSEMENT D2', main2, inv2);
 
   html+= '<h2>BARRAGES</h2><table class="tbl"><thead><tr><th>Affiche</th><th>Aller</th><th>Retour</th><th>Match 3</th></tr></thead><tbody>';
-  html+= `<tr><td>${esc((barr.ids?.d1||'—')+' - '+(barr.ids?.d2||'—'))}</td><td>${esc(mg((payload.barrage||{}).m1||{}))}</td><td>${esc(mg((payload.barrage||{}).m2||{}))}</td><td>${esc(mg((payload.barrage||{}).m3||{}))}</td></tr></tbody></table>`;
-  html+= `<div class="verdict">*** ${esc((payload.barrage?.label)||'—')}</div>`;
+  html+= `<tr><td>${escHtml((barr.ids?.d1||'—')+' - '+(barr.ids?.d2||'—'))}</td><td>${escHtml(mg((payload.barrage||{}).m1||{}))}</td><td>${escHtml(mg((payload.barrage||{}).m2||{}))}</td><td>${escHtml(mg((payload.barrage||{}).m3||{}))}</td></tr></tbody></table>`;
+  html+= `<div class="verdict">*** ${escHtml((payload.barrage?.label)||'—')}</div>`;
   if(payload.barrage?.notes){
-    html+= '<div style="margin-top:8px"><b>Notes :</b><br>'+esc(payload.barrage.notes).replace(/\r?\n/g,'<br>')+'</div>';
+    html+= '<div style="margin-top:8px"><b>Notes :</b><br>'+escHtml(payload.barrage.notes).replace(/\r?\n/g,'<br>')+'</div>';
   }
   html+='</body></html>';
 
   const w=window.open('','_blank'); w.document.open(); w.document.write(html); w.document.close(); w.focus();
 }
 
-/* Events & init */
-$('#search').addEventListener('input', renderSeason);
-$('#refresh').onclick=()=>{loadPlayers().then(()=>{loadSeason(); loadDays();});};
-$('#printSeason').onclick=printSeason;
-$('#viewDay').onclick=()=>viewSelectedDay(true);
-$('#daySelect').addEventListener('change',()=>{
-  const has=!!$('#daySelect').value;
-  $('#editDay').disabled=(role!=='admin')||!has;
-  $('#printDay').disabled=!has;
-  $('#deleteDay').disabled=(role!=='admin')||!has; // ← AJOUT
+/* ===== Export CSV ===== */
+function exportCSV(){
+  const q = (document.getElementById('search').value||'').toLowerCase();
+  const data = VIEW_DATA.filter(p => (p.name||'').toLowerCase().includes(q) || (p.id||'').toLowerCase().includes(q));
+  const rows = [['Rang','#ID','Nom','Total','Participations','Moyenne','Gagnés D1','Gagnés D2','Équipes diff.'],
+                ...data.map(p=>[p._rank,p.id||'',p.name||p.id||'',p.total||0,p.participations||0,(+p.moyenne||0).toFixed(2),p.won_d1||0,p.won_d2||0,p.teams_used||0])];
+  const csv = rows.map(r=>r.map(x=>`"${String(x).replace(/"/g,'""')}"`).join(',')).join('\n');
+  const a=document.createElement('a'); a.download='classement_'+(SORT_MODE==='points'?'points':'moyenne')+'.csv';
+  a.href=URL.createObjectURL(new Blob([csv],{type:'text/csv'})); a.click(); URL.revokeObjectURL(a.href);
+}
+
+/* ===== Events & init ===== */
+document.getElementById('search').addEventListener('input', renderSeason);
+document.getElementById('refresh').onclick=()=>{ loadPlayers().then(()=>{ loadSeason(); }); };
+document.getElementById('printSeason').onclick=printSeason;
+document.getElementById('csvBtn').onclick=exportCSV;
+document.getElementById('triMoy').onclick=()=>{ SORT_MODE='moyenne'; document.getElementById('triMoy').setAttribute('aria-pressed','true'); document.getElementById('triPts').setAttribute('aria-pressed','false'); applySort(); };
+document.getElementById('triPts').onclick=()=>{ SORT_MODE='points';  document.getElementById('triMoy').setAttribute('aria-pressed','false'); document.getElementById('triPts').setAttribute('aria-pressed','true');  applySort(); };
+
+document.getElementById('viewDay').onclick=()=>viewSelectedDay(true);
+document.getElementById('daySelect').addEventListener('change',()=>{
+  const has=!!document.getElementById('daySelect').value;
+  document.getElementById('editDay').disabled=(role!=='admin')||!has;
+  document.getElementById('printDay').disabled=!has;
+  document.getElementById('deleteDay').disabled=(role!=='admin')||!has;
 });
-$('#printDay').onclick=printSelectedDay;
+document.getElementById('printDay').onclick=printSelectedDay;
 
-// (SUPPRIMÉ doublon) Ancienne version sans &edit=1 supprimée.
-// On garde seulement celle-ci :
-document.getElementById('editDay').onclick=()=>{ const d=$('#daySelect').value; if(d) location.href='Accueil.html?date='+encodeURIComponent(d)+'&edit=1'; };
-
-// ▼ AJOUT : suppression de la journée (admin)
+document.getElementById('editDay').onclick=()=>{ const d=document.getElementById('daySelect').value; if(d) location.href='Accueil.html?date='+encodeURIComponent(d)+'&edit=1'; };
 document.getElementById('deleteDay')?.addEventListener('click', async ()=>{
   const day = document.getElementById('daySelect').value;
   if(!day) return;
   const txt = `Supprimer définitivement la journée du ${new Date(day).toLocaleDateString('fr-FR')} ?`;
   if(!confirm(txt)) return;
   try{
-    const r = await fetch(`${API}/matchdays/${encodeURIComponent(day)}`,{
-      method:'DELETE',
-      headers:{'Authorization':`Bearer ${token}`}
-    });
-    if(!r.ok){
-      const e=await r.json().catch(()=>({}));
-      alert('Échec suppression : ' + (e.error || r.status));
-      return;
-    }
+    const r = await fetch(`${API}/matchdays/${encodeURIComponent(day)}`,{ method:'DELETE', headers:{'Authorization':`Bearer ${token}`}} );
+    if(!r.ok){ const e=await r.json().catch(()=>({})); alert('Échec suppression : ' + (e.error || r.status)); return; }
     alert('Journée supprimée.');
-    // rafraîchir
-    await loadSeason();
-    await loadDays();
-    // vider la modale s'il y en avait une ouverte
+    await loadSeason(); // recharge standings
+    await loadDays();   // recharge dates
     try{ document.getElementById('dayModal')?.close?.(); }catch(_){}
-  }catch(err){
-    console.error(err);
-    alert('Erreur réseau lors de la suppression.');
-  }
+  }catch(err){ console.error(err); alert('Erreur réseau lors de la suppression.'); }
 });
-// ▲
 
+// init
 (async function init(){
   await loadPlayers();
   await loadSeasons();
-  await selectCurrentSeasonIfPossible();
-
-  // Au cas où, on recharge aussi les standings/journées par défaut
-  // si la sélection de saison n’a rien déclenché :
-  if (!document.getElementById('daySelect').options.length) {
-    await loadSeason();
-    await loadDays();
+  // sélection auto : on choisit la première saison si aucune info
+  if (!document.getElementById('seasonSelect').value && document.getElementById('seasonSelect').options.length){
+    document.getElementById('seasonSelect').selectedIndex = 0;
   }
-
-  // socket (inchangé)
+  await loadSeason();
+  // socket
   try{
     const s=document.createElement('script'); s.src=`${API}/socket.io/socket.io.js`; s.onload=()=>{
       const u=new URL(API); const ws=`${u.protocol}//${u.hostname}:${u.port||'3000'}`;
       const socket=window.io(ws,{transports:['websocket','polling']});
-      socket.on('season:updated', ()=>{ loadSeasons().then(selectCurrentSeasonIfPossible); });
-      socket.on('day:confirmed', ()=>{ loadDays(); loadSeason(); });
-      socket.on('day:deleted',  ()=>{ loadDays(); loadSeason(); });
+      socket.on('season:updated', ()=>{ loadSeasons().then(loadSeason); });
+      socket.on('day:confirmed', ()=>{ loadSeason(); loadDays(); });
+      socket.on('day:deleted',  ()=>{ loadSeason(); loadDays(); });
     }; document.head.appendChild(s);
   }catch(_){}
 })();
 
-async function loadSeasons(){
-  const r=await fetch(`${API}/seasons`,{headers:{Authorization:`Bearer ${token}`}});
-  const d=await r.json();
-  const sel = document.getElementById('seasonSelect');
-  sel.innerHTML = '';
-  (d.seasons||[]).forEach(s=>{
-    const o=document.createElement('option');
-    o.value=s.id; o.textContent = `${s.name}${s.is_closed?' (clôturée)':''}`;
-    sel.appendChild(o);
-  });
-  return d.seasons||[];
-}
+// quand on change de saison => standings + jours
+document.getElementById('seasonSelect').addEventListener('change', async ()=>{ await loadSeason(); });
 
-// Quand on change de saison, recharger standings + journées
-document.getElementById('seasonSelect').addEventListener('change', async ()=>{
-  const sid = +document.getElementById('seasonSelect').value;
-  // standings
-  let r = await fetch(`${API}/seasons/${sid}/standings`,{headers:{Authorization:`Bearer ${token}`}});
-  let d = await r.json();
-  seasonData = d.standings||[]; renderSeason();
-  // days
-  r = await fetch(`${API}/seasons/${sid}/matchdays`,{headers:{Authorization:`Bearer ${token}`}});
-  d = await r.json();
-  const selDay = document.getElementById('daySelect'); selDay.innerHTML='';
-  (d.days||[]).forEach(dt=>{
-    const o=document.createElement('option'); o.value=dt; o.textContent=dt; selDay.appendChild(o);
-  });
-  const has=!!selDay.value;
-  document.getElementById('editDay').disabled=(role!=='admin')||!has;
-  document.getElementById('printDay').disabled=!has;
-  document.getElementById('deleteDay').disabled=(role!=='admin')||!has; // ← AJOUT
-});
-
-// Créer une saison (admin)
-document.getElementById('newSeason')?.addEventListener('click', async ()=>{
-  const name = prompt('Nom de la nouvelle saison :');
-  if(!name) return;
-  const r=await fetch(`${API}/seasons`,{
-    method:'POST', headers:{'Content-Type':'application/json', Authorization:`Bearer ${token}`},
-    body: JSON.stringify({ name })
-  });
-  if(!r.ok){ alert('Échec création saison'); return; }
-  await loadSeasons();
-  document.getElementById('seasonSelect').dispatchEvent(new Event('change'));
-});
-
-// Modifier (admin) => passer en mode édition avec la date sélectionnée
-document.getElementById('editDay').onclick = ()=>{
-  const d   = document.getElementById('daySelect').value;
-  const sid = +document.getElementById('seasonSelect').value || '';
-  if(!d) return;
-  location.href = 'Accueil.html?date=' + encodeURIComponent(d)
-               + '&edit=1&sid=' + encodeURIComponent(sid);
-};
-// Rattacher la journée sélectionnée à la saison sélectionnée (fonction existante)
-async function reattachDayToSeason(){
-  const day = document.getElementById('daySelect').value;
-  const sid = +document.getElementById('seasonSelect').value;
-  if(!day||!sid) return alert('Choisir une date et une saison');
-  const yes = confirm(`Rattacher ${day} à cette saison ?`);
-  if(!yes) return;
-  const r=await fetch(`${API}/matchdays/${day}/season`,{
-    method:'PUT', headers:{'Content-Type':'application/json', Authorization:`Bearer ${token}`},
-    body: JSON.stringify({ season_id: sid })
-  });
-  if(!r.ok){ alert('Échec rattachement'); return; }
-  alert('Journée rattachée');
-  document.getElementById('seasonSelect').dispatchEvent(new Event('change'));
-}
-
-// INIT saisons au chargement
-(async function initSeasons(){
-  await loadSeasons();
-  document.getElementById('seasonSelect').dispatchEvent(new Event('change'));
-})();
-
-// Montrer "Mon profil" en premier pour les membres
-(function(){
-  const r = (localStorage.getItem('efoot.role')||'member').toLowerCase();
-  const b = document.getElementById('btnProfile');
-  if(b && r !== 'admin'){ b.style.display='inline-flex'; b.parentNode.insertBefore(b, b.parentNode.firstChild); }
-})();
-// PING présence pour les membres
+/* ===== PING présence pour membres ===== */
 (function(){
   const r = (localStorage.getItem('efoot.role')||'member').toLowerCase();
   if(!token || r==='admin') return;
-  const ping = ()=> fetch(`${API}/presence/ping`, { method:'POST', headers:{Authorization:`Bearer ${token}`}})
-                    .catch(()=>{});
-  ping();
-  setInterval(ping, 15000);
+  const ping = ()=> fetch(`${API}/presence/ping`, { method:'POST', headers:{Authorization:`Bearer ${token}`}}).catch(()=>{});
+  ping(); setInterval(ping, 15000);
 })();
 
+/* ===== Ajustements de menu selon rôle ===== */
 (function(){
-  const role = (localStorage.getItem('efoot.role') || 'member').toLowerCase();
+  const r = (localStorage.getItem('efoot.role') || 'member').toLowerCase();
   const btn = document.getElementById('btnProfile');
   const lm  = document.getElementById('linkMembers');
   const menu = document.getElementById('menu');
-
-  if (role === 'admin') {
+  if (r === 'admin') {
     if (btn) btn.style.display = 'none';
     if (lm)  lm.textContent = '👥 Admin-Joueurs';
   } else {
     if (btn) {
       btn.style.display = 'inline-flex';
       btn.href = 'Panel-Membre.html';
-      // le mettre en premier dans le menu
       if (menu && btn.parentNode === menu) menu.insertBefore(btn, menu.firstChild);
     }
     if (lm) {
       lm.textContent = '👥 Liste des membres';
-      lm.href = 'Admin-Joueurs.html'; // même page, mais en lecture seule côté membre
+      lm.href = 'Admin-Joueurs.html';
     }
   }
 })();
-
-// === Menu mobile robuste (id: menuToggle OR menuBtn)
-(function(){
-  const menu = document.getElementById('menu');
-  const toggle = document.getElementById('menuToggle') || document.getElementById('menuBtn');
-  if(!menu || !toggle) return;
-  function open(v){
-    menu.classList.toggle('open', v);
-    toggle.setAttribute('aria-expanded', v?'true':'false');
-  }
-  toggle.addEventListener('click', (e)=>{ e.stopPropagation(); open(!menu.classList.contains('open')); });
-  document.addEventListener('click', (e)=>{
-    if(!menu.classList.contains('open')) return;
-    if(e.target===toggle || menu.contains(e.target)) return;
-    open(false);
-  }, true);
-  document.addEventListener('keydown', (e)=>{ if(e.key==='Escape') open(false); });
-})();
-
-(function(){
-  const k='efoot.theme';
-  const apply=m=>{document.documentElement.classList.toggle('light',m==='light');localStorage.setItem(k,m);$('#theme').textContent=m==='light'?'🌙':'☀️'};
-  apply(localStorage.getItem(k)||'dark');
-  $('#theme').onclick=()=>apply(document.documentElement.classList.contains('light')?'dark':'light');
-})();
-
 </script>
 
 <footer style="text-align: center; font-family:'Gill Sans', 'Gill Sans MT', Calibri, 'Trebuchet MS', sans-serif;">Copyright © -GOUZEPE GAMING CLUB 2025</footer>
-
 </body>
 </html>

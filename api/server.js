@@ -228,7 +228,7 @@ function computeStandings(matches){
 
 // Barème saison : D1 = 9 au dernier +1 par rang, bonus champion D1 +1 ; D2 table fixe
 const BONUS_D1_CHAMPION = 1;
-function pointsD1(nPlayers, rank){ if(rank<1||rank>nPlayers) return 0; return 9+(nPlayers-rank); }
+function pointsD1(rank){ const table=[15,13,12,11,10,9,9,9,9]; return rank>0 && rank<=table.length ? table[rank-1] : 1; }
 function pointsD2(rank){ const table=[10,8,7,6,5,4,3,2,1,1,1]; return rank>0 && rank<=table.length ? table[rank-1] : 1; }
 
 async function computeSeasonStandings(seasonId){
@@ -253,7 +253,7 @@ async function computeSeasonStandings(seasonId){
 
     // === Bonus / gagnants ===
     const champD1=p?.champions?.d1?.id||null;
-    if(champD1 && (roles.get(champD1)||'MEMBRE')!=='INVITE'){ ensure(champD1).total += BONUS_D1_CHAMPION; ensure(champD1).won_d1++; }
+    if(champD1 && (roles.get(champD1)||'MEMBRE')!=='INVITE'){ ensure(champD1).won_d1++; }
     const champD2=p?.champions?.d2?.id||null;
     if(champD2 && (roles.get(champD2)||'MEMBRE')!=='INVITE'){ ensure(champD2).won_d2++; }
 

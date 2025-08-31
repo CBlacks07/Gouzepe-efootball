@@ -771,22 +771,40 @@ app.delete('/matchdays/:date', auth, adminOnly, async (req,res)=>{
 });
 
 /* ---------- standings ---------- */
+
+// tri utilitaires (ne touche pas aux objets retournés par computeSeasonStandings)
+function sortStandings(rows, mode) {
+  const byMoy = (a,b)=> (b.moyenne??0)-(a.moyenne??0) || (b.total??0)-(a.total??0) || (a.name||a.id||'').localeCompare(b.name||b.id||'');
+  const byPts = (a,b)=> (b.total??0)-(a.total??0)       || (b.moyenne??0)-(a.moyenne??0) || (a.name||a.id||'').localeCompare(b.name||b.id||'');
+  const arr = [...(rows||[])];
+  arr.sort(mode==='moyenne' ? byMoy : byPts);
+  return arr;
+}
+
 app.get('/standings', auth, async (req,res)=>{
   const sid = await resolveSeasonId(req.query.season);
-  const list = await computeSeasonStandings(sid);
-  ok(res,{ season_id:sid, standings:list });
+  const mode = String(req.query.sort||'points').toLowerCase(); // 'moyenne' ou 'points'
+  const raw  = await computeSeasonStandings(sid);
+  const list = sortStandings(raw, mode);
+  ok(res,{ season_id:sid, sort: mode, standings:list });
 });
+
 app.get('/season/standings', auth, async (req,res)=>{
   const sid = await resolveSeasonId(req.query.season);
-  const list = await computeSeasonStandings(sid);
-  ok(res,{ season_id:sid, standings:list });
+  const mode = String(req.query.sort||'points').toLowerCase();
+  const raw  = await computeSeasonStandings(sid);
+  const list = sortStandings(raw, mode);
+  ok(res,{ season_id:sid, sort: mode, standings:list });
 });
+
 app.get('/seasons/:id/standings', auth, async (req,res)=>{
   const sid = +req.params.id;
   const chk = await q(`SELECT 1 FROM seasons WHERE id=$1`,[sid]);
   if(!chk.rowCount) return bad(res,404,'saison inconnue');
-  const list = await computeSeasonStandings(sid);
-  ok(res,{ season_id:sid, standings:list });
+  const mode = String(req.query.sort||'points').toLowerCase();
+  const raw  = await computeSeasonStandings(sid);
+  const list = sortStandings(raw, mode);
+  ok(res,{ season_id:sid, sort: mode, standings:list });
 });
 
 /* ---------- saisons (liste + création + fallbacks) ---------- */

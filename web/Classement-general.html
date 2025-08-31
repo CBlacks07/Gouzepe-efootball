@@ -1,13 +1,14 @@
-<!-- Classement-general.html -->
+<!-- Classement-general1.html -->
 <!doctype html>
 <html lang="fr">
 <head>
 <meta charset="utf-8" />
 <title>GOUZEPE eFOOTBALL — Classement Général</title>
 <meta name="viewport" content="width=device-width, initial-scale=1" />
+<meta name="color-scheme" content="dark light">
 <link rel="stylesheet" href="theme.css">
+<link rel="stylesheet" href="common.css">
 <script>window.EFOOT_API='https://gouzepe-efootball.onrender.com';</script>
-
 <style>
   :root{
     --bg:#0b1220;--panel:#0f1627;--card:#0c1426;--text:#e5e7eb;--muted:#94a3b8;--border:#1f2937;
@@ -59,10 +60,6 @@
   html.light select,html.light input{background:#fff}
   .muted{color:var(--muted)}
 
-  /* puces de tri */
-  .chip{border:1px solid var(--border);background:transparent;border-radius:999px;padding:8px 12px;cursor:pointer}
-  .chip[aria-pressed="true"]{border-color:var(--accent);box-shadow:0 0 0 3px rgba(37,99,235,.18) inset}
-
   table{width:100%;border-collapse:collapse;border:1px solid var(--border);border-radius:12px;overflow:hidden;background:var(--card)}
   th,td{padding:10px;border-bottom:1px solid var(--border);text-align:center}
   th{color:var(--muted);position:sticky;top:0;background:var(--card)}
@@ -83,6 +80,11 @@
   .verdict{margin-top:8px;font-weight:800;color:var(--accent);text-align:center;font-size:16px}
   .sectionTitle{font-size:16px;margin:12px 0 8px;font-weight:700}
   .sepRow td{background:#1112;border-top:2px solid #666;font-style:italic}
+
+  .pill{display:inline-flex;align-items:center;gap:8px;border:1px solid var(--border);border-radius:999px;padding:8px 10px;background:rgba(0,0,0,.15)}
+  html.light .pill{background:#fff}
+  .ok{color:#22c55e;font-weight:700}
+  .ko{color:#ef4444;font-weight:700}
 </style>
 </head>
 <body>
@@ -91,8 +93,11 @@
   <div class="top">
     <div class="nav">
       <div class="logo" aria-hidden="true"></div>
-      <h1 style="margin:0;font-size:16px">GOUZEPE GAMING CLUB <br>Championnat eFootball</h1>
-      <span id="season-badge" class="season-badge blink-slow" style="display:none">Saison : <span id="season-text"></span></span>
+      <div>
+        <h1 style="margin:0;font-size:16px;line-height:1.15">GOUZEPE GAMING CLUB</h1>
+        <div class="muted" style="font-size:12px">Championnat eFootball — Classement Général</div>
+      </div>
+      <span id="season-badge" class="pill" style="display:none;margin-left:8px">Saison : <b id="season-text" style="margin-left:6px"></b></span>
     </div>
     <button id="menuToggle" class="menu-toggle" aria-label="Ouvrir le menu" aria-expanded="false" aria-controls="menu">☰</button>
     <div id="menu" class="menu top">
@@ -105,21 +110,11 @@
     </div>
   </div>
 
-  <!-- FILTRE & ACTIONS -->
   <div class="row" style="margin:12px 0; display:flex; gap:10px; flex-wrap:wrap; align-items:center">
     <label class="muted">Saison :</label>
     <select id="seasonSelect" style="min-width:220px"></select>
     <button id="newSeason" class="btn adminOnly">Créer saison</button>
-
     <input id="search" placeholder="Rechercher joueur (nom ou ID)…" style="flex:1;min-width:220px">
-
-    <!-- ▼ ajout tri + CSV -->
-    <span class="muted">Tri :</span>
-    <button id="triMoy" class="chip" aria-pressed="true" title="Trier par moyenne">Moyenne</button>
-    <button id="triPts" class="chip" aria-pressed="false" title="Trier par points">Points</button>
-    <button id="csvBtn" class="btn" title="Exporter CSV">⬇️ CSV</button>
-    <!-- ▲ -->
-
     <button id="printSeason" class="btn">Imprimer la saison</button>
     <button id="refresh" class="btn">Rafraîchir</button>
   </div>
@@ -131,27 +126,55 @@
     <button id="editDay" class="btn primary adminOnly" disabled>Modifier (admin)</button>
     <button id="printDay" class="btn" disabled>Imprimer cette journée</button>
     <button id="deleteDay" class="btn danger adminOnly" disabled>Supprimer cette journée</button>
+    <span id="thresholdBadge" class="pill" style="display:none;margin-left:auto"></span>
   </div>
 
-  <table id="seasonTable">
-    <thead>
-      <tr>
-        <th>#</th>
-        <th>Nom</th>
-        <th class="hid-m">ID</th>
-        <th>Total pts</th>
-        <th>Participations</th>
-        <th>Moy</th>
-        <th>Gagnés D1</th>
-        <th>Gagnés D2</th>
-        <th>Équipes diff.</th>
-      </tr>
-    </thead>
-    <tbody></tbody>
-  </table>
+  <!-- ====== TABLEAUX (desktop) ====== -->
+  <div style="margin-top:10px">
+    <h2 class="sectionTitle">CLASSÉS</h2>
+    <table id="tblClassed">
+      <thead>
+        <tr>
+          <th>#</th>
+          <th>Nom</th>
+          <th class="hid-m">ID</th>
+          <th>Total pts</th>
+          <th>Participations</th>
+          <th>Moy</th>
+          <th>Gagnés D1</th>
+          <th>Gagnés D2</th>
+          <th>Équipes diff.</th>
+        </tr>
+      </thead>
+      <tbody></tbody>
+    </table>
+  </div>
 
-  <div class="cards" id="seasonCards"></div>
+  <div style="margin-top:20px">
+    <h2 class="sectionTitle">NON CLASSÉS</h2>
+    <table id="tblUnclassed">
+      <thead>
+        <tr>
+          <th>#</th>
+          <th>Nom</th>
+          <th class="hid-m">ID</th>
+          <th>Total pts</th>
+          <th>Participations</th>
+          <th>Moy</th>
+          <th>Gagnés D1</th>
+          <th>Gagnés D2</th>
+          <th>Équipes diff.</th>
+        </tr>
+      </thead>
+      <tbody></tbody>
+    </table>
+  </div>
 
+  <!-- ====== CARTES (mobile) ====== -->
+  <div class="cards" id="cardsClassed" style="margin-top:12px"></div>
+  <div class="cards" id="cardsUnclassed" style="margin-top:12px"></div>
+
+  <!-- ====== MODALE JOURNÉE ====== -->
   <dialog id="dayModal" class="day">
     <div class="day-head" style="padding:14px;border-bottom:1px solid var(--border);display:flex;justify-content:space-between;align-items:center">
       <div id="dayTitle" style="font-weight:700">Journée</div>
@@ -160,12 +183,10 @@
     <div id="day-body" style="padding:12px"></div>
   </dialog>
 
-</div>
-
-<script>
+ <script>
 /* ===== utils & state ===== */
 const $=s=>document.querySelector(s);
-const DEF_API=()=>`${location.protocol.startsWith('http')?location.protocol:'http:'}//${location.hostname}:3000`;
+const DEF_API=()=> (window.EFOOT_API || `${location.protocol.startsWith('http')?location.protocol:'http:'}//${location.hostname}:3000`);
 const API=(localStorage.getItem('efoot.api')||DEF_API()).replace(/\/+$/,'');
 const token=localStorage.getItem('efoot.token');
 const role =(localStorage.getItem('efoot.role')||'member').toLowerCase();
@@ -173,6 +194,7 @@ const expAt=+localStorage.getItem('efoot.expAt')||0;
 if(!token||Date.now()>=expAt){location.href='login.html'}
 
 document.querySelectorAll('.adminOnly').forEach(el=>el.style.display=(role==='admin')?'inline-flex':'none');
+const THRESHOLD_RATIO = 0.25; // 25%
 
 /* thème + menu + logout */
 (function(){
@@ -200,7 +222,7 @@ $('#logoutBtn')?.addEventListener('click',()=>{
 
 /* ===== joueurs (noms/roles) ===== */
 const NAME_BY_ID = new Map();
-const ROLE_BY_ID = new Map(); // MEMBRE | INVITE
+const ROLE_BY_ID = new Map();
 async function loadPlayers(){
   if(NAME_BY_ID.size>0) return;
   try{
@@ -214,200 +236,143 @@ async function loadPlayers(){
 }
 function nameOf(id){ return NAME_BY_ID.get(id)||id||''; }
 function roleOf(id){ return (ROLE_BY_ID.get(id)||'MEMBRE').toUpperCase(); }
+function escapeHtml(t){return String(t||'').replace(/[&<>"']/g,m=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;','\'':'&#39;'}[m]));}
 
-/* ===== helpers : tri ===== */
-function sortByMoyenne(list){
-  return [...(list||[])].sort((a,b)=>{
-    const am=+a.moyenne||0, bm=+b.moyenne||0;
-    if(bm!==am) return bm-am;                    // 1) moyenne
-    const at=+a.total||0, bt=+b.total||0;
-    if(bt!==at) return bt-at;                    // 2) total
-    return (a.name||a.id||'').localeCompare(b.name||b.id||''); // 3) nom
-  });
-}
-function sortByPoints(list){
-  return [...(list||[])].sort((a,b)=>{
-    const at=+a.total||0, bt=+b.total||0;
-    if(bt!==at) return bt-at;                    // 1) total
-    const am=+a.moyenne||0, bm=+b.moyenne||0;
-    if(bm!==am) return bm-am;                    // 2) moyenne (backup)
-    return (a.name||a.id||'').localeCompare(b.name||b.id||''); // 3) nom
-  });
-}
-function esc(t){return String(t||'').replace(/[&<>"']/g,m=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;','\'':'&#39;'}[m]));}
+/* ===== saison / journées ===== */
+let seasonData=[];       // standings complets (incluant tous les membres) pour la saison courante
+let seasonDays=[];       // dates de la saison courante
+let minRequired = 0;     // seuil min de participations (25%)
 
-/* ===== état classement ===== */
-let BASE_DATA=[];   // brut API
-let VIEW_DATA=[];   // trié + _rank
-let SORT_MODE='moyenne'; // 'moyenne' | 'points'
-
-/* ===== chargement saisons (liste) ===== */
 async function loadSeasons(){
-  const r = await fetch(`${API}/seasons`, { headers:{Authorization:`Bearer ${token}`} });
-  const d = await r.json();
-  const sel = document.getElementById('seasonSelect');
-  sel.innerHTML = '';
-  (d.seasons || []).forEach(s=>{
-    const o = document.createElement('option');
-    o.value = s.id;
-    o.textContent = `${s.name}${s.is_closed ? ' (clôturée)' : ''}`;
-    sel.appendChild(o);
+  const r=await fetch(`${API}/seasons`,{headers:{Authorization:`Bearer ${token}`}});
+  const d=await r.json();
+  const sel = document.getElementById('seasonSelect'); sel.innerHTML = '';
+  (d.seasons||[]).forEach(s=>{
+    const o=document.createElement('option'); o.value=s.id; o.textContent=`${s.name}${s.is_closed?' (clôturée)':''}`; sel.appendChild(o);
   });
-  return d.seasons || [];
+  return d.seasons||[];
 }
 
-/* ===== standings de la saison sélectionnée ===== */
-async function loadSeason(){
-  const sid = +document.getElementById('seasonSelect').value;
-  const r = await fetch(`${API}/seasons/${sid}/standings`,{headers:{Authorization:`Bearer ${token}`}});
-  const d = await r.json();
-
-  // calcule moyenne si absente (sécurité)
-  BASE_DATA = (d.standings||[]).map(p=>{
-    const part = +p.participations||0;
-    const moy = (p.moyenne!=null) ? +p.moyenne : (part ? (+p.total||0)/part : 0);
-    return {...p, moyenne: +moy};
-  });
-  applySort();
-
-  // journées de la saison
-  const r2 = await fetch(`${API}/seasons/${sid}/matchdays`,{headers:{Authorization:`Bearer ${token}`}});
-  const d2 = await r2.json();
-  const selDay = document.getElementById('daySelect'); selDay.innerHTML='';
-  (d2.days||[]).forEach(dt=>{
-    const o=document.createElement('option'); o.value=dt; o.textContent=dt; selDay.appendChild(o);
-  });
-  const has=!!selDay.value;
-  document.getElementById('editDay').disabled=(role!=='admin')||!has;
-  document.getElementById('printDay').disabled=!has;
-  document.getElementById('deleteDay').disabled=(role!=='admin')||!has;
-}
-
-/* ===== applique tri courant et rend ===== */
-function applySort(){
-  const sorted = (SORT_MODE==='points') ? sortByPoints(BASE_DATA) : sortByMoyenne(BASE_DATA);
-  VIEW_DATA = sorted.map((p,i)=> ({...p, _rank:i+1}));
-  renderSeason();
+async function selectCurrentSeasonIfPossible(){
+  let current = null;
+  try {
+    const r = await fetch(`${API}/season/current`, { headers:{Authorization:`Bearer ${token}`} });
+    if (r.ok) current = await r.json();
+  } catch(_){}
+  const sel = document.getElementById('seasonSelect'); if(!sel) return;
+  if (current) {
+    for (const opt of sel.options) if (+opt.value === +current.id) { sel.value = String(current.id); break; }
+    const badge = document.getElementById('season-badge');
+    const txt   = document.getElementById('season-text');
+    if (txt)   txt.textContent = current.name || `Saison ${current.id}`;
+    if (badge) badge.style.display = 'inline-flex';
+  } else {
+    const badge = document.getElementById('season-badge');
+    if (badge) badge.style.display = 'none';
+  }
+  sel.dispatchEvent(new Event('change'));
 }
 
 /* ===== rendu ===== */
-function renderSeason(){
+function sortRows(rows){
+  // Tri demandé : moyenne ↓, total ↓, participations ↓, titres (D1>D2), puis nom
+  return rows.slice().sort((a,b)=>
+    (b.moyenne - a.moyenne) ||
+    (b.total   - a.total)   ||
+    ((b.participations||0) - (a.participations||0)) ||
+    (((b.won_d1||0)*100 + (b.won_d2||0)) - ((a.won_d1||0)*100 + (a.won_d2||0))) ||
+    (a.name||a.id).localeCompare(b.name||b.id)
+  );
+}
+function renderTables(){
   const q=($('#search').value||'').toLowerCase();
-  const data = VIEW_DATA.filter(x=>(x.name||'').toLowerCase().includes(q) || (x.id||'').toLowerCase().includes(q));
+  const filtered = seasonData.filter(x=>(x.name||'').toLowerCase().includes(q) || (x.id||'').toLowerCase().includes(q));
+  const classed    = sortRows(filtered.filter(p => (p.participations||0) >= minRequired));
+  const unclassed  = sortRows(filtered.filter(p => (p.participations||0) <  minRequired));
 
-  const tb=$('#seasonTable tbody'); tb.innerHTML='';
-  data.forEach((p)=>{
-    const tr=document.createElement('tr');
-    tr.innerHTML =
-        '<td>'+(p._rank||'')+'</td>'
-      + '<td>'+esc(p.name||p.id||'')+'</td>'
-      + '<td class="hid-m">'+esc(p.id||'')+'</td>'
-      + '<td>'+(p.total??0)+'</td>'
-      + '<td>'+(p.participations??0)+'</td>'
-      + '<td>'+((p.moyenne??0).toFixed? (p.moyenne||0).toFixed(2): (p.moyenne??0))+'</td>'
-      + '<td>'+(p.won_d1??0)+'</td>'
-      + '<td>'+(p.won_d2??0)+'</td>'
-      + '<td>'+(p.teams_used??0)+'</td>';
-    tb.appendChild(tr);
-  });
-
-  const cards=$('#seasonCards'); cards.innerHTML='';
-  data.forEach((p)=>{
-    const div=document.createElement('div');
-    div.className='card';
-    div.innerHTML='<div style="font-weight:700;margin-bottom:4px">'+(p._rank||'')+'. '+esc(p.name||p.id||'')+'</div>'
-      + '<div class="grid2">'
-      + '<div><span class="muted">ID:</span> '+esc(p.id||'')+'</div>'
-      + '<div><span class="muted">Total:</span> '+(p.total??0)+'</div>'
-      + '<div><span class="muted">Part.:</span> '+(p.participations??0)+'</div>'
-      + '<div><span class="muted">Moy.:</span> '+((p.moyenne??0).toFixed? (p.moyenne||0).toFixed(2): (p.moyenne??0))+'</div>'
-      + '<div><span class="muted">D1 gagnés:</span> '+(p.won_d1??0)+'</div>'
-      + '<div><span class="muted">D2 gagnés:</span> '+(p.won_d2??0)+'</div>'
-      + '<div><span class="muted">Équipes diff.:</span> '+(p.teams_used??0)+'</div>'
-      + '</div>';
-    cards.appendChild(div);
-  });
-}
-
-/* ===== Liste des journées + affichage ===== */
-async function loadDays(){
-  const r=await fetch(`${API}/matchdays`,{headers:{'Authorization':`Bearer ${token}`}});
-  const d=await r.json();
-  const sel=$('#daySelect'); sel.innerHTML='';
-  (d.days||[]).forEach(dt=>{
-    const o=document.createElement('option'); o.value=dt; o.textContent=dt; sel.appendChild(o);
-  });
-  const has=!!sel.value;
-  $('#editDay').disabled = !has || role!=='admin';
-  $('#printDay').disabled=!has;
-  $('#deleteDay').disabled = !has || role!=='admin';
-}
-async function viewSelectedDay(openModal=true){
-  await loadPlayers();
-  const day=$('#daySelect').value;
-  if(!day){ alert('Choisis une date'); return; }
-  const r=await fetch(`${API}/matchdays/${day}`,{headers:{'Authorization':`Bearer ${token}`}}); if(!r.ok){ alert('Journée introuvable'); return; }
-  const payload=await r.json();
-
-  if(openModal){
-    $('#dayTitle').textContent='Journée du '+new Date(day).toLocaleDateString('fr-FR',{weekday:'long',day:'2-digit',month:'long',year:'numeric'});
-    $('#day-body').innerHTML = renderDayContent(payload);
-    $('#dayModal').showModal();
+  // badge seuil
+  const badge = document.getElementById('thresholdBadge');
+  const daysCount = seasonDays.length;
+  if(daysCount>0){
+    badge.style.display='inline-flex';
+    badge.innerHTML = `<span class="${minRequired>0?'ok':'ko'}">Seuil classé</span> : 25% • ${minRequired} / ${daysCount} participation(s)`;
+  }else{
+    badge.style.display='none';
   }
-  return payload;
+
+  // desktop tables
+  function fillTable(tbodyId, rows){
+    const tb = document.querySelector(tbodyId); tb.innerHTML='';
+    rows.forEach((p,i)=>{
+      const tr=document.createElement('tr');
+      tr.innerHTML = `<td>${i+1}</td>`
+        + `<td>${escapeHtml(p.name||p.id||'')}</td>`
+        + `<td class="hid-m">${escapeHtml(p.id||'')}</td>`
+        + `<td>${p.total??0}</td>`
+        + `<td>${p.participations??0}</td>`
+        + `<td>${(Number.isFinite(p.moyenne)?p.moyenne:0).toFixed(2)}</td>`
+        + `<td>${p.won_d1??0}</td>`
+        + `<td>${p.won_d2??0}</td>`
+        + `<td>${p.teams_used??0}</td>`;
+      tb.appendChild(tr);
+    });
+  }
+  fillTable('#tblClassed tbody', classed);
+  fillTable('#tblUnclassed tbody', unclassed);
+
+  // mobile cards
+  function fillCards(boxId, rows){
+    const box = document.getElementById(boxId); box.innerHTML='';
+    rows.forEach((p,i)=>{
+      const div=document.createElement('div'); div.className='card';
+      div.innerHTML = `<div style="font-weight:700;margin-bottom:4px">${i+1}. ${escapeHtml(p.name||p.id||'')}</div>
+        <div class="grid2">
+          <div><span class="muted">ID:</span> ${escapeHtml(p.id||'')}</div>
+          <div><span class="muted">Total:</span> ${p.total??0}</div>
+          <div><span class="muted">Part.:</span> ${p.participations??0}</div>
+          <div><span class="muted">Moy.:</span> ${(Number.isFinite(p.moyenne)?p.moyenne:0).toFixed(2)}</div>
+          <div><span class="muted">D1 gagnés:</span> ${p.won_d1??0}</div>
+          <div><span class="muted">D2 gagnés:</span> ${p.won_d2??0}</div>
+          <div><span class="muted">Équipes diff.:</span> ${p.teams_used??0}</div>
+        </div>`;
+      box.appendChild(div);
+    });
+  }
+  fillCards('cardsClassed', classed);
+  fillCards('cardsUnclassed', unclassed);
 }
 
-/* ===== calculs pour l'affichage d'une journée ===== */
-function computeStandings(rows){
-  const agg={};
-  function add(A,B,ga,gb){
-    if(ga==null||gb==null) return;
-    if(!agg[A]) agg[A]={J:0,V:0,N:0,D:0,BP:0,BC:0};
-    if(!agg[B]) agg[B]={J:0,V:0,N:0,D:0,BP:0,BC:0};
-    agg[A].J++; agg[B].J++;
-    agg[A].BP+=ga; agg[A].BC+=gb;
-    agg[B].BP+=gb; agg[B].BC+=ga;
-    if(ga>gb){ agg[A].V++; agg[B].D++; }
-    else if(ga<gb){ agg[B].V++; agg[A].D++; }
-    else { agg[A].N++; agg[B].N++; }
-  }
-  (rows||[]).forEach(m=>{
-    if(!m.p1||!m.p2) return;
-    if(m.a1!=null&&m.a2!=null) add(m.p1,m.p2,m.a1,m.a2);
-    if(m.r1!=null&&m.r2!=null) add(m.p2,m.p1,m.r2,m.r1);
-  });
-  const arr = Object.entries(agg).map(([id,x])=>({id,...x,PTS:x.V*3+x.N,DIFF:x.BP-x.BC,role:roleOf(id)}));
-  arr.sort((a,b)=> b.PTS-a.PTS || b.DIFF-a.DIFF || b.BP-a.BP || a.id.localeCompare(b.id));
-  return arr;
-}
-function splitAndRankDaily(st){
-  const main = st.filter(x=>x.role!=='INVITE');
-  const inv  = st.filter(x=>x.role==='INVITE');
-  main.forEach((r,idx)=> r.RANK = idx+1);
-  inv.forEach(r=> r.RANK='—');
-  return {main,inv};
-}
-function standingsTableHTML(title, rowsMain, rowsInv){
-  const head='<table class="tbl"><thead><tr><th>Rang</th><th>Nom</th><th>ID</th><th>J</th><th>V</th><th>N</th><th>D</th><th>BM</th><th>BC</th><th>Diff</th><th>PTS</th></tr></thead><tbody>';
-  const row = (r)=> `<tr><td>${r.RANK}</td><td>${esc(nameOf(r.id))}</td><td>${esc(r.id)}</td><td>${r.J}</td><td>${r.V}</td><td>${r.N}</td><td>${r.D}</td><td>${r.BP}</td><td>${r.BC}</td><td>${r.DIFF}</td><td>${r.PTS}</td></tr>`;
-  let body=''; rowsMain.forEach(r=> body+=row(r));
-  if(rowsInv.length){ body+=`<tr class="sepRow"><td colspan="11">Invités (non classés)</td></tr>`; rowsInv.forEach(r=> body+=row(r)); }
-  return `<div class="sectionTitle">${title}</div>${head}${body}</tbody></table>`;
-}
+/* ===== Affichage d’une journée ===== */
 function renderMatchesTable(rows){
   let h='<table class="tbl"><thead><tr><th>Domicile</th><th>Extérieur</th><th>Aller</th><th>Retour</th></tr></thead><tbody>';
   (rows||[]).forEach(m=>{
     const a=(m.a1!=null||m.a2!=null)?((m.a1??'')+' - '+(m.a2??'')):''; const r=(m.r1!=null||m.r2!=null)?((m.r1??'')+' - '+(m.r2??'')):''; 
-    h+= `<tr><td>${esc(m.p1||'')}</td><td>${esc(m.p2||'')}</td><td>${esc(a)}</td><td>${esc(r)}</td></tr>`;
+    h+= `<tr><td>${escapeHtml(m.p1||'')}</td><td>${escapeHtml(m.p2||'')}</td><td>${escapeHtml(a)}</td><td>${escapeHtml(r)}</td></tr>`;
   });
   h+='</tbody></table>';
   return h;
 }
+function computeStandingsLocal(rows){
+  const agg={}; const add=(A,B,ga,gb)=>{ if(ga==null||gb==null) return;
+    if(!agg[A]) agg[A]={J:0,V:0,N:0,D:0,BP:0,BC:0};
+    if(!agg[B]) agg[B]={J:0,V:0,N:0,D:0,BP:0,BC:0};
+    agg[A].J++; agg[B].J++; agg[A].BP+=ga; agg[A].BC+=gb; agg[B].BP+=gb; agg[B].BC+=ga;
+    if(ga>gb){ agg[A].V++; agg[B].D++; } else if(ga<gb){ agg[B].V++; agg[A].D++; } else { agg[A].N++; agg[B].N++; }
+  };
+  (rows||[]).forEach(m=>{ if(!m.p1||!m.p2) return; if(m.a1!=null&&m.a2!=null) add(m.p1,m.p2,m.a1,m.a2); if(m.r1!=null&&m.r2!=null) add(m.p2,m.p1,m.r2,m.r1); });
+  const arr = Object.entries(agg).map(([id,x])=>({id,...x,PTS:x.V*3+x.N,DIFF:x.BP-x.BC}));
+  arr.sort((a,b)=>b.PTS-a.PTS||b.DIFF-a.DIFF||b.BP-a.BP||a.id.localeCompare(b.id));
+  return arr;
+}
+function standingsTableHTML(title, rows){
+  const head='<table class="tbl"><thead><tr><th>Rang</th><th>Nom</th><th>ID</th><th>J</th><th>V</th><th>N</th><th>D</th><th>BM</th><th>BC</th><th>Diff</th><th>PTS</th></tr></thead><tbody>';
+  const row = (r)=> `<tr><td>${r.RANK}</td><td>${escapeHtml(nameOf(r.id))}</td><td>${escapeHtml(r.id)}</td><td>${r.J}</td><td>${r.V}</td><td>${r.N}</td><td>${r.D}</td><td>${r.BP}</td><td>${r.BC}</td><td>${r.DIFF}</td><td>${r.PTS}</td></tr>`;
+  rows.forEach((r,i)=> r.RANK=i+1);
+  return `<div class="sectionTitle">${title}</div>${head}${rows.map(row).join('')}</tbody></table>`;
+}
 function renderDayContent(payload){
-  const st1 = computeStandings(payload.d1||[]);
-  const st2 = computeStandings(payload.d2||[]);
-  const {main:main1,inv:inv1} = splitAndRankDaily(st1);
-  const {main:main2,inv:inv2} = splitAndRankDaily(st2);
+  const st1 = computeStandingsLocal(payload.d1||[]);
+  const st2 = computeStandingsLocal(payload.d2||[]);
   const c1 = payload?.champions?.d1||{}, c2 = payload?.champions?.d2||{};
   const barr = payload?.champions?.barrage||{};
   const team1=(c1.team||'').toUpperCase()||'—';
@@ -416,134 +381,107 @@ function renderDayContent(payload){
 
   let html = '';
   html += '<div class="sectionTitle">SCORES D1</div>'+renderMatchesTable(payload.d1||[]);
-  html += `<div class="champ">🏆${esc(c1.id||'—')} — CHAMPION avec ${esc(team1)}</div>`;
-  html += standingsTableHTML('CLASSEMENT D1', main1, inv1);
+  html += `<div class="champ">🏆${escapeHtml(c1.id||'—')} — CHAMPION avec ${escapeHtml(team1)}</div>`;
+  html += standingsTableHTML('CLASSEMENT D1', st1);
 
   html += '<div class="sectionTitle" style="margin-top:16px">SCORES D2</div>'+renderMatchesTable(payload.d2||[]);
-  html += `<div class="champ">🏆${esc(c2.id||'—')} — CHAMPION avec ${esc(team2)}</div>`;
-  html += standingsTableHTML('CLASSEMENT D2', main2, inv2);
+  html += `<div class="champ">🏆${escapeHtml(c2.id||'—')} — CHAMPION avec ${escapeHtml(team2)}</div>`;
+  html += standingsTableHTML('CLASSEMENT D2', st2);
 
   html += '<div class="sectionTitle" style="margin-top:16px">BARRAGES</div>';
   html += '<table class="tbl"><thead><tr><th>Affiche</th><th>Aller</th><th>Retour</th><th>Match 3</th></tr></thead><tbody>';
-  html += `<tr><td>${esc((barr.ids?.d1||'—')+' - '+(barr.ids?.d2||'—'))}</td><td>${esc(mg((payload.barrage||{}).m1||{}))}</td><td>${esc(mg((payload.barrage||{}).m2||{}))}</td><td>${esc(mg((payload.barrage||{}).m3||{}))}</td></tr>`;
+  html += `<tr><td>${escapeHtml((barr.ids?.d1||'—')+' - '+(barr.ids?.d2||'—'))}</td><td>${escapeHtml(mg((payload.barrage||{}).m1||{}))}</td><td>${escapeHtml(mg((payload.barrage||{}).m2||{}))}</td><td>${escapeHtml(mg((payload.barrage||{}).m3||{}))}</td></tr>`;
   html += '</tbody></table>';
-  html += `<div class="verdict">*** ${esc((payload.barrage?.label)||'—')}</div>`;
+  html += `<div class="verdict">*** ${escapeHtml((payload.barrage?.label)||'—')}</div>`;
+
   if(payload.barrage?.notes){
-    html += '<div style="margin-top:10px"><span class="muted">Notes :</span><br>'+esc(payload.barrage.notes).replace(/\r?\n/g,'<br>')+'</div>';
+    html += '<div style="margin-top:10px"><span class="muted">Notes :</span><br>'+escapeHtml(payload.barrage.notes).replace(/\r?\n/g,'<br>')+'</div>';
   }
   return html;
 }
+async function viewSelectedDay(openModal=true){
+  await loadPlayers();
+  const day=$('#daySelect').value;
+  if(!day){ alert('Choisis une date'); return; }
+  const r=await fetch(`${API}/matchdays/${day}`,{headers:{'Authorization':`Bearer ${token}`}}); if(!r.ok){ alert('Journée introuvable'); return; }
+  const payload=await r.json();
+  if(openModal){
+    $('#dayTitle').textContent='Journée du '+new Date(day).toLocaleDateString('fr-FR',{weekday:'long',day:'2-digit',month:'long',year:'numeric'});
+    $('#day-body').innerHTML = renderDayContent(payload);
+    $('#dayModal').showModal();
+  }
+  return payload;
+}
 
-/* ===== Impression classement ===== */
+/* ===== Impression ===== */
 async function logoDataURL(){
   const tryFetch = async (path)=>{
     try{
       const r=await fetch(path,{cache:'no-store'}); if(!r.ok) return null;
       const b=await r.blob();
-      return await new Promise(res=>{
-        const fr=new FileReader(); fr.onload=()=>res(fr.result); fr.readAsDataURL(b);
-      });
+      return await new Promise(res=>{ const fr=new FileReader(); fr.onload=()=>res(fr.result); fr.readAsDataURL(b); });
     }catch(_){ return null; }
   };
   return (await tryFetch('assets/logo.png')) || (await tryFetch('assets/fond.png'));
 }
 async function printSeason(){
-  const rows = VIEW_DATA.slice();
+  const rows = sortRows(seasonData);
   const css='@page{size:A4;margin:12mm;}body{font:12px/1.35 Segoe UI,Roboto,Arial,sans-serif;color:#111;}h1{font-size:18px;margin:0 0 8px;display:flex;align-items:center;gap:8px}h1 img{height:26px}table{width:100%;border-collapse:collapse;border:1px solid #444}th,td{border:1px solid #444;padding:4px 6px;text-align:center}thead th{background:#efefef}';
   const logo = await logoDataURL();
   let html='<!doctype html><html><head><meta charset="utf-8"><title>Classement Saison</title><style>'+css+'</style></head><body onload="window.print()">';
-  html+='<h1>'+(logo?`<img src="${logo}" alt="logo">`:'')+'Classement Général — Tri : '+(SORT_MODE==='points'?'Points':'Moyenne')+'</h1>';
+  html+='<h1>'+(logo?`<img src="${logo}" alt="logo">`:'')+'Classement Général — Saison</h1>';
   html+='<table><thead><tr><th>#</th><th>Nom</th><th>ID</th><th>Total</th><th>Part.</th><th>Moy.</th><th>Gagnés D1</th><th>Gagnés D2</th><th>Équipes diff.</th></tr></thead><tbody>';
-  rows.forEach((p)=>{
-    html+='<tr><td>'+(p._rank||'')+'</td><td>'+esc(p.name||p.id||'')+'</td><td>'+esc(p.id||'')+'</td><td>'+(p.total??0)+'</td><td>'+(p.participations??0)+'</td><td>'+((p.moyenne??0).toFixed ? (p.moyenne||0).toFixed(2):(p.moyenne??0))+'</td><td>'+(p.won_d1??0)+'</td><td>'+(p.won_d2??0)+'</td><td>'+(p.teams_used??0)+'</td></tr>';
-  });
+  rows.forEach((p,i)=>{ html+=`<tr><td>${i+1}</td><td>${escapeHtml(p.name||p.id||'')}</td><td>${escapeHtml(p.id||'')}</td><td>${p.total??0}</td><td>${p.participations??0}</td><td>${(Number.isFinite(p.moyenne)?p.moyenne:0).toFixed(2)}</td><td>${p.won_d1??0}</td><td>${p.won_d2??0}</td><td>${p.teams_used??0}</td></tr>`; });
   html+='</tbody></table></body></html>';
   const w=window.open('','_blank'); w.document.open(); w.document.write(html); w.document.close(); w.focus();
 }
-
-/* ===== Impression journée ===== */
 async function printSelectedDay(){
   await loadPlayers();
   const day=$('#daySelect').value; if(!day) return;
-  const payload = await viewSelectedDay(false);
-  if(!payload) return;
+  const payload = await viewSelectedDay(false); if(!payload) return;
 
-  const st1 = computeStandings(payload.d1||[]);
-  const st2 = computeStandings(payload.d2||[]);
-  const {main:main1,inv:inv1} = splitAndRankDaily(st1);
-  const {main:main2,inv:inv2} = splitAndRankDaily(st2);
-
-  const css='@page{size:A4;margin:12mm;}body{font:12px/1.35 "Segoe UI",Roboto,Arial,sans-serif;color:#111;}h1{font-size:18px;margin:0 0 8px;display:flex;align-items:center;gap:8px}h1 img{height:28px} h2{font-size:14px;margin:10px 0 6px;} .tbl{width:100%;border-collapse:collapse;border:1px solid #444;} .tbl th,.tbl td{border:1px solid #444;padding:4px 6px;text-align:center} .tbl thead th{background:#efefef;} .champ{text-align:center;margin:6px 0 10px;font-weight:900;color:#cc0000;font-size:17px;} .verdict{margin-top:8px;font-weight:800;color:#1d4ed8;text-align:center;font-size:15px;} .sepRow td{background:#f7f7f7;font-style:italic}';
-  const escHtml = (t)=>String(t||'').replace(/[&<>"']/g,m=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;','\'':'&#39;'}[m]));
+  const st1 = computeStandingsLocal(payload.d1||[]);
+  const st2 = computeStandingsLocal(payload.d2||[]);
+  const {m1,m2,m3} = payload.barrage||{};
+  const css='@page{size:A4;margin:12mm;}body{font:12px/1.35 "Segoe UI",Roboto,Arial,sans-serif;color:#111;}h1{font-size:18px;margin:0 0 8px;display:flex;align-items:center;gap:8px}h1 img{height:28px} h2{font-size:14px;margin:10px 0 6px;} .tbl{width:100%;border-collapse:collapse;border:1px solid #444;} .tbl th,.tbl td{border:1px solid #444;padding:4px 6px;text-align:center} .tbl thead th{background:#efefef;} .champ{text-align:center;margin:6px 0 10px;font-weight:900;color:#cc0000;font-size:17px;} .verdict{margin-top:8px;font-weight:800;color:#1d4ed8;text-align:center;font-size:15px;}';
+  const esc=t=>String(t||'').replace(/[&<>"']/g,m=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[m]));
   const mg=o=> (o && o.A!=null && o.B!=null) ? (o.A+' - '+o.B) : '';
-  const tblMatches = (rows)=>{
-    let h='<table class="tbl"><thead><tr><th>Domicile</th><th>Extérieur</th><th>Aller</th><th>Retour</th></tr></thead><tbody>';
-    (rows||[]).forEach(m=>{
-      const a=(m.a1!=null||m.a2!=null)?((m.a1??'')+' - '+(m.a2??'')):''; const r=(m.r1!=null||m.r2!=null)?((m.r1??'')+' - '+(m.r2??'')):''; 
-      h+= `<tr><td>${escHtml(m.p1||'')}</td><td>${escHtml(m.p2||'')}</td><td>${escHtml(a)}</td><td>${escHtml(r)}</td></tr>`;
-    });
-    return h+'</tbody></table>';
-  };
-  const tblStand = (title, main, inv)=>{
-    let h = `<h2>${escHtml(title)}</h2><table class="tbl"><thead><tr><th>Rang</th><th>Nom</th><th>ID</th><th>J</th><th>V</th><th>N</th><th>D</th><th>BM</th><th>BC</th><th>Diff</th><th>PTS</th></tr></thead><tbody>`;
-    const row = (r)=> `<tr><td>${r.RANK}</td><td>${escHtml(nameOf(r.id))}</td><td>${escHtml(r.id)}</td><td>${r.J}</td><td>${r.V}</td><td>${r.N}</td><td>${r.D}</td><td>${r.BP}</td><td>${r.BC}</td><td>${r.DIFF}</td><td>${r.PTS}</td></tr>`;
-    main.forEach(r=>h+=row(r));
-    if(inv.length){ h+=`<tr class="sepRow"><td colspan="11">Invités (non classés)</td></tr>`; inv.forEach(r=>h+=row(r)); }
-    return h+'</tbody></table>';
-  };
-  const c1 = payload?.champions?.d1||{}, c2 = payload?.champions?.d2||{}, barr = payload?.champions?.barrage||{};
-  const team1=(c1.team||'').toUpperCase()||'—'; const team2=(c2.team||'').toUpperCase()||'—';
+  const tblMatches = (rows)=>{ let h='<table class="tbl"><thead><tr><th>Domicile</th><th>Extérieur</th><th>Aller</th><th>Retour</th></tr></thead><tbody>';
+    (rows||[]).forEach(m=>{ const a=(m.a1!=null||m.a2!=null)?((m.a1??'')+' - '+(m.a2??'')):''; const r=(m.r1!=null||m.r2!=null)?((m.r1??'')+' - '+(m.r2??'')):''; h+= `<tr><td>${esc(m.p1||'')}</td><td>${esc(m.p2||'')}</td><td>${esc(a)}</td><td>${esc(r)}</td></tr>`;});
+    return h+'</tbody></table>'; };
+  const tblStand = (title, arr)=>{ let h = `<h2>${esc(title)}</h2><table class="tbl"><thead><tr><th>Rang</th><th>Nom</th><th>ID</th><th>J</th><th>V</th><th>N</th><th>D</th><th>BM</th><th>BC</th><th>Diff</th><th>PTS</th></tr></thead><tbody>`;
+    arr.forEach((r,i)=>{ h+=`<tr><td>${i+1}</td><td>${esc(nameOf(r.id))}</td><td>${esc(r.id)}</td><td>${r.J}</td><td>${r.V}</td><td>${r.N}</td><td>${r.D}</td><td>${r.BP}</td><td>${r.BC}</td><td>${r.DIFF}</td><td>${r.PTS}</td></tr>`;});
+    return h+'</tbody></table>'; };
   const logo = await logoDataURL();
   let html='<!doctype html><html lang="fr"><head><meta charset="utf-8"/><title>Résultats — '+day+'</title><style>'+css+'</style></head><body onload="window.print()">';
   html+= `<h1>${logo?`<img src="${logo}" alt="logo">`:''}GOUZEPE GAMING CLUB — Journée du ${new Date(day).toLocaleDateString('fr-FR')}</h1>`;
-
   html+= '<h2>SCORES D1</h2>'+tblMatches(payload.d1||[]);
-  html+= `<div class="champ">🏆${escHtml(c1.id||'—')} — CHAMPION avec ${escHtml(team1)}</div>`;
-  html+= tblStand('CLASSEMENT D1', main1, inv1);
-
+  html+= tblStand('CLASSEMENT D1', st1);
   html+= '<h2>SCORES D2</h2>'+tblMatches(payload.d2||[]);
-  html+= `<div class="champ">🏆${escHtml(c2.id||'—')} — CHAMPION avec ${escHtml(team2)}</div>`;
-  html+= tblStand('CLASSEMENT D2', main2, inv2);
-
+  html+= tblStand('CLASSEMENT D2', st2);
   html+= '<h2>BARRAGES</h2><table class="tbl"><thead><tr><th>Affiche</th><th>Aller</th><th>Retour</th><th>Match 3</th></tr></thead><tbody>';
-  html+= `<tr><td>${escHtml((barr.ids?.d1||'—')+' - '+(barr.ids?.d2||'—'))}</td><td>${escHtml(mg((payload.barrage||{}).m1||{}))}</td><td>${escHtml(mg((payload.barrage||{}).m2||{}))}</td><td>${escHtml(mg((payload.barrage||{}).m3||{}))}</td></tr></tbody></table>`;
-  html+= `<div class="verdict">*** ${escHtml((payload.barrage?.label)||'—')}</div>`;
-  if(payload.barrage?.notes){
-    html+= '<div style="margin-top:8px"><b>Notes :</b><br>'+escHtml(payload.barrage.notes).replace(/\r?\n/g,'<br>')+'</div>';
-  }
+  html+= `<tr><td>${esc((payload?.champions?.barrage?.ids?.d1||'—')+' - '+(payload?.champions?.barrage?.ids?.d2||'—'))}</td><td>${esc(mg(m1||{}))}</td><td>${esc(mg(m2||{}))}</td><td>${esc(mg(m3||{}))}</td></tr></tbody></table>`;
+  if(payload?.barrage?.label){ html+= `<div class="verdict">*** ${esc(payload.barrage.label)}</div>`; }
   html+='</body></html>';
-
   const w=window.open('','_blank'); w.document.open(); w.document.write(html); w.document.close(); w.focus();
 }
+ </script> 
 
-/* ===== Export CSV ===== */
-function exportCSV(){
-  const q = (document.getElementById('search').value||'').toLowerCase();
-  const data = VIEW_DATA.filter(p => (p.name||'').toLowerCase().includes(q) || (p.id||'').toLowerCase().includes(q));
-  const rows = [['Rang','#ID','Nom','Total','Participations','Moyenne','Gagnés D1','Gagnés D2','Équipes diff.'],
-                ...data.map(p=>[p._rank,p.id||'',p.name||p.id||'',p.total||0,p.participations||0,(+p.moyenne||0).toFixed(2),p.won_d1||0,p.won_d2||0,p.teams_used||0])];
-  const csv = rows.map(r=>r.map(x=>`"${String(x).replace(/"/g,'""')}"`).join(',')).join('\n');
-  const a=document.createElement('a'); a.download='classement_'+(SORT_MODE==='points'?'points':'moyenne')+'.csv';
-  a.href=URL.createObjectURL(new Blob([csv],{type:'text/csv'})); a.click(); URL.revokeObjectURL(a.href);
-}
 
-/* ===== Events & init ===== */
-document.getElementById('search').addEventListener('input', renderSeason);
-document.getElementById('refresh').onclick=()=>{ loadPlayers().then(()=>{ loadSeason(); }); };
+  <script>
+/* Events & actions */
+document.getElementById('search').addEventListener('input', renderTables);
+document.getElementById('refresh').onclick=()=>{loadPlayers().then(()=>{document.getElementById('seasonSelect').dispatchEvent(new Event('change'));});};
 document.getElementById('printSeason').onclick=printSeason;
-document.getElementById('csvBtn').onclick=exportCSV;
-document.getElementById('triMoy').onclick=()=>{ SORT_MODE='moyenne'; document.getElementById('triMoy').setAttribute('aria-pressed','true'); document.getElementById('triPts').setAttribute('aria-pressed','false'); applySort(); };
-document.getElementById('triPts').onclick=()=>{ SORT_MODE='points';  document.getElementById('triMoy').setAttribute('aria-pressed','false'); document.getElementById('triPts').setAttribute('aria-pressed','true');  applySort(); };
-
 document.getElementById('viewDay').onclick=()=>viewSelectedDay(true);
+document.getElementById('printDay').onclick=printSelectedDay;
+
 document.getElementById('daySelect').addEventListener('change',()=>{
   const has=!!document.getElementById('daySelect').value;
   document.getElementById('editDay').disabled=(role!=='admin')||!has;
   document.getElementById('printDay').disabled=!has;
   document.getElementById('deleteDay').disabled=(role!=='admin')||!has;
 });
-document.getElementById('printDay').onclick=printSelectedDay;
-
 document.getElementById('editDay').onclick=()=>{ const d=document.getElementById('daySelect').value; if(d) location.href='Accueil.html?date='+encodeURIComponent(d)+'&edit=1'; };
 document.getElementById('deleteDay')?.addEventListener('click', async ()=>{
   const day = document.getElementById('daySelect').value;
@@ -551,70 +489,85 @@ document.getElementById('deleteDay')?.addEventListener('click', async ()=>{
   const txt = `Supprimer définitivement la journée du ${new Date(day).toLocaleDateString('fr-FR')} ?`;
   if(!confirm(txt)) return;
   try{
-    const r = await fetch(`${API}/matchdays/${encodeURIComponent(day)}`,{ method:'DELETE', headers:{'Authorization':`Bearer ${token}`}} );
+    const r = await fetch(`${API}/matchdays/${encodeURIComponent(day)}`,{ method:'DELETE', headers:{Authorization:`Bearer ${token}`} });
     if(!r.ok){ const e=await r.json().catch(()=>({})); alert('Échec suppression : ' + (e.error || r.status)); return; }
     alert('Journée supprimée.');
-    await loadSeason(); // recharge standings
-    await loadDays();   // recharge dates
+    await reloadSeasonAndDays();
     try{ document.getElementById('dayModal')?.close?.(); }catch(_){}
   }catch(err){ console.error(err); alert('Erreur réseau lors de la suppression.'); }
 });
+document.getElementById('newSeason')?.addEventListener('click', async ()=>{
+  const name = prompt('Nom de la nouvelle saison :');
+  if(!name) return;
+  const r=await fetch(`${API}/seasons`,{
+    method:'POST', headers:{'Content-Type':'application/json', Authorization:`Bearer ${token}`},
+    body: JSON.stringify({ name })
+  });
+  if(!r.ok){ alert('Échec création saison'); return; }
+  await loadSeasons();
+  document.getElementById('seasonSelect').dispatchEvent(new Event('change'));
+});
 
-// init
+/* Saison change => standings + jours */
+document.getElementById('seasonSelect').addEventListener('change', async ()=>{
+  const sid = +document.getElementById('seasonSelect').value;
+  // standings
+  let r = await fetch(`${API}/seasons/${sid}/standings`,{headers:{Authorization:`Bearer ${token}`}});
+  let d = await r.json();
+  seasonData = (d.standings||[]).map(x=>({...x, moyenne: Number.isFinite(x.moyenne)? Number(x.moyenne):0 }));
+  // days of that season
+  r = await fetch(`${API}/seasons/${sid}/matchdays`,{headers:{Authorization:`Bearer ${token}`}});
+  d = await r.json();
+  seasonDays = d.days||[];
+  const selDay = document.getElementById('daySelect'); selDay.innerHTML='';
+  seasonDays.forEach(dt=>{ const o=document.createElement('option'); o.value=dt; o.textContent=dt; selDay.appendChild(o); });
+  const has=!!selDay.value;
+  document.getElementById('editDay').disabled=(role!=='admin')||!has;
+  document.getElementById('printDay').disabled=!has;
+  document.getElementById('deleteDay').disabled=(role!=='admin')||!has;
+
+  // seuil 25%
+  minRequired = Math.ceil((seasonDays.length||0)*THRESHOLD_RATIO);
+  renderTables();
+});
+
+async function reloadSeasonAndDays(){
+  const sidSel = document.getElementById('seasonSelect');
+  if(!sidSel.value){ await loadSeasons(); await selectCurrentSeasonIfPossible(); return; }
+  sidSel.dispatchEvent(new Event('change'));
+}
+
+/* INIT */
 (async function init(){
   await loadPlayers();
   await loadSeasons();
-  // sélection auto : on choisit la première saison si aucune info
-  if (!document.getElementById('seasonSelect').value && document.getElementById('seasonSelect').options.length){
-    document.getElementById('seasonSelect').selectedIndex = 0;
-  }
-  await loadSeason();
-  // socket
+  await selectCurrentSeasonIfPossible();
+
+  // socket.io (rafraîchir quand une journée est confirmée/supprimée ou saison maj)
   try{
     const s=document.createElement('script'); s.src=`${API}/socket.io/socket.io.js`; s.onload=()=>{
       const u=new URL(API); const ws=`${u.protocol}//${u.hostname}:${u.port||'3000'}`;
       const socket=window.io(ws,{transports:['websocket','polling']});
-      socket.on('season:updated', ()=>{ loadSeasons().then(loadSeason); });
-      socket.on('day:confirmed', ()=>{ loadSeason(); loadDays(); });
-      socket.on('day:deleted',  ()=>{ loadSeason(); loadDays(); });
+      socket.on('season:updated', reloadSeasonAndDays);
+      socket.on('season:changed', reloadSeasonAndDays);
+      socket.on('day:confirmed', reloadSeasonAndDays);
+      socket.on('day:deleted',  reloadSeasonAndDays);
     }; document.head.appendChild(s);
   }catch(_){}
 })();
 
-// quand on change de saison => standings + jours
-document.getElementById('seasonSelect').addEventListener('change', async ()=>{ await loadSeason(); });
-
-/* ===== PING présence pour membres ===== */
+/* UX: bouton profil prioritaire pour membres */
 (function(){
   const r = (localStorage.getItem('efoot.role')||'member').toLowerCase();
-  if(!token || r==='admin') return;
-  const ping = ()=> fetch(`${API}/presence/ping`, { method:'POST', headers:{Authorization:`Bearer ${token}`}}).catch(()=>{});
-  ping(); setInterval(ping, 15000);
-})();
-
-/* ===== Ajustements de menu selon rôle ===== */
-(function(){
-  const r = (localStorage.getItem('efoot.role') || 'member').toLowerCase();
-  const btn = document.getElementById('btnProfile');
-  const lm  = document.getElementById('linkMembers');
-  const menu = document.getElementById('menu');
-  if (r === 'admin') {
-    if (btn) btn.style.display = 'none';
-    if (lm)  lm.textContent = '👥 Admin-Joueurs';
-  } else {
-    if (btn) {
-      btn.style.display = 'inline-flex';
-      btn.href = 'Panel-Membre.html';
-      if (menu && btn.parentNode === menu) menu.insertBefore(btn, menu.firstChild);
-    }
-    if (lm) {
-      lm.textContent = '👥 Liste des membres';
-      lm.href = 'Admin-Joueurs.html';
-    }
-  }
+  const b = document.getElementById('btnProfile');
+  if(b && r !== 'admin'){ b.style.display='inline-flex'; b.parentNode.insertBefore(b, b.parentNode.firstChild); }
 })();
 </script>
 
-<footer style="text-align: center; font-family:'Gill Sans', 'Gill Sans MT', Calibri, 'Trebuchet MS', sans-serif;">Copyright © -GOUZEPE GAMING CLUB 2025</footer>
+<footer style="text-align:center;margin:14px 0;font-family:'Gill Sans','Gill Sans MT',Calibri,'Trebuchet MS',sans-serif;">
+  Copyright © - GOUZEPE GAMING CLUB 2025
+</footer>
+
+</div>
 </body>
 </html>

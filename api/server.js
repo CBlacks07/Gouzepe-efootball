@@ -182,7 +182,6 @@ async function previousSeasonId(){
   return r.rows[0]?.id || null;
 }
 async function resolveSeasonId(qv){
-  // qv: 'current' | 'previous' | number | name
   if(!qv || String(qv).toLowerCase()==='current') return await currentSeasonId();
   if(String(qv).toLowerCase()==='previous') {
     const p = await previousSeasonId(); return p || await currentSeasonId();
@@ -192,7 +191,6 @@ async function resolveSeasonId(qv){
     const r=await q(`SELECT id FROM seasons WHERE id=$1`,[sid]);
     return r.rowCount ? sid : await currentSeasonId();
   }
-  // par nom approx
   const r=await q(`SELECT id FROM seasons WHERE name ILIKE $1 ORDER BY id DESC LIMIT 1`, ['%'+qv+'%']);
   return r.rowCount ? r.rows[0].id : await currentSeasonId();
 }
@@ -201,7 +199,7 @@ async function getPlayersRoles(){
   const map=new Map(); r.rows.forEach(p=>map.set(p.player_id,(p.role||'MEMBRE').toUpperCase())); return map;
 }
 
-/* ---------- calculs standings ---------- */
+/* ---------- calculs standings (par journée) ---------- */
 function computeStandings(matches){
   // matches: [{p1,p2,a1,a2,r1,r2}]
   const agg={};
@@ -226,66 +224,115 @@ function computeStandings(matches){
   return arr;
 }
 
-// Barème saison : D1 = 9 au dernier +1 par rang, bonus champion D1 +1 ; D2 table fixe
+/* ---------- barème saison & outils ---------- */
 const BONUS_D1_CHAMPION = 1;
 function pointsD1(nPlayers, rank){ if(rank<1||rank>nPlayers) return 0; return 9+(nPlayers-rank); }
 function pointsD2(rank){ const table=[10,8,7,6,5,4,3,2,1,1,1]; return rank>0 && rank<=table.length ? table[rank-1] : 1; }
 
+/* ---------- standings de la saison (tri = Moyenne puis Total) ---------- */
 async function computeSeasonStandings(seasonId){
   const days = await q(`SELECT day,payload FROM matchday WHERE season_id=$1 ORDER BY day ASC`,[seasonId]);
   const roles = await getPlayersRoles();
+  const seasonDaysCount = days.rowCount;
 
+  // cumuls "points/participations/gains/équipes"
   const totals = new Map(); // id -> {id,total,participations,won_d1,won_d2,teams:Set}
-  const ensure = id=>{ if(!totals.has(id)) totals.set(id,{id,total:0,participations:0,won_d1:0,won_d2:0,teams:new Set()}); return totals.get(id); };
+  const ensure = id=>{
+    if(!totals.has(id)) totals.set(id,{id,total:0,participations:0,won_d1:0,won_d2:0,teams:new Set()});
+    return totals.get(id);
+  };
+
+  // agrégat "forme & win%" sur toutes les manches de la saison
+  const legsAgg = new Map(); // id -> {J,V,N,D,BP,BC,form:[]}
+  const addLeg = (id)=>{ if(!legsAgg.has(id)) legsAgg.set(id,{J:0,V:0,N:0,D:0,BP:0,BC:0,form:[]}); return legsAgg.get(id); };
 
   for(const row of days.rows){
     const p=row.payload||{};
     const st1Full=computeStandings(p.d1||[]);
     const st2Full=computeStandings(p.d2||[]);
 
+    // classement jour : seulement MEMBRE
     const st1 = st1Full.filter(r => (roles.get(r.id)||'MEMBRE')!=='INVITE');
     const st2 = st2Full.filter(r => (roles.get(r.id)||'MEMBRE')!=='INVITE');
-
     const n1=st1.length, n2=st2.length;
 
     st1.forEach((r,idx)=>{ const o=ensure(r.id); o.total += pointsD1(n1, idx+1); o.participations+=1; });
     st2.forEach((r,idx)=>{ const o=ensure(r.id); o.total += pointsD2(idx+1);   o.participations+=1; });
 
-    // === Bonus / gagnants ===
+    // Bonus & compte de titres
     const champD1=p?.champions?.d1?.id||null;
     if(champD1 && (roles.get(champD1)||'MEMBRE')!=='INVITE'){ ensure(champD1).total += BONUS_D1_CHAMPION; ensure(champD1).won_d1++; }
     const champD2=p?.champions?.d2?.id||null;
     if(champD2 && (roles.get(champD2)||'MEMBRE')!=='INVITE'){ ensure(champD2).won_d2++; }
 
-    // === Equipes différentes : UNIQUEMENT depuis "Champion avec ..." ===
+    // Equipes différentes (via "Champion avec ...")
     const teamD1 = p?.champions?.d1?.team;
-    if (champD1 && teamD1){
-      const k = teamKey(teamD1);
-      if (k) ensure(champD1).teams.add(k);
-    }
+    if (champD1 && teamD1){ const k=teamKey(teamD1); if(k) ensure(champD1).teams.add(k); }
     const teamD2 = p?.champions?.d2?.team;
-    if (champD2 && teamD2){
-      const k = teamKey(teamD2);
-      if (k) ensure(champD2).teams.add(k);
-    }
+    if (champD2 && teamD2){ const k=teamKey(teamD2); if(k) ensure(champD2).teams.add(k); }
+
+    // === agrégat des manches pour Win% & Forme ===
+    const applyLegs = (rows, div)=>{
+      for(const m of rows||[]){
+        if(!m.p1||!m.p2) continue;
+        const A=m.p1, B=m.p2;
+        const a = addLeg(A), b = addLeg(B);
+        if(m.a1!=null && m.a2!=null){
+          a.J++; b.J++; a.BP+=m.a1; a.BC+=m.a2; b.BP+=m.a2; b.BC+=m.a1;
+          if(m.a1>m.a2){ a.V++; b.D++; a.form.push('W'); b.form.push('L'); }
+          else if(m.a1<m.a2){ b.V++; a.D++; b.form.push('W'); a.form.push('L'); }
+          else { a.N++; b.N++; a.form.push('D'); b.form.push('D'); }
+        }
+        if(m.r1!=null && m.r2!=null){
+          // match retour: joueurs inversés pour "sens domicile"
+          a.J++; b.J++; a.BP+=m.r2; a.BC+=m.r1; b.BP+=m.r1; b.BC+=m.r2;
+          if(m.r2>m.r1){ a.V++; b.D++; a.form.push('W'); b.form.push('L'); }
+          else if(m.r2<m.r1){ b.V++; a.D++; b.form.push('W'); a.form.push('L'); }
+          else { a.N++; b.N++; a.form.push('D'); b.form.push('D'); }
+        }
+      }
+    };
+    applyLegs(p.d1||[],1);
+    applyLegs(p.d2||[],2);
   }
 
-  // noms + moyenne
+  // noms + métriques dérivées
   const allIds=[...totals.keys()];
+  const nameById = new Map();
   if(allIds.length){
     const r=await q(`SELECT player_id,name FROM players WHERE player_id=ANY($1::text[])`,[allIds]);
-    const nameById=new Map(r.rows.map(x=>[x.player_id,x.name]));
-    for(const o of totals.values()){
-      o.name = nameById.get(o.id)||o.id;
-      o.moyenne = o.participations>0 ? +(o.total/o.participations).toFixed(2) : 0;
-    }
+    r.rows.forEach(x=> nameById.set(x.player_id, x.name));
   }
-  const arr=[...totals.values()].map(o=>({
-    id:o.id, name:o.name, total:o.total, participations:o.participations,
-    moyenne:o.moyenne, won_d1:o.won_d1, won_d2:o.won_d2,
-    teams_used: o.teams ? o.teams.size : 0
-  }));
-  arr.sort((a,b)=> b.total-a.total || b.moyenne-a.moyenne || a.name.localeCompare(b.name));
+
+  const threshold = Math.ceil(seasonDaysCount*0.25) || 0;
+  const arr=[...totals.values()].map(o=>{
+    const L = legsAgg.get(o.id) || {J:0,V:0,N:0,D:0,BP:0,BC:0,form:[]};
+    const moyenne = o.participations>0 ? +(o.total/o.participations).toFixed(2) : 0;
+    const win_pct = L.J ? Math.round((L.V*100)/L.J) : 0;
+    const form5   = (L.form||[]).slice(-5).join('');
+    const participation_pct = seasonDaysCount ? Math.round(o.participations*100/seasonDaysCount) : 0;
+    return {
+      id:o.id,
+      name: nameById.get(o.id)||o.id,
+      total:o.total,
+      participations:o.participations,
+      moyenne,
+      won_d1:o.won_d1,
+      won_d2:o.won_d2,
+      teams_used:o.teams?o.teams.size:0,
+      win_pct,
+      form5,
+      participation_pct,
+      classified: o.participations >= threshold
+    };
+  });
+
+  // >>> TRI PRINCIPAL : Moyenne DESC, puis Total DESC, puis Win% DESC, puis Nom ASC
+ arr.sort((a,b)=>
+  (b.moyenne - a.moyenne) ||
+  (b.total   - a.total)   ||
+  (a.name || a.id).localeCompare(b.name || b.id)
+);
   return arr;
 }
 
@@ -430,7 +477,7 @@ app.get('/players/:pid/summary', auth, async (req,res)=>{
         const pid=req.params.pid;
         if(m.p1!==pid && m.p2!==pid) continue;
         const home=(m.p1===pid);
-        const aller=(m.a1!=null&&m.a2!=null)?{gf:home?m.a1:m.a2,ga:home?m.a2:m.a1}:null;
+        const aller =(m.a1!=null&&m.a2!=null)?{gf:home?m.a1:m.a2,ga:home?m.a2:m.a1}:null;
         const retour=(m.r1!=null&&m.r2!=null)?{gf:home?m.r1:m.r2,ga:home?m.r2:m.r1}:null;
         if(aller){legs++;gf+=aller.gf;ga+=aller.ga;if(aller.gf>best.gf)best={gf:aller.gf,ga:aller.ga,date:d.day,leg:'Aller',division:div.toUpperCase()};}
         if(retour){legs++;gf+=retour.gf;ga+=retour.ga;if(retour.gf>best.gf)best={gf:retour.gf,ga:retour.ga,date:d.day,leg:'Retour',division:div.toUpperCase()};}
@@ -438,16 +485,31 @@ app.get('/players/:pid/summary', auth, async (req,res)=>{
     }
   }
 
-  // rang/points
-  let rank=null,points=null,moyenne=null;
+  // rang/points + titres D1/D2 + équipes diff.
+  let rank=null,points=null,moyenne=null, won_d1=null, won_d2=null, teams_used=null;
   try{
     const st=await computeSeasonStandings(sid);
     const ix=st.findIndex(x=>x.id===req.params.pid);
-    if(ix>=0){ rank=ix+1; points=st[ix].total; moyenne=st[ix].moyenne; }
+    if(ix>=0){
+      rank=ix+1;
+      points=st[ix].total;
+      moyenne=st[ix].moyenne;
+      won_d1=st[ix].won_d1 ?? 0;
+      won_d2=st[ix].won_d2 ?? 0;
+      teams_used=st[ix].teams_used ?? 0;
+    }
   }catch(_){}
 
-  ok(res,{ season_id:sid, player:{ player_id:req.params.pid, name:r.rows[0].name }, legs, goals_for:gf, goals_against:ga, best, rank, points, moyenne });
+  ok(res,{
+    season_id:sid,
+    player:{ player_id:req.params.pid, name:r.rows[0].name },
+    legs, goals_for:gf, goals_against:ga, best,
+    rank, points, moyenne,
+    won_d1, won_d2, teams_used
+  });
 });
+
+
 app.get('/players/:pid/matches', auth, async (req,res)=>{
   const sid = await resolveSeasonId(req.query.season);
   const days = await q(`SELECT day,payload FROM matchday WHERE season_id=$1 ORDER BY day ASC`,[sid]);
@@ -674,16 +736,12 @@ app.post('/me/photo', auth, upload.single('photo'), async (req,res)=>{
 });
 
 /* ---------- presence (en ligne) ---------- */
-// ping de présence (toutes les 30–60s côté client)
 app.post('/presence/beat', auth, async (req,res)=>{
-  // si l'utilisateur est lié à un joueur, on mémorise son "lastSeen"
   const r = await q(`SELECT player_id FROM users WHERE id=$1`,[req.user.uid]);
   const pid = r.rows[0]?.player_id;
   if(pid){ presence.players.set(pid, Date.now()); }
   ok(res,{ ok:true });
 });
-
-// liste des player_id "online" récemment
 app.get('/presence/players', auth, async (_req,res)=>{
   const now=Date.now(), TTL=PRESENCE_TTL_MS;
   const online=[];
@@ -693,16 +751,10 @@ app.get('/presence/players', auth, async (_req,res)=>{
   ok(res,{ online });
 });
 
-
 /* ---------- matchdays (saisies) ---------- */
 app.get('/matchdays', auth, async (req,res)=>{
   const sid = await resolveSeasonId(req.query.season);
-  const r = await q(
-    `SELECT day FROM matchday
-     WHERE season_id=$1
-     ORDER BY day ASC`,
-    [sid]
-  );
+  const r = await q(`SELECT day FROM matchday WHERE season_id=$1 ORDER BY day ASC`,[sid]);
   ok(res, { season_id: sid, days: r.rows.map(x=>dayjs(x.day).format('YYYY-MM-DD')) });
 });
 app.get('/matchdays/:date', auth, async (req,res)=>{
@@ -711,7 +763,6 @@ app.get('/matchdays/:date', auth, async (req,res)=>{
   if (!r.rowCount) return bad(res,404,'introuvable');
   res.json(r.rows[0].payload);
 });
-
 
 /* ---------- drafts (brouillons temps réel) ---------- */
 app.get('/matchdays/draft/:date', auth, async (req,res)=>{
@@ -759,7 +810,6 @@ app.post('/matchdays/confirm', auth, adminOnly, async (req,res)=>{
            VALUES ($1,$2,$3,now())
            ON CONFLICT (day) DO UPDATE SET season_id=EXCLUDED.season_id, payload=EXCLUDED.payload`,
            [date, sid, payload]);
-  // supprimer un éventuel brouillon et notifier tout le monde
   await q('DELETE FROM draft WHERE day=$1',[date]);
   io.to(`draft:${date}`).emit('day:confirmed', { date });
   io.emit('season:changed');
@@ -884,18 +934,18 @@ app.get('/faceoff/:oppId', auth, async (req,res)=>{
     totals, legs, best_me, best_opp, leader
   });
 });
+
 /* ---------- websockets ---------- */
 io.on('connection', (socket)=>{
-  // rejoindre une "room" (par date)
   socket.on('join', ({room})=>{
     if(room && typeof room === 'string') socket.join(room);
   });
-  // relais des notifications de brouillon
   socket.on('draft:update', ({date})=>{
     if(!date) return;
     io.to(`draft:${date}`).emit('draft:update', { date });
   });
 });
+
 /* ---------- start ---------- */
 (async ()=>{
   try{

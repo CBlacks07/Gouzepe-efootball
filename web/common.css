@@ -70,10 +70,10 @@ input, select, textarea{
   border:1px solid var(--border);
   border-radius:12px;
   padding:10px 12px;
-  background:#0b1020; color:var(--text);
+  background:hwb(210 0% 99%); color:var(--text);
   transition:border-color var(--speed), box-shadow var(--speed);
 }
-html.light input, html.light select, html.light textarea{background:#fff}
+html.light input, html.light select, html.light textarea{background:hsl(0, 0%, 0%)}
 input:focus-visible, select:focus-visible, textarea:focus-visible{
   outline:none; border-color:var(--brand-600); box-shadow:var(--ring);
 }
@@ -184,11 +184,172 @@ dialog::backdrop{background:rgba(0,0,0,.4);backdrop-filter:blur(1.5px)}
   .menu.open{ display:flex }
 }
 
-/* Harmonisation rapide globale (optionnel) */
-.btn, input, select{
-  height:40px; border-radius:12px;
-}
-.badge.win  { background:#064e3b; color:#b7fbdc; }
-.badge.draw { background:#1f2937; color:#e5e7eb; }
-.badge.lose { background:#5b0b0b; color:#fed7d7; }
+/* ==== Boutons & champs - boost visibilité (dark & light) ==== */
 
+/* Palette (reste compatible avec tes variables) */
+:root{
+  /* ombres */
+  --btn-shadow: 0 6px 16px rgba(0,0,0,.28);
+  --btn-shadow-hover: 0 10px 24px rgba(0,0,0,.30);
+  --btn-shadow-active: 0 4px 12px rgba(0,0,0,.22);
+
+  /* bases */
+  --btn-bg: #10192c;
+  --btn-fg: var(--text);
+  --btn-border: #2b3548;
+
+  /* variantes */
+  --btn-primary-bg: #0b1b0f;
+  --btn-primary-br: #15803d; /* vert */
+  --btn-primary-fg: #d1fae5;
+
+  --btn-warn-bg: #1f1403;
+  --btn-warn-br: #b45309;    /* ambre */
+  --btn-warn-fg: #fde68a;
+
+  --btn-danger-bg: #2a0c0c;
+  --btn-danger-br: #b91c1c;  /* rouge */
+  --btn-danger-fg: #fecaca;
+
+  --focus-ring: 3px solid var(--accent, #2563eb);
+}
+
+html.light{
+  --btn-shadow: 0 6px 16px rgba(2,6,23,.10);
+  --btn-shadow-hover: 0 10px 24px rgba(2,6,23,.12);
+  --btn-shadow-active: 0 4px 12px rgba(2,6,23,.08);
+
+  --btn-bg: #ffffff;
+  --btn-fg: var(--text);
+  --btn-border: #cbd5e1;
+
+  --btn-primary-bg: #16a34a; /* vert 600 */
+  --btn-primary-br: #16a34a;
+  --btn-primary-fg: #ffffff;
+
+  --btn-warn-bg: #f59e0b;    /* ambre 500 */
+  --btn-warn-br: #f59e0b;
+  --btn-warn-fg: #1f2937;
+
+  --btn-danger-bg: #dc2626;  /* rouge 600 */
+  --btn-danger-br: #dc2626;
+  --btn-danger-fg: #ffffff;
+}
+
+/* Bouton générique */
+.btn{
+  display:inline-flex; align-items:center; justify-content:center; gap:8px;
+  padding:12px 16px; border-radius:12px;
+  border:1.6px solid var(--btn-border);
+  background:var(--btn-bg); color:var(--btn-fg);
+  font-weight:700; letter-spacing:.2px;
+  box-shadow:var(--btn-shadow);
+  cursor:pointer; user-select:none;
+  transition:transform .05s, box-shadow .18s, background .18s, border-color .18s, color .18s;
+}
+.btn:hover{ transform:translateY(-1px); box-shadow:var(--btn-shadow-hover); }
+.btn:active{ transform:translateY(0); box-shadow:var(--btn-shadow-active); }
+.btn:focus-visible{ outline:var(--focus-ring); outline-offset:2px; }
+.btn[disabled], .btn:disabled{ opacity:.6; filter:saturate(.7); cursor:not-allowed; box-shadow:none; }
+
+/* Variantes */
+.btn.primary{ background:var(--btn-primary-bg); border-color:var(--btn-primary-br); color:var(--btn-primary-fg); }
+.btn.warn   { background:var(--btn-warn-bg);    border-color:var(--btn-warn-br);    color:var(--btn-warn-fg); }
+.btn.danger { background:var(--btn-danger-bg);  border-color:var(--btn-danger-br);  color:var(--btn-danger-fg); }
+.btn.ghost  { background:transparent; color:var(--text); }
+
+/* États au survol en clair pour plus de peps */
+html.light .btn.primary:hover{ filter:brightness(1.05); }
+html.light .btn.warn:hover   { filter:brightness(1.05); }
+html.light .btn.danger:hover { filter:brightness(1.05); }
+
+/* Liens-boutons dans les barres de menu */
+.menu .btn{ padding:10px 14px; }
+
+/* Champs & selects — focus visible et espacement cohérent */
+input, select{
+  padding:11px 14px; border-radius:12px;
+  border:1.5px solid var(--border); background:var(--card); color:var(--text);
+  transition:border-color .15s, box-shadow .15s, background .15s;
+}
+html.light input, html.light select{ background:#fff; }
+input:focus-visible, select:focus-visible{
+  outline:var(--focus-ring); outline-offset:2px;
+  border-color:var(--accent,#2563eb);
+}
+
+/* Groupes d’actions — un peu plus d’air entre les boutons */
+.toolbar, .row{ display:flex; gap:12px; flex-wrap:wrap; }
+.card{ padding:14px; } /* léger lift universel */
+
+/* ========== LIGHT MODE BOOSTER — all pages ========== */
+
+/* Boutons très visibles en clair */
+html.light .btn{
+  background:#ffffff; color:#0f172a;
+  border:1.6px solid #cbd5e1;
+  box-shadow:0 6px 16px rgba(2,6,23,.10);
+}
+html.light .btn:hover{ background:#f8fafc; box-shadow:0 10px 24px rgba(2,6,23,.12) }
+html.light .btn:active{ box-shadow:0 4px 12px rgba(2,6,23,.08) }
+html.light .btn:focus-visible{ outline:3px solid rgba(59,130,246,.45); outline-offset:2px }
+
+html.light .btn.primary{ background:#16a34a; border-color:#15803d; color:#fff }
+html.light .btn.primary:hover{ filter:brightness(1.05) }
+
+html.light .btn.warn{ background:#f59e0b; border-color:#b45309; color:#1f2937 }
+html.light .btn.warn:hover{ filter:brightness(1.05) }
+
+html.light .btn.danger{ background:#dc2626; border-color:#b91c1c; color:#fff }
+html.light .btn.danger:hover{ filter:brightness(1.05) }
+
+html.light .btn.ghost,
+html.light .toggle-card{
+  background:#f1f5f9; border-color:#cbd5e1; color:#0f172a;
+}
+html.light .btn.ghost:hover,
+html.light .toggle-card:hover{ background:#e2e8f0 }
+
+/* Inputs / selects */
+html.light input, html.light select, html.light textarea{
+  background:#fff; color:#0f172a; border:1.5px solid #cbd5e1; border-radius:12px;
+}
+html.light input:focus-visible, html.light select:focus-visible, html.light textarea:focus-visible{
+  outline:3px solid rgba(59,130,246,.45); outline-offset:2px; border-color:#2563eb;
+}
+
+/* Cartes / panneaux */
+html.light .card{ background:#ffffff; border:1px solid #e2e8f0; box-shadow:0 6px 20px rgba(2,6,23,.06) }
+html.light .card-head{ border-bottom:1px solid #e2e8f0 }
+html.light .panel, html.light .top{ background:#ffffff; border:1px solid #e2e8f0; box-shadow:0 8px 24px rgba(2,6,23,.08) }
+
+/* Tableaux (admin, classements, comparateurs) */
+html.light table{ background:#fff; border:1px solid #e2e8f0 }
+html.light th{ background:#f1f5f9; color:#0f172a; border-bottom:1px solid #e2e8f0 }
+html.light td{ border-bottom:1px solid #eef2f7 }
+html.light .tbl th, html.light .tbl td{ border-color:#e2e8f0 }
+html.light tr:nth-child(2n) td{ background:#fcfdff }
+
+/* Badges / pastilles */
+html.light .badge{ background:#f1f5f9; border:1px solid #cbd5e1; color:#0f172a }
+html.light .badge.div1{ background:linear-gradient(90deg, rgba(37,99,235,.16), transparent) }
+html.light .badge.div2{ background:linear-gradient(90deg, rgba(16,185,129,.16), transparent) }
+html.light .season-badge,
+html.light .pill{
+  background:#ecfdf5; color:#064e3b; border:1px solid #86efac;
+}
+
+/* Barres de progression % (participation, etc.) */
+html.light .progress{ background:#e5e7eb; border-radius:999px; height:8px }
+html.light .progress > span{ background:#22c55e }
+
+/* États disabled en clair : toujours visibles */
+html.light .btn:disabled{ background:#eef2f7; border-color:#e2e8f0; color:#94a3b8; box-shadow:none; opacity:.9 }
+html.light .btn.primary:disabled{ background:#93e2b3; color:#0f172a }
+html.light .btn.warn:disabled{ background:#f8d7a1; color:#0f172a }
+html.light .btn.danger:disabled{ background:#f9a8a8; color:#0f172a }
+
+/* Contrastes en en-têtes / barres outils communes */
+html.light .toolbar, html.light .row.toolbar{ gap:12px }
+html.light .menu .btn{ background:#fff; border-color:#cbd5e1 }
+html.light .menu .btn:hover{ background:#f8fafc }

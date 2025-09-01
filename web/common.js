@@ -4,8 +4,11 @@
   const $  = (s) => document.querySelector(s);
   const $$ = (s) => Array.from(document.querySelectorAll(s));
 
-  const DEF_API = () => 'https://gouzepe-efootball.onrender.com';
-  const getAPI  = () => (localStorage.getItem('efoot.api') || window.EFOOT_API || DEF_API()).replace(/\/+$/, '');
+  const DEF_API = () =>
+    (location.protocol.startsWith('http') ? location.protocol : 'http:') +
+    '//' + location.hostname + ':3000';
+
+  const getAPI  = () => (localStorage.getItem('efoot.api') || DEF_API()).replace(/\/+$/, '');
   const getTok  = () => localStorage.getItem('efoot.token') || '';
   const getRole = () => (localStorage.getItem('efoot.role') || 'member').toLowerCase();
   const getExp  = () => +localStorage.getItem('efoot.expAt') || 0;
@@ -119,4 +122,5 @@
   const logoutBtn = document.querySelector('#logoutBtn');
   if (logoutBtn) logoutBtn.addEventListener('click', logout);
 })();
+
 

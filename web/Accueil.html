@@ -8,8 +8,6 @@
 <link rel="stylesheet" href="theme.css">
 <link rel="stylesheet" href="common.css">
 
-
-
 <style>
   :root{
     --bg:#0b1220;--panel:#0f1627;--card:#0c1426;--text:#e5e7eb;--muted:#94a3b8;--border:#1f2937;
@@ -53,25 +51,33 @@
     .menu.open{display:flex}
   }
 
-
   .btn{border:1px solid var(--border);border-radius:12px;padding:10px 14px;background:#10192c;color:var(--text);cursor:pointer}
   html.light .btn{background:#fff}
   .btn.primary{background:var(--okbg);border-color:var(--ok);color:#d1fae5}
   .btn.warn{background:var(--warnbg);border-color:var(--warn);color:#fde68a}
   .btn.strong{background:#0b1b0f;border-color:#14532d;color:#d1fae5}
   .btn.danger{background:#2a0c0c;border-color:var(--danger);color:#fecaca}
+  .btn.ghost{background:transparent;border:1px solid var(--border);color:var(--text);padding:6px 10px;border-radius:10px;cursor:pointer}
+
   .row{display:flex;gap:10px;flex-wrap:wrap}
   .pill{border:1px solid var(--border);padding:8px 12px;border-radius:12px;background:var(--panel)}
   select,input{border:1px solid var(--border);border-radius:12px;padding:10px 12px;background:#0b1020;color:var(--text)}
   html.light select,html.light input{background:#fff}
   .grid{display:grid;gap:14px}
 
-  /* 3 cards côte à côte, responsive */
-  .row.cards3{display:flex;gap:14px;flex-wrap:wrap;align-items:stretch}
-  .row.cards3 > .card{flex:1 1 360px;min-width:300px;margin-top:0 !important}
+  /* ====== Cartes D1 / D2 côte à côte ====== */
+  .deck{display:grid;gap:12px;margin-top:10px}
+  @media (min-width: 980px){ .deck{grid-template-columns:1fr 1fr;align-items:start} }
 
-  @media(min-width:980px){.grid.two{grid-template-columns:1fr 1fr}}
-  .card{background:var(--panel);border:1px solid var(--border);border-radius:16px;padding:14px}
+  .card{background:var(--panel);border:1px solid var(--border);border-radius:14px;overflow:hidden}
+  .card-head{display:flex;justify-content:space-between;align-items:center;padding:12px 14px;border-bottom:1px solid var(--border)}
+  .card-head h2{margin:0;font-size:15px}
+  .head-actions{display:flex;gap:8px;align-items:center}
+  .card-body{padding:12px}
+  .card.collapsed .card-body{display:none}
+  .card.collapsed .card-head{border-bottom:none}
+  .toggle-card::after{content:" ▴"}
+  .card.collapsed .toggle-card::after{content:" ▾"}
 
   table{width:100%;border-collapse:collapse;border:1px solid var(--border);border-radius:12px;overflow:hidden;background:var(--card)}
   th,td{padding:10px;border-bottom:1px solid var(--border);text-align:left}
@@ -85,59 +91,227 @@
   .compactScores th.mid{width:270px}
   .scoresCell{display:grid;grid-template-rows:auto auto;gap:6px;justify-items:center}
   .compactScores .score input{width:44px;text-align:center}
-  /* ====== PACK MOBILE matches (resserrer tout) ====== */
-@media (max-width: 700px){
 
-  /* Colonnes fixes pour éviter le grand vide sur "Joueur 2" */
-  #d1_matches, #d2_matches{ table-layout: fixed; }
-
-  /* 1re & 3e colonnes = largeur fixe (ID) */
-  #d1_matches th:first-child, #d1_matches td:first-child,
-  #d1_matches th:nth-child(3), #d1_matches td:nth-child(3),
-  #d2_matches th:first-child, #d2_matches td:first-child,
-  #d2_matches th:nth-child(3), #d2_matches td:nth-child(3){
-    width: 124px;           /* petit rectangle pour l'ID */
-    text-align: center;
-    margin: auto;
-  }
-
-  /* Colonne du milieu (scores) un peu plus compacte */
-  #d1_matches th.mid, #d2_matches th.mid{ width: 190px; margin: auto; } /* avant ≈230px :contentReference[oaicite:1]{index=1} */
-
-  /* Dernière colonne = juste la poubelle, pas d’espace mort */
-  #d1_matches td:last-child, #d2_matches td:last-child{
-    width: 1%;
-    padding: 4px 6px;
-    white-space: nowrap;
-  }
-
-  /* Réduire légèrement le padding général des cases */
-  #d1_matches td, #d2_matches td{ padding: 8px; }
-
-  /* Champs ID compacts et rectangulaires */
+  /* === Affinage des inputs ID + espacement === */
   #d1_matches input.p1, #d1_matches input.p2,
   #d2_matches input.p1, #d2_matches input.p2{
-    width: 14ch;            /* tient un pseudo/nom court */
-    max-width: 100%;
-    padding: 8px 10px;
-    border-radius: 10px;
+    width:16ch; max-width:100%;
+    padding:8px 10px; border-radius:10px;
   }
+  .scoresCell{ gap:6px; }
+  #d1_matches td:last-child, #d2_matches td:last-child{ width:1%; padding:4px 6px; white-space:nowrap; }
 
-  /* Rapprocher les scores (aller / retour) */
-  .scoresCell{ gap: 4px; }              /* avant 6px :contentReference[oaicite:2]{index=2} */
-  .compactScores .score input{ width: 40px; } /* avant 44–52px :contentReference[oaicite:3]{index=3} */
-}
-
+  /* Pack mobile : tout compacter un peu plus */
+  @media (max-width: 700px){
+    #d1_matches, #d2_matches{ table-layout:fixed; }
+    #d1_matches th:first-child, #d1_matches td:first-child,
+    #d1_matches th:nth-child(3), #d1_matches td:nth-child(3),
+    #d2_matches th:first-child, #d2_matches td:first-child,
+    #d2_matches th:nth-child(3), #d2_matches td:nth-child(3){
+      width:124px; text-align:center; margin:auto;
+    }
+    #d1_matches th.mid, #d2_matches th.mid{ width:190px; margin:auto; }
+    #d1_matches td, #d2_matches td{ padding:8px; }
+    .scoresCell{ gap:4px; }
+    .compactScores .score input{ width:40px; }
+  }
 
   @media (max-width: 380px){
     .row.toolbar{display:grid; grid-template-columns:1fr 1fr; gap:8px}
     .row.toolbar .pill{grid-column:1 / -1}
   }
+
   dialog{border:none;border-radius:14px;max-width:720px;width:min(92vw,720px);padding:0;background:var(--panel);color:var(--text)}
   dialog::backdrop{background:rgba(0,0,0,.4);backdrop-filter:blur(1.5px)}
+
+  /* ====== Patch visibilité & confort des boutons ====== */
+
+/* Palette d’appui (contraste fort) */
+:root{
+  --green:#22c55e;     /* success */
+  --green-700:#15803d;
+  --amber:#f59e0b;     /* avertissement */
+  --amber-700:#b45309;
+  --red:#ef4444;       /* danger */
+  --red-700:#b91c1c;
+  --blue:#3b82f6;      /* accent / focus */
+}
+
+/* Boutons — base plus large, contrastée, avec focus clair */
+.btn{
+  --ring: rgba(59,130,246,.55);
+  display:inline-flex; align-items:center; justify-content:center;
+  gap:8px;
+  padding:10px 16px;
+  min-height:40px; min-width:44px;
+  border-radius:12px;
+  border:1.5px solid var(--border);
+  background:#111827; color:var(--text);
+  font-weight:700; letter-spacing:.2px;
+  box-shadow:0 2px 0 rgba(0,0,0,.25);
+  transition:background-color .2s,border-color .2s,box-shadow .2s,transform .02s;
+}
+html.light .btn{ background:#fff; }
+
+.btn:hover{ filter:brightness(1.05); box-shadow:0 3px 0 rgba(0,0,0,.25) }
+.btn:active{ transform:translateY(1px); box-shadow:0 1px 0 rgba(0,0,0,.25) }
+.btn:focus-visible{ outline:none; box-shadow:0 0 0 3px var(--ring) }
+
+/* Variantes très lisibles */
+.btn.primary{
+  background:linear-gradient(180deg, rgba(34,197,94,.22), rgba(34,197,94,.12));
+  border-color:var(--green-700);
+  color:#d1fae5;
+}
+.btn.primary:hover{ background:linear-gradient(180deg, rgba(34,197,94,.28), rgba(34,197,94,.18)) }
+
+.btn.warn{
+  background:linear-gradient(180deg, rgba(245,158,11,.22), rgba(245,158,11,.12));
+  border-color:var(--amber-700);
+  color:#fffbeb;
+}
+.btn.warn:hover{ background:linear-gradient(180deg, rgba(245,158,11,.28), rgba(245,158,11,.18)) }
+
+.btn.danger{
+  background:linear-gradient(180deg, rgba(239,68,68,.22), rgba(239,68,68,.12));
+  border-color:var(--red-700);
+  color:#fee2e2;
+}
+.btn.danger:hover{ background:linear-gradient(180deg, rgba(239,68,68,.28), rgba(239,68,68,.18)) }
+
+/* Bouton “fantôme” → plus lisible et cliquable */
+.btn.ghost,
+.toggle-card{
+  background:rgba(148,163,184,.12);
+  border-color:var(--border);
+  color:var(--text);
+  padding:8px 12px; min-height:36px;
+  font-weight:700;
+}
+.btn.ghost:hover,
+.toggle-card:hover{ background:rgba(148,163,184,.18) }
+.toggle-card::after{ content:" ▴"; font-weight:900 }
+.card.collapsed .toggle-card::after{ content:" ▾" }
+
+/* Actions dans l’entête des cartes : un peu plus d’espace */
+.head-actions{ gap:12px }
+.head-actions .btn{ min-width:130px } /* + Match / Effacer plus “massifs” */
+
+/* Barre outils (haut de page) : espacement aéré */
+.row.toolbar{ gap:12px }
+.row.toolbar .btn{ min-width:160px }
+
+/* CTA “Enregistrer & Terminer” (classe .strong déjà en place) */
+.btn.strong{
+  background:linear-gradient(180deg, rgba(34,197,94,.35), rgba(34,197,94,.18));
+  border-color:var(--green-700);
+  color:#eafff3;
+  box-shadow:0 2px 0 rgba(16,185,129,.4);
+}
+.btn.strong:hover{ filter:brightness(1.08) }
+
+/* Cartes : tête et corps un poil plus rembourrés → lisibilité des boutons */
+.card-head{ padding:14px 16px }
+.card-body{ padding:14px }
+
+/* Inputs score compacts mais confortables */
+.compactScores .score input{
+  width:48px; text-align:center; font-weight:700;
+  border-radius:10px; padding:8px 6px;
+}
+/* ID + séparation visuelle renforcée */
+#d1_matches input.p1, #d1_matches input.p2,
+#d2_matches input.p1, #d2_matches input.p2{
+  width:18ch; padding:9px 10px; border-radius:10px;
+  border:1.5px solid var(--border);
+  background:#0b1020; color:var(--text);
+}
+html.light #d1_matches input.p1, html.light #d1_matches input.p2,
+html.light #d2_matches input.p1, html.light #d2_matches input.p2{
+  background:#fff;
+}
+
+/* Mobile : des boutons toujours ergonomiques */
+@media (max-width: 700px){
+  .head-actions .btn{ min-width:unset }
+  .row.toolbar{ display:grid; grid-template-columns:1fr 1fr; }
+  .row.toolbar .btn{ grid-column:auto; }
+  .row.toolbar .pill{ grid-column:1 / -1 }
+}
+
+/* ===== Mode clair : boutons très visibles ===== */
+
+html.light .btn{
+  background:#ffffff;
+  color:#0f172a;
+  border-color:#cbd5e1;           /* bord franc */
+  box-shadow:0 2px 0 rgba(15,23,42,.06);
+}
+html.light .btn:hover{ background:#f8fafc }
+html.light .btn:focus-visible{ outline:none; box-shadow:0 0 0 3px rgba(59,130,246,.45) }
+
+/* Actions “fortes” = fond plein + texte blanc */
+html.light .btn.primary,
+html.light .btn.strong{
+  background:#16a34a;             /* green-600 */
+  border-color:#15803d;
+  color:#ffffff;
+}
+html.light .btn.primary:hover,
+html.light .btn.strong:hover{ filter:brightness(1.05) }
+
+/* Avertissement & Danger très lisibles */
+html.light .btn.warn{
+  background:#d97706;             /* amber-600 */
+  border-color:#b45309;
+  color:#ffffff;
+}
+html.light .btn.warn:hover{ filter:brightness(1.05) }
+
+html.light .btn.danger{
+  background:#dc2626;             /* red-600 */
+  border-color:#b91c1c;
+  color:#ffffff;
+}
+html.light .btn.danger:hover{ filter:brightness(1.05) }
+
+/* Boutons “fantôme” / réduire-développer */
+html.light .btn.ghost,
+html.light .toggle-card{
+  background:#f1f5f9;             /* slate-100 */
+  border-color:#cbd5e1;
+  color:#0f172a;
+}
+html.light .btn.ghost:hover,
+html.light .toggle-card:hover{ background:#e2e8f0 }  /* slate-200 */
+html.light .toggle-card::after{ color:#0f172a }
+
+/* Cartes & tables → contrastes doux mais nets */
+html.light .card{ background:#ffffff; border-color:#e2e8f0 }
+html.light .card-head{ border-bottom:1px solid #e2e8f0 }
+html.light .card-body{ background:#ffffff }
+
+/* Inputs (ID/score) lisibles en clair */
+html.light .compactScores .score input{
+  background:#ffffff; border-color:#cbd5e1; color:#0f172a;
+}
+html.light #d1_matches input.p1, html.light #d1_matches input.p2,
+html.light #d2_matches input.p1, html.light #d2_matches input.p2{
+  background:#ffffff; border-color:#cbd5e1; color:#0f172a;
+}
+
+/* États disabled — toujours visibles en clair */
+.btn:disabled{ opacity:.55; cursor:not-allowed; filter:none!important; transform:none!important }
+html.light .btn:disabled{ background:#eef2f7; border-color:#e2e8f0; color:#94a3b8 }
+html.light .btn.primary:disabled,
+html.light .btn.strong:disabled{ background:#93e2b3; border-color:#6ee7b7; color:#0f172a }
+html.light .btn.warn:disabled{ background:#f8d7a1; border-color:#fcd34d; color:#0f172a }
+html.light .btn.danger:disabled{ background:#f9a8a8; border-color:#fecaca; color:#0f172a }
+
+
 </style>
 
-<!-- ====== Saison: wrapper fetch + badge ====== -->
+<!-- ====== Contexte saison + patch fetch (OK) ====== -->
 <script>
   let ACTIVE_SEASON = null;
   const urlSeason = new URL(location.href).searchParams.get('season');
@@ -148,8 +322,10 @@
         ACTIVE_SEASON = urlSeason;
       } else {
         const r = await fetch(`${API}/season/current`, { headers: { Authorization:`Bearer ${token}` }});
-        const d = await r.json();
-        ACTIVE_SEASON = d.name;
+        if (r.ok) {
+          const d = await r.json();
+          ACTIVE_SEASON = d.name;
+        }
       }
       const spot = document.querySelector('.top .nav');
       if (spot && ACTIVE_SEASON) {
@@ -179,29 +355,10 @@
       return _fetch(url, opt);
     };
   })();
-
-  // Montrer "Mon profil" en premier pour les membres
-(function(){
-  const r = (localStorage.getItem('efoot.role')||'member').toLowerCase();
-  const b = document.getElementById('btnProfile');
-  if(b && r !== 'admin'){ b.style.display='inline-flex'; b.parentNode.insertBefore(b, b.parentNode.firstChild); }
-})();
-
-// PING présence pour les membres
-(function(){
-  const r = (localStorage.getItem('efoot.role')||'member').toLowerCase();
-  if(!token || r==='admin') return;
-  const ping = ()=> fetch(`${API}/presence/ping`, { method:'POST', headers:{Authorization:`Bearer ${token}`}})
-                    .catch(()=>{});
-  ping();
-  setInterval(ping, 15000);
-})();
-
-
 </script>
 </head>
 
-<body>
+<body class="container">
 <div class="row">
 
   <div class="top">
@@ -211,7 +368,7 @@
       <span id="season-badge" class="season-badge blink-slow" style="display:none">Saison : <span id="season-text"></span></span>
     </div>
     <button id="menuToggle" class="menu-toggle" aria-label="Ouvrir le menu" aria-expanded="false" aria-controls="menu">☰</button>
-    <div id="menu" class="menu top">
+    <div id="menu" class="menu top" style="width:100%;">
       <a class="btn" id="btnProfile" href="Panel-Membre.html" style="display:none">👤 Mon profil</a>
       <a class="btn" href="Classement-general.html" title="Voir le classement général de la saison">📊 Classements</a>
       <a class="btn" id="linkMembers" href="Admin-Joueurs.html">👥 Admin-Joueurs</a>
@@ -232,127 +389,143 @@
     <button id="saveEditBtn" class="btn strong adminOnly" style="display:none">Enregistrer les modifications</button>
   </div>
 
+  <div class="deck">
 
-<div class="row" style="width: 100%;">
-    <section id="d1" class="card col-xs-6 col-md-4" style="max-width: 100%;">
-      <div class="row" style="justify-content:space-between;align-items:center">
-        <h3 style="margin:6px 0">Division 1 — Confrontations & Classement</h3>
-        <div class="row">
-          <button type="button" class="btn primary adminOnly" style="width: 120px; height: 45px;" data-add="d1">+ Match</button>
-          <button type="button" class="btn danger adminOnly" style="width: 120px; height: 45px;" data-clear="d1">Effacer scores</button>
+    <!-- =================== D1 =================== -->
+    <section class="card" id="card-d1">
+      <h3 style="text-align: center;">Division 1 — Confrontations & Classement</h3>
+      <div class="card-head">
+        <div class="head-actions">
+          <button type="button" class="btn primary adminOnly" data-add="d1">+ Match</button>
+          <button type="button" class="btn danger adminOnly" data-clear="d1">Effacer scores</button>
+          <button type="button" class="btn ghost toggle-card" data-target="card-d1">Réduire</button>
         </div>
       </div>
-      <div class="muted"  style="font-size: medium;">Confrontations</div>
-      <div class="table-wrap">
-      <table id="d1_matches" class="compactScores">
-        <thead>
-          <tr>
-            <th>Joueur 1 (ID)</th>
-            <th class="mid">Match 1<br><span class="muted" style="font-weight:400">Match 2</span></th>
-            <th>Joueur 2 (ID)</th>
-            <th></th>
-          </tr>
-        </thead>
-        <tbody></tbody>
-      </table>
-      </div>
+      <div class="card-body">
+        <div class="muted" style="font-size: medium;">Confrontations</div>
+        <div class="table-wrap">
+          <table id="d1_matches" class="compactScores">
+            <thead>
+              <tr>
+                <th>Joueur 1 (ID)</th>
+                <th class="mid">Match 1<br><span class="muted" style="font-weight:400">Match 2</span></th>
+                <th>Joueur 2 (ID)</th>
+                <th></th>
+              </tr>
+            </thead>
+            <tbody></tbody>
+          </table>
+        </div>
 
-      <h4 style="margin:14px 0 6px">Classement D1</h4>
-      <div class="table-wrap">
-
-      <table id="d1_tab">
-        <thead>
-          <tr><th>Joueur</th><th>J</th><th>V</th><th>N</th><th>D</th><th>BM</th><th>BC</th><th>Diff</th><th>PTS</th></tr>
-        </thead>
-        <tbody></tbody>
-      </table>
+        <h4 style="margin:14px 0 6px">Classement D1</h4>
+        <div class="table-wrap">
+          <table id="d1_tab">
+            <thead>
+              <tr><th>Joueur</th><th>J</th><th>V</th><th>N</th><th>D</th><th>BM</th><th>BC</th><th>Diff</th><th>PTS</th></tr>
+            </thead>
+            <tbody></tbody>
+          </table>
+        </div>
       </div>
     </section>
 
-    <section id="d2" class="card col-xs-6 col-md-4" style="max-width: 100%;">
-      <div class="row" style="justify-content:space-between;align-items:center">
-        <h3 style="margin:6px 0">Division 2 — Confrontations & Classement</h3>
-        <div class="row">
-          <button type="button" class="btn primary adminOnly" style="width: 120px; height: 45px;" data-add="d2">+ Match</button>
-          <button type="button" class="btn danger adminOnly" style="width: 120px; height: 45px;" data-clear="d2">Effacer scores</button>
+    <!-- =================== D2 =================== -->
+    <section class="card" id="card-d2">
+      <h3 style="text-align: center;">Division 2 — Confrontations & Classement</h3>
+      <div class="card-head">
+        <div class="head-actions">
+          <button type="button" class="btn primary adminOnly" data-add="d2">+ Match</button>
+          <button type="button" class="btn danger adminOnly" data-clear="d2">Effacer scores</button>
+          <button type="button" class="btn ghost toggle-card" data-target="card-d2">Réduire</button>
         </div>
       </div>
-      <div class="muted" style="font-size: medium;">Confrontations</div>
-      <div class="table-wrap">
-      <table id="d2_matches" class="compactScores">
-        <thead>
-          <tr>
-            <th>Joueur 1 (ID)</th>
-            <th class="mid">Match 1<br><span class="muted" style="font-weight:400">Match 2</span></th>
-            <th>Joueur 2 (ID)</th>
-            <th></th>
-          </tr>
-        </thead>
-        <tbody></tbody>
-      </table>
-      </div>
-      <h4 style="margin:14px 0 6px">Classement D2</h4>
-      <div class="table-wrap">
-      <table id="d2_tab">
-        <thead>
-          <tr><th>Joueur</th><th>J</th><th>V</th><th>N</th><th>D</th><th>BM</th><th>BC</th><th>Diff</th><th>PTS</th></tr>
-        </thead>
-        <tbody></tbody>
-      </table>
+      <div class="card-body">
+        <div class="muted" style="font-size: medium;">Confrontations</div>
+        <div class="table-wrap">
+          <table id="d2_matches" class="compactScores">
+            <thead>
+              <tr>
+                <th>Joueur 1 (ID)</th>
+                <th class="mid">Match 1<br><span class="muted" style="font-weight:400">Match 2</span></th>
+                <th>Joueur 2 (ID)</th>
+                <th></th>
+              </tr>
+            </thead>
+            <tbody></tbody>
+          </table>
+        </div>
+
+        <h4 style="margin:14px 0 6px">Classement D2</h4>
+        <div class="table-wrap">
+          <table id="d2_tab">
+            <thead>
+              <tr><th>Joueur</th><th>J</th><th>V</th><th>N</th><th>D</th><th>BM</th><th>BC</th><th>Diff</th><th>PTS</th></tr>
+            </thead>
+            <tbody></tbody>
+          </table>
+        </div>
       </div>
     </section>
 
-    <section class="card col-xs-6 col-md-4"  style="max-width: 100%;">
-  <h3 style="margin:6px 0">Barrage D2 ↔ D1 (Best of 3)</h3>
-  <div class="muted">Règle : <b>2ᵉ D2 (MEMBRE)</b> vs <b>avant-dernier D1 (MEMBRE)</b>. Les INVITÉS sont exclus.</div>
-
-  <div class="row" style="margin:8px 0">
-    <label>Affiche (auto)</label>
-    <input id="barrage_ids" list="players" placeholder="ID_D1 (D1) – ID_D2 (D2)" style="flex-wrap: wrap;" />
-    <button id="b_auto" class="btn adminOnly">↺ Proposer</button>
-  </div>
-
-  <div class="row" style="grid-template-columns:repeat(3,minmax(100px,1fr));gap:10px">
-    <div>
-      <div class="muted">Match 1</div>
-      <div class="score">
-        <input id="b1_a" inputmode="numeric" maxlength="2" />
-        <span class="dash">–</span>
-        <input id="b1_b" inputmode="numeric" maxlength="2" />
+    <!-- =================== BARRAGE =================== -->
+    <section class="card" id="card-barrage">
+      <div class="card-head">
+        <h2>Barrage D2 ↔ D1 (Best of 3)</h2>
+        <div class="head-actions">
+          <button type="button" class="btn ghost toggle-card" data-target="card-barrage">Réduire</button>
+        </div>
       </div>
-    </div>
-    <div>
-      <div class="muted">Match 2</div>
-      <div class="score">
-        <input id="b2_a" inputmode="numeric" maxlength="2" />
-        <span class="dash">–</span>
-        <input id="b2_b" inputmode="numeric" maxlength="2" />
-      </div>
-    </div>
-    <div>
-      <div class="muted">Match 3</div>
-      <div class="score">
-        <input id="b3_a" inputmode="numeric" maxlength="2" />
-        <span class="dash">–</span>
-        <input id="b3_b" inputmode="numeric" maxlength="2" />
-      </div>
-    </div>
-  </div>
+      <div class="card-body">
+        <div class="muted">Règle : <b>2ᵉ D2 (MEMBRE)</b> vs <b>avant-dernier D1 (MEMBRE)</b>. Les INVITÉS sont exclus.</div>
 
-  <div id="b_label" class="muted" style="margin-top:8px">—</div>
+        <div class="row" style="margin:8px 0">
+          <label>Affiche (auto)</label>
+          <input id="barrage_ids" list="players" placeholder="ID_D1 (D1) – ID_D2 (D2)" />
+          <button id="b_auto" class="btn adminOnly">↺ Proposer</button>
+        </div>
 
-  <div class="row" style="margin-top:10px">
-    <label>Notes / commentaires</label>
-    <textarea id="notes" style="width:100%;min-height:90px;padding:10px 12px;border-radius:12px;border:1px solid var(--border);background:#0b1020;color:var(--text)"></textarea>
-  </div>
-</section>
+        <div class="row" style="grid-template-columns:repeat(3,minmax(100px,1fr));gap:10px">
+          <div>
+            <div class="muted">Match 1</div>
+            <div class="score">
+              <input id="b1_a" inputmode="numeric" maxlength="2" />
+              <span class="dash">–</span>
+              <input id="b1_b" inputmode="numeric" maxlength="2" />
+            </div>
+          </div>
+          <div>
+            <div class="muted">Match 2</div>
+            <div class="score">
+              <input id="b2_a" inputmode="numeric" maxlength="2" />
+              <span class="dash">–</span>
+              <input id="b2_b" inputmode="numeric" maxlength="2" />
+            </div>
+          </div>
+          <div>
+            <div class="muted">Match 3</div>
+            <div class="score">
+              <input id="b3_a" inputmode="numeric" maxlength="2" />
+              <span class="dash">–</span>
+              <input id="b3_b" inputmode="numeric" maxlength="2" />
+            </div>
+          </div>
+        </div>
+
+        <div id="b_label" class="muted" style="margin-top:8px">—</div>
+
+        <div class="row" style="margin-top:10px">
+          <label>Notes / commentaires</label>
+          <textarea id="notes" style="width:100%;min-height:90px;padding:10px 12px;border-radius:12px;border:1px solid var(--border);background:#61708686;color:var(--text)"></textarea>
+        </div>
+      </div>
+    </section>
 
   </div>
 
   <datalist id="players"></datalist>
   <div class="foot"><span id="status" class="muted"></span></div>
 
-  <!-- CONFIRM JOURNÉE -->
+  <!-- CONFIRMATION / MODALES (inchangé) -->
   <dialog id="confirm">
     <div style="padding:16px;border-bottom:1px solid var(--border);font-weight:700">Confirmer la journée</div>
     <div style="padding:16px">
@@ -382,7 +555,6 @@
     </div>
   </dialog>
 
-  <!-- ADMIN GATE -->
   <dialog id="adminGate">
     <div style="padding:16px;border-bottom:1px solid var(--border);font-weight:700">Validation admin</div>
     <form id="gateForm" style="padding:16px;display:grid;gap:10px">
@@ -398,8 +570,6 @@
   </dialog>
 
 </div>
-
-
 
 <script>
 /* ===== helpers / auth ===== */
@@ -419,7 +589,7 @@ window.EDIT_SEASON_ID = (() => {
   return Number.isFinite(n) && n > 0 ? n : null;
 })();
 
-
+/* garde login */
 (function guard(){
   const here = (location.pathname.split('/').pop()||'').toLowerCase();
   const isLogin = here === '' || here === 'login.html';
@@ -466,31 +636,16 @@ const getDateKey=()=>($('#samediSelect').value||'').slice(0,10);
 const lsKey=()=>`efoot.draft.${getDateKey()}`;
 function toast(m){const s=$('#status'); if(!s){console.log(m);return} s.textContent=m; s.style.opacity=1; setTimeout(()=>s.style.opacity=.75,1200)}
 
-/* désactiver/activer la saisie (option: silent pour ne pas montrer de bandeau) */
+/* désactiver/activer la saisie */
 function setInputsDisabled(disabled, silent=false) {
   const elements = document.querySelectorAll(
     '#d1 input, #d2 input, #barrage_ids, .score input, #notes, textarea, [data-add], [data-clear], #b_auto'
   );
   elements.forEach(el => el.disabled = disabled);
-
-  if (silent) {
-    const lockMsg = document.getElementById('lockMessage');
-    if (lockMsg) lockMsg.style.display = 'none';
-    return;
-  }
-  let lockMsg = document.getElementById('lockMessage');
-  if (!lockMsg) {
-    lockMsg = document.createElement('div');
-    lockMsg.id = 'lockMessage';
-    lockMsg.style.cssText = 'padding:12px; background:var(--warnbg); border:1px solid var(--warn); color:var(--text); border-radius:12px; margin:12px 0; text-align:center; font-weight:bold;';
-    const anchor = document.getElementById('ruleLine');
-    (anchor?anchor:document.body).insertAdjacentElement(anchor?'beforebegin':'afterbegin', lockMsg);
-  }
-  lockMsg.style.display = disabled ? 'block' : 'none';
-  lockMsg.textContent = disabled ? 'Cette journée est verrouillée.' : '';
+  if (silent) return;
 }
 
-/* Lecture seule stricte pour les MEMBRES (non-admins) — sans bandeau */
+/* Lecture seule stricte pour MEMBRES */
 function enforceReadOnlyForMembers(){
   if (IS_ADMIN) return;
   const selectors = [
@@ -512,7 +667,6 @@ function updateButtons(){
 
   if (!IS_ADMIN){
     setInputsDisabled(true, /*silent=*/true);
-    document.querySelectorAll('.adminOnly').forEach(el=> el.style.display='none');
     if (saveBtn)     saveBtn.style.display='none';
     if (saveEditBtn) saveEditBtn.style.display='none';
     if (newDayBtn)   newDayBtn.style.display='none';
@@ -644,7 +798,7 @@ function row(div, m={}){
       </div>
     </td>
     <td><input list="players" class="p2" placeholder="ID" value="${m.p2||''}"></td>
-    <td><button type="button" class="btn danger del adminOnly" style="width: 32px; height: 32px; padding: 0;">🗑️</button></td>
+    <td><button type="button" class="btn danger del adminOnly" style="width:32px;height:32px;padding:0;">🗑️</button></td>
   `;
   document.querySelector(`#${div}_matches tbody`).appendChild(tr);
 }
@@ -654,8 +808,7 @@ function rebuild(div){
   (S[div]||[]).forEach(m=>row(div,m));
   if((S[div]||[]).length===0) row(div,{});
   calculateAndRender();
-
-  enforceReadOnlyForMembers();   // IMPORTANT pour empêcher la ré-édition après reconstruction
+  enforceReadOnlyForMembers();
 }
 function readFromDOM(div){
   const out=[];
@@ -678,14 +831,14 @@ function readFromDOM(div){
 
 /* délégués (inputs + delete) */
 function onInput(e){
-  if (!IS_ADMIN) return;   // blocage pour les membres
+  if (!IS_ADMIN) return;
   const t=e.target; 
   const div=t.closest('#d1_matches')?'d1':t.closest('#d2_matches')?'d2':null;
   if(!div) return;
   readFromDOM(div); calculateAndRender(); autoSaveDebounced(); validateCross();
 }
 function onClick(e){
-  if (!IS_ADMIN) return;   // blocage pour les membres
+  if (!IS_ADMIN) return;
   const del=e.target.closest('.del'); 
   if(del){
     if(!confirm('Supprimer cette ligne de match ?')) return;
@@ -746,12 +899,6 @@ function validateCross(){
   S.d1.forEach(m=>{ if(m.p1) d1IDs.add(m.p1); if(m.p2) d1IDs.add(m.p2); });
   S.d2.forEach(m=>{ if(m.p1) d2IDs.add(m.p1); if(m.p2) d2IDs.add(m.p2); });
   const both=[...d1IDs].filter(x=>d2IDs.has(x));
-  const rl = $('#ruleLine');
-  if (rl){
-    rl.innerHTML = both.length
-      ? `<span style="color:#fca5a5"><b>Conflit :</b> ${both.join(', ')} est à la fois en D1 et en D2.</span>`
-      : `Saisis les affiches avec les <b>ID joueurs</b>. Classements D1/D2 se recalculent (3 pts V, 1 N). <b>Les INVITÉS ne sont pas classés</b> mais leurs matchs comptent pour l’adversaire.`;
-  }
   return both;
 }
 
@@ -840,9 +987,6 @@ document.getElementById('saveEditBtn')?.addEventListener('click', async ()=>{
   }catch(e){ alert(`Échec de l'écrasement : ${e.message || 'Erreur'}`); }
 });
 
-/* admin gate (garde pour compat si jamais tu veux autoriser non-admin à valider via gate) */
-async function askAdminToken(){ return null; }
-
 /* autosave + synchro */
 const debounce=(fn,ms=2000)=>{let t;return(...a)=>{clearTimeout(t);t=setTimeout(()=>fn(...a),ms)}}
 function snapshot(){
@@ -886,7 +1030,7 @@ async function pollDraft(){
       const d=data.payload||{};
       S.d1=d.d1||[]; S.d2=d.d2||[]; S.barr=d.barrage||S.barr;
       rebuild('d1'); rebuild('d2'); computeBarrageLabel(); validateCross();
-      enforceReadOnlyForMembers(); // IMPORTANT après synchro
+      enforceReadOnlyForMembers();
     }
   }catch(_){}
 }
@@ -906,8 +1050,7 @@ function setupSocket(){
     const join = ()=> socket.emit('join',{ room:`draft:${getDateKey()}` });
     socket.on('connect', join);
     document.getElementById('samediSelect').addEventListener('change', ()=>{ join(); pollDraft(); });
-    socket.on('draft:update', payload=>{ if(!payload || payload.date!==getDateKey()) return; lastRev=''; pollDraft(); });
-    ['day:confirmed','day:deleted','season:changed','season:closed','season:opened'].forEach(evt=>{
+    ['draft:update','day:confirmed','day:deleted','season:changed','season:closed','season:opened'].forEach(evt=>{
       socket.on(evt, ()=>{ confirmedDaysList = []; checkDayStatusAndLock(); });
     });
   }catch(_){}
@@ -924,11 +1067,11 @@ async function persistDay(adminJwt){
   const r=await fetch(`${API}/matchdays/confirm`,{
     method:'POST',
     headers:{'Content-Type':'application/json','Authorization':`Bearer ${adminJwt}`},
-body: JSON.stringify({
-  ...payload,
-  date: getDateKey(),
-  ...(window.EDIT_SEASON_ID ? { season_id: window.EDIT_SEASON_ID } : {})
-})
+    body: JSON.stringify({
+      ...payload,
+      date: getDateKey(),
+      ...(window.EDIT_SEASON_ID ? { season_id: window.EDIT_SEASON_ID } : {})
+    })
   });
   const d=await r.json().catch(()=>({})); 
   if(!r.ok) throw new Error(d.error||`${r.status} ${r.statusText}`);
@@ -986,36 +1129,60 @@ $('#newDay').onclick=async ()=>{
   $('#samediSelect').addEventListener('change', checkDayStatusAndLock);
 
   pollDraft(); setInterval(pollDraft,3000);
-
-  // lecture seule immédiate pour membres
   enforceReadOnlyForMembers();
 })();
 
+/* Menu: "Mon profil" d’abord pour membre */
 (function(){
-  const role = (localStorage.getItem('efoot.role') || 'member').toLowerCase();
-  const btn = document.getElementById('btnProfile');
+  const r = (localStorage.getItem('efoot.role')||'member').toLowerCase();
+  const b = document.getElementById('btnProfile');
   const lm  = document.getElementById('linkMembers');
   const menu = document.getElementById('menu');
-
-  if (role === 'admin') {
-    if (btn) btn.style.display = 'none';
-    if (lm)  lm.textContent = '👥 Admin-Joueurs';
+  if (r === 'admin') {
+    if (b) b.style.display = 'none';
+    if (lm) lm.textContent = '👥 Admin-Joueurs';
   } else {
-    if (btn) {
-      btn.style.display = 'inline-flex';
-      btn.href = 'Panel-Membre.html';
-      // le mettre en premier dans le menu
-      if (menu && btn.parentNode === menu) menu.insertBefore(btn, menu.firstChild);
+    if (b) {
+      b.style.display = 'inline-flex';
+      b.href = 'Panel-Membre.html';
+      if (menu && b.parentNode === menu) menu.insertBefore(b, menu.firstChild);
     }
     if (lm) {
       lm.textContent = '👥 Liste des membres';
-      lm.href = 'Admin-Joueurs.html'; // même page, mais en lecture seule côté membre
+      lm.href = 'Admin-Joueurs.html';
     }
   }
 })();
 
-window.addEventListener('pageshow', checkDayStatusAndLock);
+/* ===== Boutons Réduire / Développer ===== */
+(function(){
+  const small = window.matchMedia('(max-width: 900px)').matches;
+  ['card-d1','card-d2','card-barrage'].forEach(id=>{
+    const card = document.getElementById(id);
+    if(!card) return;
+    const btn = card.querySelector('.toggle-card');
+    if(!btn) return;
+    const key = 'efoot.card:'+id;
+    const saved = localStorage.getItem(key);
+    const collapsed = saved!=null ? (saved==='1') : (small && id!=='card-barrage'); // par défaut, replié en mobile (sauf barrage)
+    if(collapsed) card.classList.add('collapsed');
+
+    const label = ()=> {
+      const open = !card.classList.contains('collapsed');
+      btn.textContent = open ? 'Réduire' : 'Développer';
+      btn.setAttribute('aria-expanded', String(open));
+    };
+    label();
+
+    btn.addEventListener('click', ()=>{
+      card.classList.toggle('collapsed');
+      localStorage.setItem(key, card.classList.contains('collapsed') ? '1' : '0');
+      label();
+    });
+  });
+})();
 </script>
+
 <script>
   (function showSeasonBadge(){
     const season = (window.ACTIVE_SEASON || localStorage.getItem('ACTIVE_SEASON') || window.currentSeason || '').toString().trim();
@@ -1027,6 +1194,7 @@ window.addEventListener('pageshow', checkDayStatusAndLock);
     }
   })();
 </script>
+
 <footer style="text-align: center; font-family:'Gill Sans', 'Gill Sans MT', Calibri, 'Trebuchet MS', sans-serif;">Copyright © -GOUZEPE GAMING CLUB 2025</footer>
 
 </body>

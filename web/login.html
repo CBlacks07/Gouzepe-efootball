@@ -7,22 +7,20 @@
 <meta http-equiv="Cache-Control" content="no-store" />
 <link rel="stylesheet" href="theme.css">
 <meta name="color-scheme" content="dark light">
-<link rel="stylesheet" href="common.css">
 
 <style>
-  /* === Thème & couleurs === */
   :root{
     --bg:#0b1220; --panel:#0f1627; --panel-veil:rgba(2,6,23,.55);
     --text:#e5e7eb; --muted:#94a3b8; --border:#1f2937;
     --accent:#60a5fa; --accent-veil:rgba(96,165,250,.25);
+    --btn:#14532d; --btn2:#0b1b0f; --btnText:#d1fae5;
   }
   :root.light{
     --bg:#f4f6fb; --panel:#ffffff; --panel-veil:rgba(255,255,255,.75);
     --text:#0f172a; --muted:#475569; --border:#e5e7eb;
     --accent:#2563eb; --accent-veil:rgba(37,99,235,.18);
+    --btn:#155e75; --btn2:#e6f4ff; --btnText:#0b1220;
   }
-
-  /* === Layout de base === */
   *{box-sizing:border-box}
   html,body{height:100%}
   body{
@@ -46,7 +44,6 @@
       url('assets/fond.png') center/cover fixed no-repeat;
   }
 
-  /* === Carte === */
   .card{
     position:relative; margin-inline:auto; width:min(560px,94vw);
     background:linear-gradient(to bottom right, var(--panel), var(--panel));
@@ -57,17 +54,13 @@
   }
   .head{padding:20px 18px; border-bottom:1px solid var(--border)}
   .head.center{display:grid; place-items:center}
-  .logo{
-    height:68px; width:auto; display:block;
-    border-radius:14px; box-shadow:0 0 0 1px rgba(255,255,255,.08) inset;
-  }
-  .body{padding:18px 18px 10px}
+  .logo{height:68px; width:auto; display:block; border-radius:14px}
 
-  /* === Typo & éléments === */
+  .body{padding:18px 18px 10px}
   h2{margin:0 0 12px; font-size:18px; font-weight:700; text-align:center}
   label{display:block; margin:10px 0 6px; color:var(--muted); font-weight:600}
   input{
-    width:100%; padding:14px 14px; border:1px solid var(--border); border-radius:12px;
+    width:100%; padding:14px; border:1px solid var(--border); border-radius:12px;
     background:rgba(11,16,32,.85); color:var(--text); font-size:16px;
     outline:none; transition:border-color .15s ease, box-shadow .15s ease, background .15s;
   }
@@ -87,14 +80,15 @@
   }
 
   .btn{
-    border:1px solid var(--border); background:linear-gradient(to bottom, #0b1b0f, #0e2014);
-    color:#d1fae5; border-radius:12px; padding:12px 16px; cursor:pointer;
-    font-weight:700; letter-spacing:.2px; transition:transform .08s ease;
+    border:1px solid var(--border); background:linear-gradient(to bottom, var(--btn2), var(--btn));
+    color:var(--btnText); border-radius:12px; padding:12px 16px; cursor:pointer;
+    font-weight:700; letter-spacing:.2px; transition:transform .08s ease, filter .12s ease;
   }
+  .btn:hover{filter:brightness(1.05)}
   .btn:active{transform:translateY(1px)}
   .iconbtn{
     border:1px solid var(--border); background:transparent; border-radius:12px;
-    padding:10px 12px; cursor:pointer;
+    padding:10px 12px; cursor:pointer; color:var(--text);
   }
   .iconbtn.float{position:absolute; top:10px; right:10px}
 
@@ -110,10 +104,8 @@
     .footer{flex-direction:column; align-items:stretch}
     .btn{width:100%}
   }
-  @media (prefers-reduced-motion:reduce){
-    .btn, input{transition:none}
-  }
   .gear{position:fixed; right:16px; bottom:16px; z-index:30}
+
   dialog{border:none; border-radius:14px; max-width:520px; width:min(92vw,520px); padding:0; background:var(--panel); color:var(--text)}
   dialog::backdrop{background:rgba(0,0,0,.35)}
   .dlg-h{padding:14px 16px; border-bottom:1px solid var(--border); font-weight:700}
@@ -144,7 +136,7 @@
       <div id="err" class="error"></div>
 
       <div class="footer">
-        <span class="muted">Session : 24h (déconnexion ensuite)</span>
+        <span class="muted">Session : 24h</span>
         <button id="submit" class="btn" type="submit">Se connecter</button>
       </div>
     </form>
@@ -167,7 +159,7 @@
 </div>
 
 <script>
-/* ===== thème ===== */
+/* ===== Thème ===== */
 (function(){
   const k='efoot.theme';
   const apply=m=>{document.documentElement.classList.toggle('light',m==='light'); localStorage.setItem(k,m); document.getElementById('theme').textContent=m==='light'?'🌙':'☀️'}
@@ -175,12 +167,11 @@
   document.getElementById('theme').onclick=()=>apply(document.documentElement.classList.contains('light')?'dark':'light');
 })();
 
-/* ===== helpers ===== */
+/* ===== Helpers ===== */
 const PROD_API = 'https://gouzepe-efootball.onrender.com';
 const isPrivateNet = (h)=>/^(localhost|127\.0\.0\.1|10\.\d+\.\d+\.\d+|192\.168\.\d+\.\d+|172\.(1[6-9]|2\d|3[01])\.\d+\.\d+)$/.test(h);
 const DEF_API = ()=>{
   const host = location.hostname || '';
-  // Dev local/LAN -> http://host:3000 ; sinon -> Render (HTTPS)
   if (isPrivateNet(host)) {
     return (location.protocol.startsWith('http') ? location.protocol : 'http:') + '//' + host + ':3000';
   }
@@ -189,7 +180,7 @@ const DEF_API = ()=>{
 function getAPI(){ return (localStorage.getItem('efoot.api')||DEF_API()).replace(/\/+$/,''); }
 function setAPI(v){ localStorage.setItem('efoot.api', v.replace(/\/+$/,'')); }
 function showErr(msg){ const el=document.getElementById('err'); el.textContent=msg||''; }
-async function safeFetch(url, opt={}, ms=6000){
+async function safeFetch(url, opt={}, ms=8000){
   const ctrl = new AbortController();
   const t = setTimeout(()=>ctrl.abort(), ms);
   try{ return await fetch(url, {signal:ctrl.signal, ...opt}); }
@@ -200,8 +191,8 @@ function goAfterLogin(role){
   location.replace(r==='admin' ? 'Accueil.html' : 'Panel-Membre.html');
 }
 
-/* ===== si déjà loggé (token encore valide) ⇒ redirection immédiate ===== */
-(function quickRedirect(){
+/* ===== Déjà loggé ? Redirection ===== */
+(function(){
   const token = localStorage.getItem('efoot.token');
   const expAt = +localStorage.getItem('efoot.expAt') || 0;
   if (token && Date.now() < expAt) {
@@ -210,8 +201,8 @@ function goAfterLogin(role){
   }
 })();
 
-/* ===== validation token côté API (plus sûre) ===== */
-(async function autoRedirect(){
+/* ===== Validation côté API (si token présent) ===== */
+(async function(){
   const token=localStorage.getItem('efoot.token');
   const expAt=parseInt(localStorage.getItem('efoot.expAt')||'0',10);
   if(!token || Date.now()>=expAt) return;
@@ -221,14 +212,13 @@ function goAfterLogin(role){
     const d=await r.json();
     const role=(d.user&&d.user.role)||localStorage.getItem('efoot.role')||'member';
     goAfterLogin(role);
-  }catch(_){ /* on garde le formulaire visible */ }
+  }catch(_){ /* on garde le formulaire */ }
 })();
 
-/* ===== toggle password ===== */
+/* ===== Afficher/masquer le mot de passe ===== */
 (function(){
   const btn=document.getElementById('togglePwd');
-  if(!btn) return;
-  btn.addEventListener('click', ()=>{
+  btn?.addEventListener('click', ()=>{
     const i=document.getElementById('pwd');
     if(!i) return;
     const t=i.getAttribute('type')==='password'?'text':'password';
@@ -237,42 +227,104 @@ function goAfterLogin(role){
   });
 })();
 
-/* ===== formulaire ===== */
+/* ===== Soumission (avec gestion handoff 1 session) ===== */
 document.getElementById('f').addEventListener('submit', async (e)=>{
   e.preventDefault();
   showErr('');
   const btn=document.getElementById('submit');
   btn.disabled=true; btn.textContent='Connexion…';
+
   let email=(document.getElementById('email').value||'').trim();
   const password=document.getElementById('pwd').value||'';
-  if(email && !email.includes('@')) email = email+'@gz.local'; // nom -> nom@gz.local
+  if(email && !email.includes('@')) email = email+'@gz.local';
+
+  // petit helper pour afficher un bouton "C’est moi" si ça traîne
+  let forceBtn;
+  function showForce(){
+    if(forceBtn) return;
+    forceBtn = document.createElement('button');
+    forceBtn.type = 'button';
+    forceBtn.className = 'btn';
+    forceBtn.style.marginTop = '10px';
+    forceBtn.textContent = "C'est moi — connecter ici";
+    forceBtn.onclick = async ()=>{
+      // on retente un login: grâce au patch serveur "auto-approbation même appareil",
+      // ça passera si c’est le même navigateur
+      try{
+        const rr = await safeFetch(getAPI()+'/auth/login', {
+          method:'POST',
+          headers:{'Content-Type':'application/json'},
+          body:JSON.stringify({email,password})
+        }, 10000);
+        const dd=await rr.json().catch(()=>({}));
+        if(rr.ok && dd.token){
+          const role=(dd.user&&dd.user.role)||'member';
+          localStorage.setItem('efoot.token', dd.token);
+          localStorage.setItem('efoot.role', role.toLowerCase());
+          localStorage.setItem('efoot.expAt', String(Date.now()+Number(dd.expHours||24)*3600*1000));
+          goAfterLogin(role); return;
+        }
+        showErr((dd&&dd.message)||"Toujours bloqué par une autre session.");
+      }catch(err){ showErr("Erreur réseau"); }
+    };
+    document.querySelector('.footer')?.appendChild(forceBtn);
+  }
 
   try{
     const r=await safeFetch(getAPI()+'/auth/login', {
       method:'POST',
       headers:{'Content-Type':'application/json'},
       body:JSON.stringify({email,password})
-    }, 8000);
+    }, 10000);
+
+    if(r && r.status===409){
+      const d=await r.json().catch(()=>({}));
+      showErr("Une autre session est active. Validation requise sur l'autre appareil…");
+      // si ça reste bloqué > 6s, on affiche "C'est moi"
+      setTimeout(showForce, 6000);
+
+      // on continue quand même le polling du statut si tu as validé ailleurs
+      if(d && d.request_id && d.nonce){
+        const poll = async ()=>{
+          try{
+            const rr = await safeFetch(getAPI()+`/auth/handoff/status?request_id=${encodeURIComponent(d.request_id)}&nonce=${encodeURIComponent(d.nonce)}`, {}, 8000);
+            const dd = await rr.json();
+            if(dd.status==='approved' && dd.token){
+              const role=(dd.user&&dd.user.role)||'member';
+              localStorage.setItem('efoot.token', dd.token);
+              localStorage.setItem('efoot.role', role.toLowerCase());
+              localStorage.setItem('efoot.expAt', String(Date.now()+Number(dd.expHours||24)*3600*1000));
+              goAfterLogin(role); return;
+            }
+            if(dd.status==='denied'){ showErr('Connexion refusée depuis l’autre appareil.'); btn.disabled=false; btn.textContent='Se connecter'; return; }
+            if(dd.status==='expired'){ showErr('Demande expirée. Recommencez.'); btn.disabled=false; btn.textContent='Se connecter'; return; }
+            setTimeout(poll, 1800);
+          }catch(_){ setTimeout(poll, 2200); }
+        };
+        poll();
+      }else{
+        btn.disabled=false; btn.textContent='Se connecter';
+      }
+      return;
+    }
+
     const d=await r.json().catch(()=>({}));
     if(!r || !r.ok){ throw new Error((d&&d.error)||'Identifiants invalides'); }
 
     const token=d.token;
     const role=(d.user&&d.user.role)||'member';
-    const expHours = Number(d.expHours||24); // si l’API renvoie expHours, on l’utilise
-
+    const expHours = Number(d.expHours||24);
     localStorage.setItem('efoot.token', token);
     localStorage.setItem('efoot.role', role.toLowerCase());
     localStorage.setItem('efoot.expAt', String(Date.now()+expHours*3600*1000));
-
     goAfterLogin(role);
+
   }catch(err){
     console.error(err);
     showErr(err.message||'Erreur réseau');
-  }finally{
     btn.disabled=false; btn.textContent='Se connecter';
   }
 });
-
 /* ===== Config API ===== */
 (function(){
   const dlg=document.getElementById('cfg');
@@ -295,6 +347,6 @@ document.getElementById('f').addEventListener('submit', async (e)=>{
 })();
 </script>
 
-<footer style="text-align: center; font-family:'Gill Sans', 'Gill Sans MT', Calibri, 'Trebuchet MS', sans-serif;">Copyright © -GOUZEPE GAMING CLUB 2025</footer>
+<footer style="text-align:center; color:var(--muted); margin:12px 0">Copyright © -GOUZEPE GAMING CLUB 2025</footer>
 </body>
 </html>

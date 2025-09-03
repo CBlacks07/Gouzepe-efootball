@@ -6,10 +6,6 @@
   <title>Panel Membre — GOUZEPE</title>
 
   <link rel="stylesheet" href="theme.css"/>
-  <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.4/dist/chart.umd.min.js"
-  integrity="sha384-X5eP7vX9I2A0lXh4y4j1q3p6oKfS4rJQd0sI3KZ3H8X5S1m2r1pF2J1YB2l8D2zC"
-  crossorigin="anonymous"></script>
-
   <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 
   <style>
@@ -207,10 +203,6 @@
           <button id="cmpSwap" class="btn">Inverser</button>
         </div>
         <div id="cmpOut" class="cmp-grid"></div>
-        <div class="card" id="cmpViz" style="margin-top:10px;display:none">
-  <div style="font-weight:700;margin-bottom:8px">Radar</div>
-  <canvas id="cmpRadar" height="220"></canvas>
-</div>
         <div class="card" style="margin-top:10px">
           <h3>Radar</h3>
           <canvas id="cmpRadar"></canvas>
@@ -666,15 +658,14 @@ function fillSelect(sel){
   sel.innerHTML = '<option value="">Choisir…</option>' + [...NAME_BY_ID.keys()].map(id=>`<option value="${id}">${NAME_BY_ID.get(id)} — ${id}</option>`).join('');
 }
 function last5FormFromMatches(matches){
-  const arr = (matches || []).map(x=>{
+  const arr = matches.map(x=>{
     const out=[];
-    if (x.aller)  out.push(x.aller.gf > x.aller.ga ? 'W' : (x.aller.gf < x.aller.ga ? 'L' : 'D'));
-    if (x.retour) out.push(x.retour.gf > x.retour.ga ? 'W' : (x.retour.gf < x.retour.ga ? 'L' : 'D')); // <-- corrigé
+    if(x.aller){ out.push(x.aller.gf>x.aller.ga?'W':(x.aller.gf<x.aller.ga?'L':'D')); }
+    if(x.retour){ out.push(x.retour.gf>x.retour.ga?'W':(x.retour.gf<x.xretour.ga?'L':'D')); }
     return out;
   }).flat();
   return arr.slice(-5);
 }
-
 function formDotsHTML(form){ if(!form.length) return '<span class="muted">—</span>'; return '<div class="form5">'+ form.map(c=>`<span class="dot ${c}">${c}</span>`).join('') + '</div>'; }
 async function getSummary(pid, season){
   const rs = await fetch(API+`/players/${pid}/summary?season=${season}`, { headers:{Authorization:'Bearer '+TOKEN} }); const sum = await rs.json();
@@ -722,227 +713,54 @@ function buildCmpCard(pid, data){
   `;
   return block;
 }
-let cmpChart = null;
-
-function _num(x, d=0){ x = Number(x); return Number.isFinite(x) ? x : d; }
-function _avg(a,b){ return b>0 ? a/b : 0; }
-function _pct(n,d){ return d>0 ? (100*n/d) : 0; }
-
-/* Calcule des KPIs lisibles pour le radar
-   - Moyenne (pts/participation)   -> [0..20]
-   - Win%                           -> [0..100]
-   - BM/Manche                      -> [0..10]  (borné 0..10)
-   - Défense (inverse BC/Manche)    -> [0..10]  (10 = très peu de BC)
-   - Titres (D1+D2)                 -> [0..10]  (borné 0..10)
-*/
-function computeKpis(sum, matches){
-  // Legs, GF/GA à partir de matches
-  let legs=0, gf=0, ga=0, wins=0, draws=0, losses=0;
-  for(const m of (matches||[])){
-    if(m.aller){ legs++; gf+=_num(m.aller.gf); ga+=_num(m.aller.ga);
-      if(m.aller.gf>m.aller.ga) wins++; else if(m.aller.gf<m.aller.ga) losses++; else draws++; }
-    if(m.retour){ legs++; gf+=_num(m.retour.gf); ga+=_num(m.retour.ga);
-      if(m.retour.gf>m.retour.ga) wins++; else if(m.retour.gf<m.retour.ga) losses++; else draws++; }
-  }
-
-  // Points / moyenne depuis le résumé (fallbacks sûrs)
-  const points   = _num(sum.points);
-  const moyenne  = _num(sum.moyenne, points > 0 && legs > 0 ? points/legs : 0);
-  const titles   = _num(sum.won_d1) + _num(sum.won_d2);
-
-  const winpct   = _pct(wins, wins+draws+losses);           // 0..100
-  const bmPer    = Math.min(10, _avg(gf, legs));            // 0..10
-  const bcPer    = Math.min(10, _avg(ga, legs));            // 0..10
-  const defense  = 10 - bcPer;                               // 10 = meilleur
-
-  return {
-    avg: Math.max(0, Math.min(20, moyenne)),                 // borne 0..20
-    win: Math.max(0, Math.min(100, winpct)),                 // borne 0..100
-    bm:  Math.max(0, bmPer),
-    def: Math.max(0, defense),
-    cup: Math.max(0, Math.min(10, titles))
-  };
-}
-
-function buildRadar(nameA, kA, nameB, kB){
-  const ctx = document.getElementById('cmpRadar').getContext('2d');
-  const labels = ['Moyenne', 'Win %', 'BM/Manche', 'Défense', 'Titres'];
-
-  const dataA = [kA.avg, kA.win, kA.bm, kA.def, kA.cup];
-  const dataB = [kB.avg, kB.win, kB.bm, kB.def, kB.cup];
-
-  const dark = !document.documentElement.classList.contains('light');
-  const grid = dark ? 'rgba(148,163,184,.25)' : 'rgba(30,41,59,.25)';
-  const txt  = getComputedStyle(document.documentElement).getPropertyValue('--text') || (dark?'#e5e7eb':'#0f172a');
-
-  if(cmpChart){ cmpChart.destroy(); }
-
-  cmpChart = new Chart(ctx, {
-    type: 'radar',
-    data: {
-      labels,
-      datasets: [
-        {
-          label: nameA,
-          data: dataA,
-          fill: true,
-          backgroundColor: 'rgba(37,99,235,0.15)',
-          borderColor: 'rgba(37,99,235,0.8)',
-          pointBackgroundColor: 'rgba(37,99,235,1)',
-          pointBorderColor: '#fff',
-          pointRadius: 3
-        },
-        {
-          label: nameB,
-          data: dataB,
-          fill: true,
-          backgroundColor: 'rgba(16,185,129,0.15)',
-          borderColor: 'rgba(16,185,129,0.8)',
-          pointBackgroundColor: 'rgba(16,185,129,1)',
-          pointBorderColor: '#fff',
-          pointRadius: 3
-        }
+let RAD=null;
+function renderRadar(series){
+  if(RAD){ try{RAD.destroy()}catch(_){ } }
+  RAD = new Chart($('#cmpRadar').getContext('2d'),{
+    type:'radar',
+    data:{ labels:['Win%','Pts/jrn','Diff./match','Participation%','Clutch'],
+      datasets:[
+        {label:series.A.name, data:series.A.values, borderWidth:2, pointRadius:2, fill:true, borderColor:chartCSS('--accent'), backgroundColor:chartCSS('--accent')+'33'},
+        {label:series.B.name, data:series.B.values, borderWidth:2, pointRadius:2, fill:true, borderColor:chartCSS('--warn-700'), backgroundColor:chartCSS('--warn-700')+'33'}
       ]
     },
-    options: {
-      responsive: true,
-      maintainAspectRatio: false,
-      scales: {
-        r: {
-          angleLines: { color: grid },
-          grid: { color: grid },
-          pointLabels: { color: txt, font: { size: 12 } },
-          ticks: { showLabelBackdrop: false, color: txt, font: { size: 10 } },
-          suggestedMin: 0,
-          suggestedMax: 100    // on normalise visuellement; valeurs >100 auto-redimensionnées
-        }
-      },
-      plugins: {
-        legend: { position: 'top', labels: { color: txt } },
-        tooltip: { enabled: true }
-      }
-    }
+    options:{ responsive:true, scales:{ r:{ beginAtZero:true, max:100 } } }
   });
-
-  document.getElementById('cmpViz').style.display = 'block';
+  CHARTS.push(RAD);
 }
-
-/* Branche le bouton "Comparer" pour alimenter le radar */
-(function wireComparatorRadar(){
-  const btn = document.getElementById('cmpRun');
-  if(!btn) return;
-
-  btn.addEventListener('click', async ()=>{
-    const A = document.getElementById('cmpA').value;
-    const B = document.getElementById('cmpB').value;
-    const season = document.getElementById('cmpSeason').value || 'current';
-    const out = document.getElementById('cmpOut');
-    const viz = document.getElementById('cmpViz');
-    viz.style.display = 'none';
-
-    if(!A || !B || A===B){
-      out.innerHTML = '<div class="muted">Choisis deux joueurs différents.</div>';
-      return;
-    }
-
-    out.innerHTML = '<div class="muted">Chargement…</div>';
-
-    try{
-      const [da, db] = await Promise.all([getSummary(A, season), getSummary(B, season)]);
-
-      // Cartes texte (existantes)
-      const host = out; host.innerHTML=''; 
-      host.appendChild(buildCmpCard(A, da));
-      host.appendChild(buildCmpCard(B, db));
-
-      // Radar
-      const nameA = NAME_BY_ID.get(A) || A;
-      const nameB = NAME_BY_ID.get(B) || B;
-      const kA = computeKpis(da.sum||{}, da.matches||[]);
-      const kB = computeKpis(db.sum||{}, db.matches||[]);
-
-      buildRadar(nameA, kA, nameB, kB);
-    }catch(e){
-      console.error(e);
-      out.innerHTML = '<div class="muted">Impossible de charger les comparatifs. Réessaie ou choisis d’autres joueurs.</div>';
-      viz.style.display = 'none';
-    }
-  });
-})();
-function toPct(x){ 
-  if (!isFinite(x)) return 0;
-  return Math.max(0, Math.min(100, Math.round(x*100)));
-}
-
+function toPct(x){ return Math.max(0, Math.min(100, Math.round(x*100))); }
 async function collectRadarMetrics(pid, season){
-  // A) Standings (pour points, participations, moyennes, normalisations)
-  const st = await (await fetch(`${API}/season/standings?season=${season}`, {
-    headers:{Authorization:'Bearer '+TOKEN}
-  })).json();
-
-  const all = Array.isArray(st.standings) ? st.standings : [];
-  const rec = all.find(x=>x.id===pid) || { total:0, participations:0, moyenne:0, name:pid };
-
-  // bornes pour normaliser
-  const maxAvg   = Math.max(1, ...all.map(s=> Number(s.moyenne)||0));
-  const maxParts = Math.max(1, ...all.map(s=> Number(s.participations)||0));
-
-  // B) Matches (pour Win% et Diff/match)
-  const md = await (await fetch(`${API}/players/${pid}/matches?season=${season}`, {
-    headers:{Authorization:'Bearer '+TOKEN}
-  })).json();
-
-  let legs = 0, wins = 0, BP = 0, BC = 0;
-  for (const m of (md.matches||[])) {
-    if (m.aller)  { legs++; BP += +m.aller.gf||0;  BC += +m.aller.ga||0;  if (m.aller.gf  > m.aller.ga)  wins++; }
-    if (m.retour) { legs++; BP += +m.retour.gf||0; BC += +m.retour.ga||0; if (m.retour.gf > m.retour.ga) wins++; }
-  }
-
-  // Indicateurs (0..1)
-  const winRate   = legs ? (wins/legs) : 0;
-  const ptsPerDay = maxParts ? ( (Number(rec.total)||0) / maxParts ) : 0;      // normalisé par le max de participations
-  const diffPer   = legs ? ((BP-BC)/legs) : 0;                                 // puis écrasé en 0..1
-  const normDiff  = 0.5 + Math.tanh(diffPer/5)/2;                              // -inf..inf -> 0..1
-  const partPct   = maxParts ? ((Number(rec.participations)||0)/maxParts) : 0; // 0..1
-  const clutch    = maxAvg ? ((Number(rec.moyenne)||0) / maxAvg) : 0;          // 0..1
-
-  return {
-    name: rec.name || pid,
-    values: [
-      toPct(winRate),      // Win %
-      toPct(ptsPerDay/10), // Points par journée (grossièrement capé /10)
-      toPct(normDiff),     // Diff./match (normalisé)
-      toPct(partPct),      // Participation %
-      toPct(clutch)        // Clutch (moyenne relative)
-    ]
-  };
+  const st=await (await fetch(`${API}/season/standings?season=${season}`,{headers:{Authorization:'Bearer '+TOKEN}})).json();
+  const rec=(st.standings||[]).find(x=>x.id===pid)||{ total:0, participations:0, moyenne:0, name:pid };
+  const matches=await (await fetch(`${API}/players/${pid}/matches?season=${season}`,{headers:{Authorization:'Bearer '+TOKEN}})).json();
+  let legs=0,W=0,BP=0,BC=0;
+  (matches.matches||[]).forEach(x=>{
+    if(x.aller){legs++;BP+=x.aller.gf;BC+=x.aller.ga; if(x.aller.gf>x.aller.ga)W++;}
+    if(x.retour){legs++;BP+=x.retour.gf;BC+=x.retour.ga; if(x.retour.gf>x.retour.ga)W++;}
+  });
+  const win = legs? (W/legs) : 0;
+  const ptsPerDay = rec.participations? (rec.total/rec.participations) : 0;
+  const maxAvg = Math.max(1, ...(st.standings||[]).map(s=>s.moyenne||0));
+  const diffPer = legs? ((BP-BC)/legs) : 0;
+  const normDiff = 0.5 + Math.tanh(diffPer/5)/2; // 0..1
+  const partPct = (st.standings?.length && st.season_days ? (rec.participations/st.season_days) : 0); // si tu exposes season_days côté API, sinon ~0
+  const clutch = (rec.moyenne||0) / maxAvg;
+  return { name: rec.name||pid, values:[toPct(win),toPct(ptsPerDay/10),toPct(normDiff),toPct(partPct),toPct(clutch)] };
 }
-
 (async function initComparator(){
   await loadPlayersList();
   fillSelect($('#cmpA')); fillSelect($('#cmpB'));
   $('#cmpSwap').onclick = ()=>{ const a=$('#cmpA').value, b=$('#cmpB').value; $('#cmpA').value=b; $('#cmpB').value=a; };
-$('#cmpRun').onclick = async ()=>{
-  const A=$('#cmpA').value, B=$('#cmpB').value, season=$('#cmpSeason').value;
-  if(!A || !B || A===B) return alert('Choisir deux joueurs différents.');
-  $('#cmpOut').innerHTML = '<div class="muted">Chargement…</div>';
-  try{
-    const [da, db, ra, rb] = await Promise.all([
-      getSummary(A,season),
-      getSummary(B,season),
-      collectRadarMetrics(A,season),
-      collectRadarMetrics(B,season)
-    ]);
-    const host = $('#cmpOut'); host.innerHTML='';
-    host.appendChild(buildCmpCard(A,da));
-    host.appendChild(buildCmpCard(B,db));
-    window._radarSeries = { A:ra, B:rb };
-    renderRadar(window._radarSeries);
-  }catch(e){
-    console.error(e);
-    $('#cmpOut').innerHTML = '<div class="muted">Impossible de charger les comparatifs. Réessaie ou choisis d’autres joueurs.</div>';
-  }
-};
+  $('#cmpRun').onclick = async ()=>{
+    const A=$('#cmpA').value, B=$('#cmpB').value, season=$('#cmpSeason').value;
+    if(!A || !B || A===B) return alert('Choisir deux joueurs différents.');
+    $('#cmpOut').innerHTML = '<div class="muted">Chargement…</div>';
+    try{
+      const [da, db, ra, rb] = await Promise.all([getSummary(A,season), getSummary(B,season), collectRadarMetrics(A,season), collectRadarMetrics(B,season)]);
+      const host = $('#cmpOut'); host.innerHTML=''; host.appendChild(buildCmpCard(A,da)); host.appendChild(buildCmpCard(B,db));
+      window._radarSeries = { A:ra, B:rb }; renderRadar(window._radarSeries);
+    }catch(e){ console.error(e); $('#cmpOut').innerHTML='<div class="muted">Erreur de chargement</div>'; }
+  };
 })();
 
 /* ===== Classement rapide ===== */

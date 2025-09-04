@@ -389,6 +389,7 @@ async function safeFetch(url,opt={},ms=12000){
 
 /* ===== Données "moi" ===== */
 (async function initMe(){
+  // identité rapide
   try{
     const rp = await safeFetch(API+'/me/player', { headers:{Authorization:'Bearer '+TOKEN} }, 8000);
     const dp = await rp.json();
@@ -398,8 +399,14 @@ async function safeFetch(url,opt={},ms=12000){
   }catch(e){ console.error(e); }
 
   async function refresh(){
-    const season = $('#seasonSel').value;
-    const rs = await safeFetch(API+'/me/stats?season='+season, { headers:{Authorization:'Bearer '+TOKEN} });
+    // 🔧 FIX: on prend la saison et la limite de CE bloc
+    const season = ($('#seasonConfSel')?.value || $('#seasonSel')?.value || 'current');
+    const limit  = Number($('#confLimit')?.value || 15);
+
+    // KPIs (on s'aligne sur le même paramètre saison)
+    const rs = await safeFetch(`${API}/me/stats?season=${season}`, {
+      headers:{Authorization:'Bearer '+TOKEN}
+    });
     const ds = await rs.json();
     $('#k_played').textContent = ds.played_legs ?? 0;
     $('#k_bm').textContent     = ds.goals_for ?? 0;
@@ -408,39 +415,60 @@ async function safeFetch(url,opt={},ms=12000){
     $('#k_pts').textContent    = ds.season_points ?? '—';
     $('#k_avg').textContent    = (ds.season_average ?? '—');
 
-    const rm = await safeFetch(API+'/me/matches?season='+season, { headers:{Authorization:'Bearer '+TOKEN} });
+    // Confrontations
+    const rm = await safeFetch(`${API}/me/matches?season=${season}`, {
+      headers:{Authorization:'Bearer '+TOKEN}
+    });
     const dm = await rm.json();
-    const tb = $('#confTbody'); tb.innerHTML='';
-    (dm.matches||[]).sort((a,b)=> new Date(b.date)-new Date(a.date))
-      .slice(0, Number($('#confLimit').value||15))
+
+    const tb = $('#confTbody');
+    tb.innerHTML='';
+    (dm.matches||[])
+      .sort((a,b)=> new Date(b.date)-new Date(a.date))
+      .slice(0, limit)
       .forEach(x=>{
-        const add = (leg,sc,badge) => `<tr>
+        const add = (leg,sc,badge) => {
+          const tr = document.createElement('tr');
+          tr.innerHTML = `
             <td>${new Date(x.date).toLocaleDateString('fr-FR')}</td>
             <td>${x.division}</td>
-            <td>${(x.opponent_name||x.opponent)}</td>
+            <td>${x.opponent_name||x.opponent}</td>
             <td>${leg}</td>
             <td><span class="score-pill ${badge}">${sc}</span></td>
-            <td><button class="btn" data-view="${x.opponent}">Face-à-face</button></td>
-          </tr>`;
+            <td><button class="btn" data-view="${x.opponent}">Face-à-face</button></td>`;
+          tb.appendChild(tr);
+        };
         if(x.aller){
           const r = x.aller.gf>x.aller.ga?'win':x.aller.gf<x.aller.ga?'lose':'draw';
-          tb.insertAdjacentHTML('beforeend', add('Aller', `${x.aller.gf}-${x.aller.ga}`, r));
+          add('Aller',  `${x.aller.gf}-${x.aller.ga}`,  r);
         }
         if(x.retour){
           const r = x.retour.gf>x.retour.ga?'win':x.retour.gf<x.retour.ga?'lose':'draw';
-          tb.insertAdjacentHTML('beforeend', add('Retour', `${x.retour.gf}-${x.retour.ga}`, r));
+          add('Retour', `${x.retour.gf}-${x.retour.ga}`, r);
         }
       });
   }
-  $('#seasonSel').onchange = refresh;
-  $('#confLimit').onchange = refresh;
-  $('#seasonConfSel').onchange = refresh;
+
+  // 🔧 FIX: on relie bien les bons sélecteurs à refresh()
+  $('#seasonConfSel')?.addEventListener('change', refresh);
+  $('#confLimit')?.addEventListener('change', refresh);
+
+  // Optionnel : garder les deux sélecteurs de saison synchronisés
+  $('#seasonConfSel')?.addEventListener('change', ()=>{
+    if($('#seasonSel')) $('#seasonSel').value = $('#seasonConfSel').value;
+  });
+
+  // Et si la saison globale change (en haut), on peut relancer refresh
+  $('#seasonSel')?.addEventListener('change', refresh);
+
+  // bouton Face-à-face
   $('#confTbody').addEventListener('click',(e)=>{
     const pid=e.target?.dataset?.view; if(!pid) return; openH2H(pid);
   });
+
+  // premier rendu
   refresh();
 })();
-
 /* ===== Profil : nom / mot de passe / photo ===== */
 (function profile(){
   $('#saveName').onclick=async ()=>{

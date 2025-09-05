@@ -3,363 +3,431 @@
 <head>
   <meta charset="utf-8"/>
   <meta name="viewport" content="width=device-width, initial-scale=1"/>
-  <title>Duels — GOUZEPE</title>
+  <title>Duel — GOUZEPE eFOOTBALL</title>
   <link rel="stylesheet" href="theme.css"/>
+
   <style>
     :root{
-      --ui: system-ui,-apple-system,Segoe UI,Inter,Roboto,Ubuntu,"Trebuchet MS",sans-serif;
+      --gap: 12px;
     }
-    html,body{font-family:var(--ui)}
-    .wrap{max-width:1100px;margin:auto;padding:12px}
+    .wrap{max-width:1200px;margin:auto;padding:12px}
+    .grid2{display:grid;grid-template-columns:1fr;gap:var(--gap)}
+    @media(min-width: 960px){ .grid2{grid-template-columns:1fr 1fr} }
 
-    /* ===== AppBar ===== */
-    .appbar{
-      position:sticky; top:0; z-index:40;
-      display:flex; align-items:center; justify-content:space-between; gap:10px;
-      padding:10px 12px; margin:-12px -12px 12px -12px;
-      background:linear-gradient(to bottom, color-mix(in oklab, var(--panel) 92%, transparent), var(--panel));
-      border-bottom:1px solid var(--border);
-    }
-    .brand{display:flex; align-items:center; gap:10px; min-width:0}
-    .brand img{width:28px;height:28px;border-radius:6px;border:1px solid var(--border);object-fit:cover}
-    .brand h1{font-size:18px;margin:0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
-    .icon-btn{
-      border:1px solid var(--border); background:var(--panel); color:var(--text);
-      border-radius:12px; padding:8px 10px; font-weight:700; cursor:pointer;
-    }
-
-    /* ===== Drawer (menu) ===== */
-    .scrim{
-      position:fixed; inset:0; background:rgba(0,0,0,.35);
-      opacity:0; pointer-events:none; transition:.2s opacity; z-index:48;
-    }
-    .scrim.open{opacity:1; pointer-events:auto}
-    .drawer{
-      position:fixed; right:0; top:0; height:100%; width:min(88vw,360px);
-      background:var(--panel); border-left:1px solid var(--border);
-      box-shadow: -20px 0 40px rgba(0,0,0,.35);
-      transform:translateX(100%); transition:.25s transform cubic-bezier(.2,.65,.2,1);
-      z-index:49; display:flex; flex-direction:column; gap:10px; padding:14px;
-    }
-    .drawer.open{transform:translateX(0)}
-    .drawer a, .drawer button{width:100%}
-
-    /* ===== Sections / cards ===== */
-    .section{margin-top:12px}
-    .section-head{display:flex;align-items:center;justify-content:space-between;gap:8px;flex-wrap:wrap;margin-bottom:8px}
+    .row{display:flex;gap:8px;align-items:center;flex-wrap:wrap}
+    .row > *{min-width:0}
+    .w-100{width:100%}
+    .grow{flex:1}
     .muted{color:var(--muted)}
-    .right{display:flex;gap:8px;align-items:center;justify-content:flex-end;flex-wrap:wrap}
+    .tiny{font-size:12px}
+    .hint{font-size:12px;color:var(--muted);margin-top:4px}
 
-    /* ===== Form fields compacts (anti-zoom iOS => font 16px) ===== */
-    .grid{display:grid;gap:10px}
-    .grid2{grid-template-columns:1fr}
-    @media(min-width:480px){ .grid2{grid-template-columns:1fr 1fr} }
-    .field{display:flex;flex-direction:column;gap:6px}
-    .field label{font-size:12px;letter-spacing:.02em;opacity:.8}
-    .field input,.field select{
-      font-size:16px; /* IMPORTANT mobile */
-      padding:10px 12px; border:1px solid var(--border); border-radius:12px;
-      background:var(--panel); color:var(--text); width:100%;
-    }
-    /* number spinners off (webkit) */
-    input[type=number]::-webkit-outer-spin-button,
-    input[type=number]::-webkit-inner-spin-button{ -webkit-appearance: none; margin: 0; }
-    input[type=number]{ -moz-appearance: textfield; }
+    .score{display:flex;gap:8px;align-items:center}
+    .score input{width:68px;text-align:center;font-weight:800}
 
-    /* ===== Table ===== */
-    .tableWrap{overflow:auto; -webkit-overflow-scrolling:touch}
-    .tbl{min-width:740px}
-    .tbl th,.tbl td{white-space:nowrap}
+    .tableWrap{overflow:auto}
+    table.tbl{min-width:740px}
 
-    .score-pill{display:inline-block;min-width:46px;text-align:center;padding:4px 8px;border-radius:10px;border:1px solid var(--border);font-weight:800}
-    .win{background:#064e3b;color:#b7fbdc}
-    .draw{background:#374151;color:#e5e7eb}
-    .lose{background:#5b0b0b;color:#fed7d7}
-    .badge{display:inline-block;padding:4px 8px;border:1px solid var(--border);border-radius:999px;font-weight:700}
+    .pill{display:inline-flex;gap:6px;align-items:center;border:1px solid var(--border);border-radius:999px;padding:4px 10px}
+    .pill.win{background:#064e3b;color:#b7fbdc}
+    .pill.draw{background:#1f2937;color:#e5e7eb}
+    .pill.lose{background:#5b0b0b;color:#fed7d7}
+    .leader{font-weight:800}
 
-    /* ===== Toast ===== */
-    .toast{
-      position:fixed; left:50%; transform:translateX(-50%) translateY(20px);
-      bottom:14px; background:var(--panel); color:var(--text); border:1px solid var(--border);
-      border-radius:12px; padding:10px 12px; box-shadow:0 10px 25px rgba(0,0,0,.25);
-      opacity:0; pointer-events:none; transition:.25s opacity, .25s transform; z-index:50;
-    }
-    .toast.show{opacity:1; transform:translateX(-50%) translateY(0)}
+    .danger-link{background:transparent;border:1px solid var(--border);border-radius:10px;padding:6px 10px;cursor:pointer}
+    .danger-link:hover{border-color:#7f1d1d;background:#2a0c0c;color:#fecaca}
+
+    /* visuels boutons en clair */
+    html.light .btn.primary{background:#0b5; color:#fff; border-color:#0a4}
+    html.light .btn{background:#fff; color:#0f172a}
+    html.light .btn.danger{background:#c62828;color:#fff;border-color:#b71c1c}
+
+    /* inputs plus compacts pour IDs */
+    .id-select{min-width:220px}
+    .id-compact select{min-width:180px}
+    .score-compact input{width:56px}
   </style>
 </head>
 <body>
 <div class="wrap">
 
-  <!-- AppBar -->
-  <header class="appbar">
-    <div class="brand">
-      <img src="assets/fond.png" alt="">
-      <h1>⚔️ Duels (hors saison)</h1>
+  <!-- NAV -->
+  <div class="top">
+    <div class="nav">
+      <div class="logo" aria-hidden="true"></div>
     </div>
-    <button id="burger" class="icon-btn" aria-label="Ouvrir le menu" aria-expanded="false">☰</button>
-  </header>
+          <h1 style="margin:0;font-size:18px">⚔️ Gestion des duels</h1>
 
-  <!-- Drawer + Scrim -->
-  <div id="scrim" class="scrim"></div>
-  <aside id="drawer" class="drawer" aria-hidden="true">
-    <a class="btn" href="Accueil.html">🏠 Accueil</a>
-    <a class="btn" href="Panel-Membre.html">👤 Panel</a>
-    <a class="btn" href="Classement-general.html">📊 Classements</a>
-    <button id="theme" class="btn" title="Basculer thème">☀️</button>
-    <button id="logoutBtn" class="btn danger">Déconnexion</button>
-  </aside>
+    <button id="menuToggle" class="menu-toggle" aria-label="Ouvrir le menu" aria-expanded="false" aria-controls="menu">☰</button>
+    <div id="menu" class="menu top">
+      <a class="btn" href="Accueil.html">🏠 Accueil</a>
+      <a class="btn" href="Classement-general.html">📊 Classements</a>
+      <a class="btn" id="linkMembers" href="Admin-Joueurs.html">👥 Admin-Joueurs</a>
+      <button id="theme" class="btn" title="Basculer thème">☀️</button>
+      <button id="logoutBtn" class="btn danger">Déconnexion</button>
+    </div>
+  </div>
 
-  <main>
+  <main style="margin-top:12px">
 
-    <!-- Création -->
-    <section class="card section">
-      <div class="section-head">
-        <h3 style="margin:6px 0">Nouveau duel</h3>
-        <button class="btn" id="reduceCreate" aria-expanded="true" aria-controls="createBody">Réduire</button>
-      </div>
-
-      <div id="createBody" class="grid grid2">
-        <div class="card">
-          <div class="grid grid2">
-            <div class="field">
-              <label for="pA">Joueur A</label>
-              <select id="pA"></select>
-            </div>
-            <div class="field">
-              <label for="pB">Joueur B</label>
-              <select id="pB"></select>
-            </div>
-
-            <div class="field">
-              <label for="sA">Score A</label>
-              <input id="sA" type="number" inputmode="numeric" min="0" value="0">
-            </div>
-            <div class="field">
-              <label for="sB">Score B</label>
-              <input id="sB" type="number" inputmode="numeric" min="0" value="0">
-            </div>
-
-            <div class="field">
-              <label for="dt">Date & heure</label>
-              <input id="dt" type="datetime-local">
-            </div>
-            <div class="field">
-              <label for="note">Note (facultatif)</label>
-              <input id="note" placeholder="ex: terrain, mode, etc.">
-            </div>
-          </div>
-
-          <div class="right" style="margin-top:8px">
-            <button id="save" class="btn">Enregistrer</button>
-          </div>
-          <div id="saveMsg" class="muted" style="margin-top:6px">—</div>
+    <div class="grid2">
+      <!-- NOUVEAU DUEL -->
+      <section class="card">
+        <div class="row" style="justify-content:space-between">
+          <h3 style="margin:6px 0">Nouveau duel</h3>
+          <small class="muted">Enregistre un duel amical hors journée du samedi</small>
         </div>
 
-        <div class="card">
-          <h4 style="margin:0 0 6px">Face-à-face rapide (duels)</h4>
-          <div class="grid grid2">
-            <div class="field">
-              <label for="foA">Joueur A</label>
-              <select id="foA"></select>
-            </div>
-            <div class="field">
-              <label for="foB">Joueur B</label>
-              <select id="foB"></select>
-            </div>
-            <div class="field">
-              <label for="foFrom">Du</label>
-              <input id="foFrom" type="date">
-            </div>
-            <div class="field">
-              <label for="foTo">Au</label>
-              <input id="foTo" type="date">
-            </div>
-          </div>
-          <div class="right" style="margin-top:8px">
-            <button class="btn" id="foRun">Analyser</button>
-          </div>
-          <div id="foOut" class="muted" style="margin-top:8px">—</div>
+        <div class="row id-compact" style="margin-top:8px">
+          <label class="muted">Joueur A</label>
+          <select id="p1" class="id-select grow"></select>
         </div>
-      </div>
-    </section>
 
-    <!-- Liste -->
-    <section class="card section">
-      <div class="section-head">
-        <h3 style="margin:6px 0">Historique des duels</h3>
-        <div class="right">
-          <div class="field" style="min-width:140px">
-            <label for="fFrom">Du</label>
-            <input id="fFrom" type="date">
+        <div class="row id-compact" style="margin-top:6px">
+          <label class="muted">Joueur B</label>
+          <select id="p2" class="id-select grow"></select>
+        </div>
+
+        <div class="row score-compact" style="margin-top:8px">
+          <label class="muted">Score</label>
+          <div class="score">
+            <input id="sa" type="number" inputmode="numeric" min="0" max="99" placeholder="A" />
+            <span class="muted">–</span>
+            <input id="sb" type="number" inputmode="numeric" min="0" max="99" placeholder="B" />
           </div>
-          <div class="field" style="min-width:140px">
-            <label for="fTo">Au</label>
-            <input id="fTo" type="date">
-          </div>
-          <div class="field" style="min-width:180px">
-            <label for="fPlayer">Joueur</label>
-            <select id="fPlayer"><option value="">(Tous)</option></select>
-          </div>
-          <button id="reload" class="btn">Rafraîchir</button>
-          <button class="btn" id="reduceList" aria-expanded="true" aria-controls="listBody">Réduire</button>
+        </div>
+
+        <div class="row" style="margin-top:8px">
+          <label class="muted">Date/Heure</label>
+          <input id="dt" type="datetime-local"/>
+          <span class="hint">Par défaut : maintenant</span>
+        </div>
+
+        <div class="row" style="margin-top:10px;justify-content:flex-end">
+          <button id="save" class="btn primary" type="button">Enregistrer</button>
+        </div>
+
+        <div id="saveMsg" class="tiny muted" style="margin-top:6px"></div>
+      </section>
+
+      <!-- FACE-À-FACE RAPIDE -->
+      <section class="card">
+        <div class="row" style="justify-content:space-between">
+          <h3 style="margin:6px 0">Face-à-face rapide</h3>
+          <small class="muted">Comparaison sur la base des duels enregistrés</small>
+        </div>
+
+        <div class="row id-compact" style="margin-top:8px">
+          <label class="muted">Joueur A</label>
+          <select id="cA" class="id-select grow"></select>
+        </div>
+
+        <div class="row id-compact" style="margin-top:6px">
+          <label class="muted">Joueur B</label>
+          <select id="cB" class="id-select grow"></select>
+        </div>
+
+        <div class="row" style="margin-top:8px">
+          <label class="muted">Période</label>
+          <input id="from" type="date"/>
+          <span class="muted">→</span>
+          <input id="to" type="date"/>
+          <div class="grow"></div>
+          <button id="compare" class="btn" type="button">Comparer</button>
+        </div>
+
+        <div id="cmpOut" style="margin-top:10px">
+          <div class="muted tiny">Sélectionne deux joueurs pour voir qui mène.</div>
+        </div>
+      </section>
+    </div>
+
+    <!-- 5 DERNIERS DUELS -->
+    <section class="card" style="margin-top:12px">
+      <div class="row" style="justify-content:space-between">
+        <h3 style="margin:6px 0">Derniers duels</h3>
+        <div class="row">
+          <label class="muted">Afficher</label>
+          <select id="limit"><option value="5" selected>5</option><option value="10">10</option><option value="25">25</option><option value="50">50</option></select>
+          <button id="refresh" class="btn" type="button">Rafraîchir</button>
         </div>
       </div>
-
-      <div id="listBody">
-        <div class="tableWrap">
-          <table class="tbl">
-            <thead>
-              <tr><th>Date</th><th>Joueur A</th><th>Score</th><th>Joueur B</th><th>Note</th><th></th></tr>
-            </thead>
-            <tbody id="duelTbody"></tbody>
-          </table>
-        </div>
+      <div class="tableWrap" style="margin-top:8px">
+        <table class="tbl">
+          <thead>
+            <tr>
+              <th>Date</th>
+              <th>Joueur A</th>
+              <th>Score</th>
+              <th>Joueur B</th>
+              <th>Leader</th>
+              <th class="adminOnly">Actions</th>
+            </tr>
+          </thead>
+          <tbody id="list"></tbody>
+        </table>
       </div>
     </section>
 
   </main>
 </div>
 
-<!-- Toast -->
-<div id="toast" class="toast">Duel enregistré ✔</div>
-
 <script>
-/* ========= helpers / API ========= */
-const $  = s => document.querySelector(s);
-const API=(localStorage.getItem('efoot.api')||((location.protocol.startsWith('http')?location.protocol:'http:')+'//'+location.hostname+':3000')).replace(/\/+$/,'');
-const TOKEN=localStorage.getItem('efoot.token'); const ROLE=(localStorage.getItem('efoot.role')||'member').toLowerCase();
-if(!TOKEN){ location.href='login.html'; }
+/* ===== Utils/API ===== */
+const $ = s => document.querySelector(s);
+const DEF_API = () => (location.protocol.startsWith('http')?location.protocol:'http:') + '//' + location.hostname + ':3000';
+const API  = (localStorage.getItem('efoot.api') || DEF_API()).replace(/\/+$/,'');
+const TOK  = localStorage.getItem('efoot.token') || '';
+const ROLE = (localStorage.getItem('efoot.role') || 'member').toLowerCase();
 
-/* ========= Thème ========= */
+// Auth guard
+(function(){
+  const expAt=+localStorage.getItem('efoot.expAt')||0;
+  if(!TOK || Date.now()>=expAt){ location.href='login.html'; }
+})();
+
+// Theme
 (function(){
   const k='efoot.theme';
   const apply=m=>{document.documentElement.classList.toggle('light',m==='light');localStorage.setItem(k,m);$('#theme').textContent=m==='light'?'🌙':'☀️'};
-  $('#theme') && apply(localStorage.getItem(k)||'dark');
-  $('#theme')?.addEventListener('click',()=>apply(document.documentElement.classList.contains('light')?'dark':'light'));
+  apply(localStorage.getItem(k)||'dark');
+  $('#theme').onclick=()=>apply(document.documentElement.classList.contains('light')?'dark':'light');
 })();
 
-/* ========= Drawer ========= */
+// Menu
 (function(){
-  const btn=$('#burger'), dr=$('#drawer'), scr=$('#scrim');
-  function open(v){
-    dr.classList.toggle('open',v); scr.classList.toggle('open',v);
-    btn.setAttribute('aria-expanded', v?'true':'false');
-    dr.setAttribute('aria-hidden', v?'false':'true');
-  }
-  btn.addEventListener('click',()=>open(!dr.classList.contains('open')));
-  scr.addEventListener('click',()=>open(false));
-  document.addEventListener('keydown',e=>{ if(e.key==='Escape') open(false); });
+  const menu=$('#menu'), toggle=$('#menuToggle');
+  function open(v){menu.classList.toggle('open',v);toggle.setAttribute('aria-expanded',v?'true':'false')}
+  toggle?.addEventListener('click',(e)=>{e.stopPropagation();open(!menu.classList.contains('open'));});
+  document.addEventListener('click',(e)=>{ if(!menu.classList.contains('open'))return; if(e.target===toggle||menu.contains(e.target))return; open(false); },true);
+  document.addEventListener('keydown',(e)=>{ if(e.key==='Escape') open(false); });
 })();
 
-/* ========= Logout ========= */
+// Logout
 $('#logoutBtn')?.addEventListener('click',()=>{
-  if(confirm('Déconnexion ?')){ ['efoot.token','efoot.role','efoot.expAt'].forEach(k=>localStorage.removeItem(k)); location.href='login.html'; }
+  if(confirm('Voulez-vous vraiment vous déconnecter ?')){
+    ['efoot.token','efoot.role','efoot.expAt'].forEach(k=>localStorage.removeItem(k));
+    location.href='login.html';
+  }
 });
 
-/* ========= fetch protégé ========= */
-async function safeFetch(u,o={},ms=12000){const c=new AbortController();const t=setTimeout(()=>c.abort(),ms);try{return await fetch(u,{signal:c.signal,...o});}finally{clearTimeout(t);}}
-
-/* ========= Players ========= */
-const NAME=new Map();
-async function loadPlayers(){
-  const r=await safeFetch(API+'/players',{headers:{Authorization:'Bearer '+TOKEN}});
-  const d=await r.json();
-  NAME.clear();
-  (d.players||[]).forEach(p=> NAME.set(p.player_id, p.name||p.player_id));
-  const opts=[...NAME].map(([id,n])=>`<option value="${id}">${n} — ${id}</option>`).join('');
-  const fills=(id,withAny)=>{ const el=$('#'+id); if(!el) return; el.innerHTML = (withAny?'<option value="">(Tous)</option>':'<option value="">Choisir…</option>')+opts; };
-  fills('pA'); fills('pB'); fills('foA'); fills('foB'); fills('fPlayer', true);
+// Helpers
+function esc(t){return String(t??'').replace(/[&<>"']/g,m=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[m]));}
+async function safeFetch(url,opt={},ms=15000){
+  const c=new AbortController(); const t=setTimeout(()=>c.abort(),ms);
+  try{ return await fetch(url,{signal:c.signal,...opt}); } finally{ clearTimeout(t); }
 }
-function pad2(n){return String(n).padStart(2,'0')}
-function nowLocal(){const d=new Date();return `${d.getFullYear()}-${pad2(d.getMonth()+1)}-${pad2(d.getDate())}T${pad2(d.getHours())}:${pad2(d.getMinutes())}`;}
-$('#dt').value = nowLocal();
+function toISO(dtLocalValue){
+  if(!dtLocalValue) return null;
+  const d=new Date(dtLocalValue);
+  return Number.isNaN(+d)? null : d.toISOString();
+}
+function isIntLike(v){
+  if(v===null || v===undefined || v==='') return false;
+  const n=Number(v); return Number.isFinite(n) && Math.floor(n)===n && n>=0 && n<=99;
+}
 
-/* ========= UI helpers ========= */
-function toast(msg='OK'){ const t=$('#toast'); t.textContent=msg; t.classList.add('show'); setTimeout(()=>t.classList.remove('show'), 1800); }
-function fmtDate(x){ return new Date(x).toLocaleString('fr-FR',{year:'2-digit',month:'2-digit',day:'2-digit',hour:'2-digit',minute:'2-digit'}); }
-function badge(gf,ga){ return gf>ga?'win':(gf<ga?'lose':'draw'); }
+/* ===== Remplir la liste des joueurs ===== */
+const NAME_BY_ID=new Map();
+async function loadPlayers(){
+  const r=await safeFetch(API+'/players',{headers:{Authorization:'Bearer '+TOK}});
+  const d=await r.json();
+  const opts = (d.players||[])
+    .sort((a,b)=> (a.name||a.player_id).localeCompare(b.name||b.player_id,'fr'))
+    .map(p=>{
+      NAME_BY_ID.set(p.player_id, p.name||p.player_id);
+      return `<option value="${esc(p.player_id)}">${esc(p.name||p.player_id)} — ${esc(p.player_id)}</option>`;
+    }).join('');
+  ['p1','p2','cA','cB'].forEach(id=>{ const sel=$( '#'+id ); if(sel) sel.innerHTML = '<option value="">Choisir…</option>'+opts; });
+}
 
-/* ========= Create duel ========= */
-$('#save').addEventListener('click', async ()=>{
-  const pA=$('#pA').value, pB=$('#pB').value; const sA=+$('#sA').value, sB=+$('#sB').value;
-  const played_at=$('#dt').value; const note=($('#note').value||'').trim();
-  if(!pA||!pB||pA===pB) return alert('Choisir deux joueurs différents');
-  if(Number.isNaN(sA)||sA<0||Number.isNaN(sB)||sB<0) return alert('Scores invalides');
-  const r=await safeFetch(API+'/duels',{method:'POST',headers:{'Content-Type':'application/json',Authorization:'Bearer '+TOKEN},body:JSON.stringify({played_at,p1:pA,p2:pB,s1:sA,s2:sB,note})});
-  const d=await r.json().catch(()=>({}));
-  if(!r.ok){ $('#saveMsg').textContent=d.error||'Erreur'; return; }
-  $('#saveMsg').textContent='Duel enregistré ✔'; toast('Duel enregistré ✔');
-  $('#note').value=''; loadList();
-});
+/* ===== ENREGISTRER UN DUEL ===== */
+async function onSave(){
+  const btn = $('#save');
+  const msg = $('#saveMsg');
+  msg.textContent='';
+  btn.disabled=true;
 
-/* ========= List duels ========= */
-async function loadList(){
-  const from=$('#fFrom').value, to=$('#fTo').value, player=$('#fPlayer').value;
-  const qs=new URLSearchParams(); if(from) qs.set('from',from); if(to) qs.set('to',to); if(player) qs.set('player',player);
-  const r=await safeFetch(API+'/duels?'+qs.toString(),{headers:{Authorization:'Bearer '+TOKEN}});
-  const d=await r.json(); const tb=$('#duelTbody'); tb.innerHTML='';
-  (d.duels||[]).forEach(m=>{
-    const tr=document.createElement('tr');
-    tr.innerHTML =
-      `<td>${fmtDate(m.played_at)}</td>
-       <td>${NAME.get(m.p1)||m.p1}</td>
-       <td><span class="score-pill ${badge(m.s1,m.s2)}">${m.s1}&nbsp;–&nbsp;${m.s2}</span></td>
-       <td>${NAME.get(m.p2)||m.p2}</td>
-       <td>${m.note||''}</td>
-       <td class="right"></td>`;
-    if(ROLE==='admin'){
-      const b=document.createElement('button'); b.className='btn danger'; b.textContent='Supprimer';
-      b.onclick=async()=>{ if(!confirm('Supprimer ce duel ?')) return; const rr=await safeFetch(API+'/duels/'+m.id,{method:'DELETE',headers:{Authorization:'Bearer '+TOKEN}}); if(rr.ok) tr.remove(); };
-      tr.lastElementChild.appendChild(b);
+  try{
+    const p1 = $('#p1').value.trim();
+    const p2 = $('#p2').value.trim();
+    const sa = $('#sa').value !== '' ? Number($('#sa').value) : null;
+    const sb = $('#sb').value !== '' ? Number($('#sb').value) : null;
+    const dt = toISO($('#dt').value);
+
+    if(!p1 || !p2) throw new Error('Sélectionne les deux joueurs.');
+    if(p1 === p2)  throw new Error('Choisir deux joueurs différents.');
+    if(!isIntLike(sa) || !isIntLike(sb)) throw new Error('Score incorrect. Utilise des entiers entre 0 et 99.');
+
+    const body = { p1, p2, score_a: sa, score_b: sb };
+    if(dt) body.played_at = dt;
+
+    const r = await safeFetch(API+'/duels', {
+      method:'POST',
+      headers:{'Content-Type':'application/json', Authorization:'Bearer '+TOK},
+      body: JSON.stringify(body)
+    });
+    const d = await r.json().catch(()=>({}));
+    if(!r.ok) throw new Error(d.error||('HTTP '+r.status));
+
+    msg.textContent = '✅ Duel enregistré.';
+    // reset scores seulement
+    $('#sa').value=''; $('#sb').value='';
+    // rafraîchir recents + (si même paire sélectionnée) la comparaison
+    await refreshRecent();
+    const cA=$('#cA').value, cB=$('#cB').value;
+    if((cA && cB) && ((cA===p1 && cB===p2) || (cA===p2 && cB===p1))){
+      await onCompare();
     }
+  }catch(e){
+    msg.textContent = '❌ ' + (e.message||'Erreur inconnue');
+  }finally{
+    btn.disabled=false;
+  }
+}
+
+/* ===== FACE-À-FACE ===== */
+function totBadge(w,d,l,gf,ga){
+  let cls='draw', lab='Égalité';
+  if(w>l){ cls='win'; lab='Leader'; }
+  else if(l>w){ cls='lose'; lab='Mené'; }
+  const txt = `${gf}-${ga}`;
+  return `<span class="pill ${cls}"><strong>${lab}</strong> • ${txt}</span>`;
+}
+async function onCompare(){
+  const A=$('#cA').value.trim();
+  const B=$('#cB').value.trim();
+  const F=$('#from').value.trim();
+  const T=$('#to').value.trim();
+  const out=$('#cmpOut');
+  out.innerHTML='';
+
+  if(!A || !B) { out.innerHTML='<div class="muted tiny">Choisis deux joueurs.</div>'; return; }
+  if(A===B)    { out.innerHTML='<div class="muted tiny">Les joueurs doivent être différents.</div>'; return; }
+
+  const params = new URLSearchParams();
+  params.set('p1',A); params.set('p2',B);
+  if(F) params.set('from',F);
+  if(T) params.set('to',T);
+
+  const r = await safeFetch(API+'/duels/compare?'+params.toString(), { headers:{Authorization:'Bearer '+TOK}});
+  const d = await r.json().catch(()=>({}));
+  if(!r.ok){ out.innerHTML = `<div class="muted tiny">Erreur: ${esc(d.error||('HTTP '+r.status))}</div>`; return; }
+
+  const nA = d.p1?.name || NAME_BY_ID.get(A) || A;
+  const nB = d.p2?.name || NAME_BY_ID.get(B) || B;
+  const t  = d.totals || {wins:0,draws:0,losses:0,gf:0,ga:0,legs:0};
+
+  // déterminer le leader par nom réel
+  let leader = 'Égalité';
+  if(t.wins > t.losses) leader = nA;
+  else if(t.losses > t.wins) leader = nB;
+
+  out.innerHTML = `
+    <div class="row" style="justify-content:space-between;align-items:center">
+      <div><strong>${esc(nA)}</strong> vs <strong>${esc(nB)}</strong> • ${t.legs||0} manche(s)</div>
+      <div>${totBadge(t.wins,t.draws,t.losses,t.gf,t.ga)}</div>
+    </div>
+    <div class="hint">Leader : <span class="leader">${esc(leader)}</span></div>
+    <div class="tableWrap" style="margin-top:8px">
+      <table class="tbl">
+        <thead><tr><th>Date</th><th>${esc(nA)}</th><th>Score</th><th>${esc(nB)}</th></tr></thead>
+        <tbody>
+          ${(d.duels||[]).map(row=>{
+            // Réorienter pour afficher A à gauche
+            let a=row.score_a, b=row.score_b, left=row.p1_name||row.p1_id, right=row.p2_name||row.p2_id;
+            if(row.p1_id !== A){ a=row.score_b; b=row.score_a; left=row.p2_name||row.p2_id; right=row.p1_name||row.p1_id; }
+            const cls = a>b?'win':(a<b?'lose':'draw');
+            return `<tr>
+              <td>${new Date(row.played_at).toLocaleString('fr-FR')}</td>
+              <td>${esc(left)}</td>
+              <td><span class="pill ${cls}">${a} – ${b}</span></td>
+              <td>${esc(right)}</td>
+            </tr>`;
+          }).join('')}
+        </tbody>
+      </table>
+    </div>
+  `;
+}
+
+/* ===== DERNIERS DUELS ===== */
+async function refreshRecent(){
+  const L = parseInt($('#limit').value||'5',10);
+  const r = await safeFetch(API+'/duels/recent?limit='+encodeURIComponent(L), { headers:{Authorization:'Bearer '+TOK}});
+  const d = await r.json().catch(()=>({duels:[]}));
+  const tb = $('#list'); tb.innerHTML='';
+
+  (d.duels||[]).forEach(row=>{
+    const a = `${row.score_a}`, b = `${row.score_b}`;
+    const cls = (+a>+b)?'win':(+a<+b?'lose':'draw');
+    // Leader réel
+    let leader = 'Égalité';
+    if(+a>+b) leader = row.p1_name || row.p1_id;
+    else if(+b>+a) leader = row.p2_name || row.p2_id;
+
+    const tr=document.createElement('tr');
+    tr.innerHTML = `
+      <td>${new Date(row.played_at).toLocaleString('fr-FR')}</td>
+      <td>${esc(row.p1_name||row.p1_id)}</td>
+      <td><span class="pill ${cls}">${a} – ${b}</span></td>
+      <td>${esc(row.p2_name||row.p2_id)}</td>
+      <td>${esc(leader)}</td>
+      <td class="adminOnly">${ROLE==='admin'
+        ? `<button class="danger-link" data-del="${row.id}">Supprimer</button>`
+        : ''}</td>
+    `;
     tb.appendChild(tr);
   });
 }
-$('#reload').addEventListener('click', loadList);
 
-/* ========= Face-off (duels) ========= */
-$('#foRun').addEventListener('click', async ()=>{
-  const a=$('#foA').value,b=$('#foB').value; if(!a||!b||a===b) return alert('Choisir deux joueurs différents');
-  const qs=new URLSearchParams(); if($('#foFrom').value) qs.set('from',$('#foFrom').value); if($('#foTo').value) qs.set('to',$('#foTo').value);
-  const r=await safeFetch(API+`/duels/faceoff/${encodeURIComponent(a)}/${encodeURIComponent(b)}?`+qs.toString(),{headers:{Authorization:'Bearer '+TOKEN}});
-  const d=await r.json(); if(!r.ok){ $('#foOut').textContent=d.error||'Erreur'; return; }
-  const nA=NAME.get(a)||a, nB=NAME.get(b)||b; const t=d.totals||{legs:0,wins:0,draws:0,losses:0,gf:0,ga:0};
-  let html = `<div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap">
-              <b>${nA}</b> vs <b>${nB}</b>
-              <span class="badge">Manches ${t.legs}</span>
-              <span class="badge win">V ${t.wins}</span>
-              <span class="badge draw">N ${t.draws}</span>
-              <span class="badge lose">D ${t.losses}</span>
-              <span class="badge">${t.gf}–${t.ga}</span></div>`;
-  html += `<div class="tableWrap" style="margin-top:8px"><table class="tbl">
-             <thead><tr><th>Date</th><th>Score</th></tr></thead><tbody>`;
-  (d.legs||[]).forEach(L=>{
-    html += `<tr><td>${fmtDate(L.date)}</td>
-             <td><span class="score-pill ${badge(L.gf,L.ga)}">${L.gf}&nbsp;–&nbsp;${L.ga}</span></td></tr>`;
+// suppression admin
+$('#list').addEventListener('click', async (e)=>{
+  const id = e.target?.dataset?.del;
+  if(!id) return;
+  if(ROLE!=='admin') return alert('Réservé aux administrateurs.');
+  if(!confirm('Supprimer ce duel ?')) return;
+  const r = await safeFetch(API+'/duels/'+encodeURIComponent(id), {
+    method:'DELETE', headers:{Authorization:'Bearer '+TOK}
   });
-  html += `</tbody></table></div>`;
-  $('#foOut').innerHTML = html;
+  const d = await r.json().catch(()=>({}));
+  if(!r.ok){ alert(d.error||('HTTP '+r.status)); return; }
+  await refreshRecent();
 });
 
-/* ========= Toggle sections ========= */
-function bindToggle(btnId, bodyId){
-  const btn=$('#'+btnId), body=$('#'+bodyId);
-  btn.addEventListener('click', ()=>{
-    const open=btn.getAttribute('aria-expanded')==='true';
-    btn.setAttribute('aria-expanded', open?'false':'true');
-    btn.textContent = open ? 'Développer' : 'Réduire';
-    body.hidden = open;
+/* ===== INIT ===== */
+(function init(){
+  // champs scores numeric only
+  ['sa','sb'].forEach(id=>{
+    const el=$('#'+id);
+    el.addEventListener('input',()=>{
+      el.value = el.value.replace(/[^\d]/g,'').slice(0,2);
+    });
   });
-}
-bindToggle('reduceCreate','createBody');
-bindToggle('reduceList','listBody');
 
-/* ========= Init ========= */
-(async function init(){
-  await loadPlayers();
-  await loadList();
-  // présence côté membre
-  if(ROLE!=='admin'){ const ping=()=>fetch(API+'/presence/ping',{method:'POST',headers:{Authorization:'Bearer '+TOKEN}}).catch(()=>{}); ping(); setInterval(ping,15000); }
+  // date par défaut = maintenant local (arrondi minutes)
+  const now = new Date();
+  now.setSeconds(0,0);
+  const pad = n=> String(n).padStart(2,'0');
+  const v = `${now.getFullYear()}-${pad(now.getMonth()+1)}-${pad(now.getDate())}T${pad(now.getHours())}:${pad(now.getMinutes())}`;
+  $('#dt').value = v;
+
+  // bind boutons
+  $('#save').addEventListener('click', onSave);       // <<< important: type="button" + event JS
+  $('#compare').addEventListener('click', onCompare);
+  $('#refresh').addEventListener('click', refreshRecent);
+  $('#limit').addEventListener('change', refreshRecent);
+
+  // adminOnly visibilité
+  document.querySelectorAll('.adminOnly').forEach(el=>{
+    el.style.display = (ROLE==='admin') ? '' : 'none';
+  });
+
+  // charger données
+  loadPlayers().then(()=>{
+    // Optionnel: si tu veux auto-pré-remplir comparaison quand on vient de saisir un duel
+  });
+  refreshRecent();
 })();
 </script>
 </body>

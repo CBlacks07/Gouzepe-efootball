@@ -988,33 +988,54 @@ io.on('connection', (socket)=>{
    DUELS (hors saison)
    ========================================================= */
 
-/**
- * Normalise et valide un duo + scores
- */
 async function _validateDuelInput(body) {
-  const a = String(body.player_a || body.a || '').trim();
-  const b = String(body.player_b || body.b || '').trim();
-  const sa = Number(body.score_a ?? body.sa ?? body.scoreA ?? 0);
-  const sb = Number(body.score_b ?? body.sb ?? body.scoreB ?? 0);
-  const when = body.played_at || body.when || body.date || null;
+  // utilitaires
+  const pick = (obj, keys) => {
+    for (const k of keys) {
+      if (obj[k] !== undefined && obj[k] !== null && String(obj[k]).trim() !== '') {
+        return String(obj[k]).trim();
+      }
+    }
+    return '';
+  };
+  const normalizeId = (v) => {
+    // accepte "Nom — ID" ou "Nom - ID" -> renvoie "ID"
+    let s = String(v || '').trim();
+    if (!s) return '';
+    // coupe sur les tirets s’il y en a
+    if (s.includes('—')) s = s.split('—').pop().trim();
+    else if (s.includes('-')) {
+      const parts = s.split('-');
+      s = parts[parts.length - 1].trim();
+    }
+    return s;
+  };
+
+  // récupérer A / B via multiples clés possibles
+  const aRaw = pick(body, ['player_a','a','playerA','joueur_a','joueurA','A','idA']);
+  const bRaw = pick(body, ['player_b','b','playerB','joueur_b','joueurB','B','idB']);
+  const a = normalizeId(aRaw);
+  const b = normalizeId(bRaw);
+
+  const sa = Number(pick(body, ['score_a','sa','scoreA','scorea']));
+  const sb = Number(pick(body, ['score_b','sb','scoreB','scoreb']));
+  const whenRaw = pick(body, ['played_at','when','date','dateTime','datetime']);
+  const played_at = whenRaw ? new Date(whenRaw) : new Date();
 
   if (!a || !b) throw new Error('Joueurs requis');
   if (a === b) throw new Error('Choisir deux joueurs différents');
   if (!Number.isFinite(sa) || sa < 0 || !Number.isFinite(sb) || sb < 0) {
     throw new Error('Score incorrect');
   }
+  if (isNaN(+played_at)) throw new Error('Date invalide');
 
   // Vérifie existence joueurs
-  const rp = await q(`SELECT player_id FROM players WHERE player_id = ANY($1::text[])`, [[a,b]]);
+  const rp = await q(`SELECT player_id FROM players WHERE player_id = ANY($1::text[])`, [[a, b]]);
   if (rp.rowCount !== 2) throw new Error('Joueur introuvable');
-
-  let played_at = when ? new Date(when) : new Date();
-  if (isNaN(+played_at)) throw new Error('Date invalide');
 
   return { a, b, sa, sb, played_at };
 }
 
-/**
  * POST /duels
  * - admin : peut créer pour n’importe quels joueurs
  * - member : l’un des deux joueurs doit être lui-même
@@ -1135,20 +1156,6 @@ app.get('/duels/compare', auth, async (req,res)=>{
     console.error(e);
     bad(res,400,'Erreur comparaison');
   }
-});
- // aId = valeur du <select> (vraiment l'ID, pas "Nom — ID")
-const payload = {
-  player_a: aId,
-  player_b: bId,
-  score_a: Number(scoreA),
-  score_b: Number(scoreB),
-  played_at: dateISO   // ex: new Date(dateInput.value).toISOString()
-};
-
-await fetch(API + '/duels', {
-  method: 'POST',
-  headers: { 'Content-Type': 'application/json', Authorization: 'Bearer ' + TOKEN },
-  body: JSON.stringify(payload)
 });
 
 /* ---------- start ---------- */

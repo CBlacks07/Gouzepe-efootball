@@ -94,7 +94,7 @@
   }
 </style>
 </head>
-<body>
+<body class="container">
 <div class="wrap">
 
   <div class="top">
@@ -107,11 +107,11 @@
       <span id="season-badge" class="season-badge blink-slow" style="display:none;margin-left:8px">Saison : <b id="season-text"></b></span>
     </div>
     <button id="menuToggle" class="menu-toggle" aria-label="Ouvrir le menu" aria-expanded="false" aria-controls="menu">☰</button>
-    <div id="menu" class="menu top" style="font-size: 13px;">
+    <div id="menu" class="menu top">
       <a class="btn" href="Accueil.html">🏠 Accueil</a>
       <a class="btn" id="btnProfile" href="Panel-Membre.html" style="display:none">👤 Mon profil</a>
       <a class="btn" href="Duel.html">💪🏽 Duel</a>
-      <a class="btn" id="linkMembers" href="Admin-Joueurs.html">👥 Membre Actifs</a>
+      <a class="btn" id="linkMembers" href="Admin-Joueurs.html">👥 Admin-Joueurs</a>
       <a class="btn adminOnly" href="Admin-Utilisateurs.html">🛡️ Admin-Utilisateurs</a>
       <button id="theme" class="btn" title="Basculer thème">☀️</button>
       <button id="logoutBtn" class="btn danger">Déconnexion</button>
@@ -268,21 +268,6 @@ let seasonData=[];          // standings renvoyés par le serveur
 let seasonDaysCount=0;      // nombre de journées pour la saison
 const SEASON_AGG = new Map(); // id -> {J,V,N,D,BP,BC,form:[],d1:0,d2:0}
 
-// ===== metrics (forme5 + win%) depuis le serveur =====
-let SEASON_METRICS = { form5:{}, stats:{} };
-async function loadSeasonMetrics(seasonId){
-  try{
-    const r = await fetch(`${API}/season/metrics?season=${encodeURIComponent(seasonId)}`, { headers:{Authorization:`Bearer ${token}`} });
-    if(!r.ok) throw new Error('metrics ' + r.status);
-    const d = await r.json();
-    SEASON_METRICS = { form5: d.form5||{}, stats: d.stats||{} };
-  }catch(err){
-    console.error('loadSeasonMetrics failed:', err);
-    SEASON_METRICS = { form5:{}, stats:{} };
-  }
-}
-
-
 function escapeHtml(t){return String(t||'').replace(/[&<>"']/g,m=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[m]));}
 
 /* ===== saisons ===== */
@@ -385,10 +370,8 @@ let merged = allMembers.map(id=>{
   const base = byId.get(id) || { id, name:nameOf(id), total:0, participations:0, moyenne:0, won_d1:0, won_d2:0, teams_used:0 };
   const a = SEASON_AGG.get(id) || {};
   const J=a.J||0, V=a.V||0;
-  const sM = SEASON_METRICS.stats[id]||{};
-  const fM = SEASON_METRICS.form5[id]||null;
-  const winpct = (sM.winpct!=null)? sM.winpct : (J? Math.round((V*100)/J) : 0);
-  const forme5 = fM? fM.join(' ') : (a.form||[]).slice(-5).join(' ');
+  const winpct = J? Math.round((V*100)/J) : 0;
+  const forme5 = (a.form||[]).slice(-5).join('');
   return { ...base, id, name:nameOf(id), winpct, forme5, d1:a.d1||0, d2:a.d2||0 };
 }).filter(x=>(x.name||'').toLowerCase().includes(query) || (x.id||'').toLowerCase().includes(query));
 
@@ -396,10 +379,8 @@ let merged = allMembers.map(id=>{
   merged = merged.map(p=>{
     const a = SEASON_AGG.get(p.id) || {J:0,V:0,N:0,D:0,BP:0,BC:0,form:[],d1:0,d2:0};
     const J=a.J||0, V=a.V||0;
-    const sM = SEASON_METRICS.stats[p.id]||{};
-    const fM = SEASON_METRICS.form5[p.id]||null;
-    const winpct = (sM.winpct!=null)? sM.winpct : (J? Math.round((V*100)/J) : 0);
-    const forme5 = fM? fM.join(' ') : (a.form||[]).slice(-5).join(' ') || '';
+    const winpct = J? Math.round((V*100)/J) : 0;
+    const forme5 = a.form.slice(-5).join('') || '';
     return { ...p, J,V,N:a.N||0,D:a.D||0,BP:a.BP||0,BC:a.BC||0, winpct, forme5, d1:a.d1||0, d2:a.d2||0, role:roleOf(p.id) };
   });
 
@@ -626,10 +607,8 @@ async function printSeasonA4(){
   const base = byId.get(id) || { id, name:nameOf(id), total:0, participations:0, moyenne:0, won_d1:0, won_d2:0, teams_used:0 };
   const a = SEASON_AGG.get(id) || {};
   const J=a.J||0, V=a.V||0;
-  const sM = SEASON_METRICS.stats[id]||{};
-  const fM = SEASON_METRICS.form5[id]||null;
-  const winpct = (sM.winpct!=null)? sM.winpct : (J? Math.round((V*100)/J) : 0);
-  const forme5 = fM? fM.join(' ') : (a.form||[]).slice(-5).join(' ');
+  const winpct = J? Math.round((V*100)/J) : 0;
+  const forme5 = (a.form||[]).slice(-5).join('');
   return { ...base, id, name:nameOf(id), winpct, forme5, d1:a.d1||0, d2:a.d2||0 };
 }).filter(x=>(x.name||'').toLowerCase().includes(query) || (x.id||'').toLowerCase().includes(query));
 
@@ -798,38 +777,24 @@ async function initSeasonFlow(){
   await loadSeasons();
   await selectCurrentSeasonIfPossible();
 }
-
 document.getElementById('seasonSelect').addEventListener('change', async ()=>{
   const sid = +$('#seasonSelect').value;
-  try{
-    // metrics (forme5 + win%)
-    await loadSeasonMetrics(sid);
-  }catch(_){}
-  try{
-    // standings
-    let r = await fetch(`${API}/seasons/${sid}/standings`,{headers:{Authorization:`Bearer ${token}`}});
-    let d = await r.json();
-    seasonData = Array.isArray(d.standings)? d.standings : (d.standings?.rows||[]);
-  }catch(err){
-    console.error('standings load failed:', err);
-    seasonData = [];
-  }
-  try{
-    // agrégats client (D1/D2 + fallback forme)
-    await buildSeasonAggregation(sid);
-  }catch(err){ console.error('aggregation failed:', err); }
-  try{
-    // journées (pour le sélecteur + seuil)
-    const r2 = await fetch(`${API}/seasons/${sid}/matchdays`,{headers:{Authorization:`Bearer ${token}`}});
-    const d2 = await r2.json();
-    seasonDaysCount = (d2.days || []).length;
-    setDayOptions(d2.days || [], sid);
-  }catch(err){ console.error('days load failed:', err); }
-  renderSeason();
+  // standings
+  let r = await fetch(`${API}/seasons/${sid}/standings`,{headers:{Authorization:`Bearer ${token}`}});
+  let d = await r.json();
+  seasonData = Array.isArray(d.standings)? d.standings : (d.standings?.rows||[]);
+  // agrégats client (Win%, Forme, D1/D2)
+  await buildSeasonAggregation(sid);
+  // journées (pour le sélecteur + seuil)
+  r = await fetch(`${API}/seasons/${sid}/matchdays`,{headers:{Authorization:`Bearer ${token}`}});
+  d = await r.json();
+seasonDaysCount = (d.days || []).length;
+setDayOptions(d.days || [], sid);
+
+renderSeason();
 });
 
-
-
+/* ===== autres ajustements UI ===== */
 (function(){
   const r = (localStorage.getItem('efoot.role')||'member').toLowerCase();
   const b = $('#btnProfile'); const lm=$('#linkMembers'); const menu=$('#menu');

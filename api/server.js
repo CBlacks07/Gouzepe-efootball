@@ -134,12 +134,7 @@ async function ensureSchema(){
     author_user_id INTEGER,
     updated_at TIMESTAMPTZ DEFAULT now()
   )`);
-  // --- migrations draft.author_user_id (compat older DB) ---
-  await q(`ALTER TABLE draft ADD COLUMN IF NOT EXISTS author_user_id INTEGER`);
-  // index on author_user_id (safe if column exists now)
-  
-
-  
+  await q(`CREATE INDEX IF NOT EXISTS draft_author_idx ON draft(author_user_id)`);
 
   // Sessions + handoff
   await q(`CREATE TABLE IF NOT EXISTS sessions(
@@ -169,7 +164,148 @@ async function ensureSchema(){
     consumed_at TIMESTAMPTZ
   )`);
 
-  /* ====== AJOUT DANS ensureSchema() (tout en haut du serveur, avec les autres CREATE TABLE) ====== */
+   
+  // admin par défaut
+  const adminEmail = process.env.ADMIN_EMAIL || 'admin@gz.local';
+  const adminPass  = process.env.ADMIN_PASSWORD || 'admin';
+  const row = await q(`SELECT id FROM users WHERE email=$1`,[adminEmail]);
+  if(row.rowCount===0){
+    const hash = await bcrypt.hash(adminPass,10);
+    await q(`INSERT INTO users(email,password_hash,role) VALUES ($1,$2,'admin')`,[adminEmail,hash]);
+    console.log(`Seed admin: ${adminEmail} / ${adminPass}`);
+  }
+
+  // saison ouverte si aucune
+  const s = await q(`SELECT id FROM seasons WHERE is_closed=false ORDER BY id DESC LIMIT 1`);
+  if(s.rowCount===0){
+    await q(`INSERT INTO seasons(name,is_closed) VALUES ('Saison courante', false)`);
+  }
+}
+
+/* ====== Auth & sessions ====== */
+function signToken(user, sessionId){
+  return jwt.sign(
+    { uid:user.id, role:user.role, email:user.email, sid:sessionId },
+    JWT_SECRET,
+    { expiresIn: '24h' } // 24h demandées
+  );
+}
+
+function auth(req,res,next){
+  (async ()=>{
+    try{
+      const h=req.headers.authorization||'';
+      const tok=h.startsWith('Bearer ')?h.slice(7):'';
+      if(!tok) return bad(res,401,'No token');
+      const p = jwt.verify(tok, JWT_SECRET);
+      if(!p.sid) return bad(res,401,'Session missing');
+
+      const r = await q(`SELECT is_active,last_seen FROM sessions WHERE id=$1`, [p.sid]);
+      if(!r.rowCount || !r.rows[0].is_active) return bad(res,401,'Session revoked');
+
+      // inactivité > 24h -> fermeture
+      const last = r.rows[0].last_seen;
+      if (last && Date.now() - new Date(last).getTime() > 24*3600*1000){
+        await q(`UPDATE sessions SET is_active=false, revoked_at=now() WHERE id=$1`, [p.sid]);
+        return bad(res,401,'Session expired');
+      }
+
+      req.user = p;
+      q(`UPDATE sessions SET last_seen=now(), ip=$2, user_agent=$3 WHERE id=$1`,
+        [p.sid, clientIp(req), (req.headers['user-agent']||'').slice(0,200)]).catch(()=>{});
+      next();
+    }catch(e){ return bad(res,401,'Invalid token'); }
+  })();
+}
+
+function adminOnly(req,res,next){
+  if((req.user?.role||'member')!=='admin') return bad(res,403,'Admin only');
+  next();
+}
+
+/* ====== Standings (par journée) ====== */
+function computeStandings(matches){
+  const agg={};
+  function add(A,B,ga,gb){
+    if(ga==null||gb==null) return;
+    if(!agg[A]) agg[A]={J:0,V:0,N:0,D:0,BP:0,BC:0};
+    if(!agg[B]) agg[B]={J:0,V:0,N:0,D:0,BP:0,BC:0};
+    agg[A].J++; agg[B].J++;
+    agg[A].BP+=ga; agg[A].BC+=gb;
+    agg[B].BP+=gb; agg[B].BC+=ga;
+    if(ga>gb){ agg[A].V++; agg[B].D++; }
+    else if(ga<gb){ agg[B].V++; agg[A].D++; }
+    else { agg[A].N++; agg[B].N++; }
+  }
+  for(const m of matches||[]){
+    if(!m.p1||!m.p2) continue;
+    if(m.a1!=null&&m.a2!=null) add(m.p1,m.p2,m.a1,m.a2);
+    if(m.r1!=null&&m.r2!=null) add(m.p2,m.p1,m.r2,m.r1); // retour inversé
+  }
+  const arr = Object.entries(agg).map(([id,x])=>({id,...x,PTS:x.V*3+x.N,DIFF:x.BP-x.BC}));
+  arr.sort((a,b)=>b.PTS-a.PTS||b.DIFF-a.DIFF||b.BP-a.BP||a.id.localeCompare(b.id));
+  return arr;
+}
+
+/* ====== Barème saison & cumul ====== */
+const BONUS_D1_CHAMPION = 1;
+function pointsD1(nPlayers, rank){ if(rank<1||rank>nPlayers) return 0; return 9+(nPlayers-rank); }
+function pointsD2(rank){ const table=[10,8,7,6,5,4,3,2,1,1,1]; return rank>0 && rank<=table.length ? table[rank-1] : 1; }
+
+async function computeSeasonStandings(seasonId){
+  const days = await q(`SELECT day,payload FROM matchday WHERE season_id=$1 ORDER BY day ASC`,[seasonId]);
+  const roles = await getPlayersRoles();
+
+  const totals = new Map(); // id -> {id,total,participations,won_d1,won_d2,teams:Set}
+  const ensure = id=>{ if(!totals.has(id)) totals.set(id,{id,total:0,participations:0,won_d1:0,won_d2:0,teams:new Set()}); return totals.get(id); };
+
+  for(const row of days.rows){
+    const p=row.payload||{};
+    const st1Full=computeStandings(p.d1||[]);
+    const st2Full=computeStandings(p.d2||[]);
+
+    const st1 = st1Full.filter(r => (roles.get(r.id)||'MEMBRE')!=='INVITE');
+    const st2 = st2Full.filter(r => (roles.get(r.id)||'MEMBRE')!=='INVITE');
+
+    const n1=st1.length, n2=st2.length;
+
+    st1.forEach((r,idx)=>{ const o=ensure(r.id); o.total += pointsD1(n1, idx+1); o.participations+=1; });
+    st2.forEach((r,idx)=>{ const o=ensure(r.id); o.total += pointsD2(idx+1);   o.participations+=1; });
+
+    // Bonus + gagnants
+    const champD1=p?.champions?.d1?.id||null;
+    if(champD1 && (roles.get(champD1)||'MEMBRE')!=='INVITE'){ ensure(champD1).total += BONUS_D1_CHAMPION; ensure(champD1).won_d1++; }
+    const champD2=p?.champions?.d2?.id||null;
+    if(champD2 && (roles.get(champD2)||'MEMBRE')!=='INVITE'){ ensure(champD2).won_d2++; }
+
+    // Équipes différentes (depuis "Champion avec...")
+    const teamD1 = p?.champions?.d1?.team;
+    if (champD1 && teamD1){ const k = teamKey(teamD1); if (k) ensure(champD1).teams.add(k); }
+    const teamD2 = p?.champions?.d2?.team;
+    if (champD2 && teamD2){ const k = teamKey(teamD2); if (k) ensure(champD2).teams.add(k); }
+  }
+
+  // noms + moyenne
+  const allIds=[...totals.keys()];
+  if(allIds.length){
+    const r=await q(`SELECT player_id,name FROM players WHERE player_id=ANY($1::text[])`,[allIds]);
+    const nameById=new Map(r.rows.map(x=>[x.player_id,x.name]));
+    for(const o of totals.values()){
+      o.name = nameById.get(o.id)||o.id;
+      o.moyenne = o.participations>0 ? +(o.total/o.participations).toFixed(2) : 0;
+    }
+  }
+  const arr=[...totals.values()].map(o=>({
+    id:o.id, name:o.name, total:o.total, participations:o.participations,
+    moyenne:o.moyenne, won_d1:o.won_d1, won_d2:o.won_d2,
+    teams_used: o.teams ? o.teams.size : 0
+  }));
+
+  // Tri demandé : d'abord moyenne (desc), ensuite total (desc), puis nom
+  arr.sort((a,b)=> b.moyenne-a.moyenne || b.total-a.total || a.name.localeCompare(b.name));
+  return arr;
+}
+
 async function currentSeasonId(){
   const r=await q(`SELECT id FROM seasons WHERE is_closed=false ORDER BY id DESC LIMIT 1`);
   return r.rows[0]?.id;
@@ -686,20 +822,6 @@ app.get('/seasons/:id/standings', auth, async (req,res)=>{
   if(!chk.rowCount) return bad(res,404,'saison inconnue');
   const list = await computeSeasonStandings(sid);
   ok(res,{ season_id:sid, standings:list });
-
-/* ====== Season Metrics (Forme(5) + Win%) ====== */
-app.get('/season/metrics', auth, async (req,res)=>{
-  try{
-    const sid = await resolveSeasonId(req.query.season);
-    const data = await computeSeasonMetrics(sid);
-    ok(res, data);
-  }catch(e){
-    console.error('metrics error', e);
-    bad(res,500,'metrics error');
-  }
-});
-
-
 });
 
 /* ====== Saisons (listes) ====== */
@@ -792,142 +914,108 @@ app.get('/faceoff/:oppId', auth, async (req,res)=>{
   });
 });
 
-// ====== helpers sûrs ======
-/* ====== HELPERS DUELS (à coller après tes helpers existants: q, ok, bad, normEmail, etc.) ====== */
-function _toIntOrNull(v){
-  if (v === null || v === undefined) return null;
-  const n = Number(String(v).replace(',', '.'));
-  return Number.isFinite(n) ? Math.trunc(n) : null;
-}
-function _clampScore(n){
-  if (n === null) return null;
-  if (n < 0) return 0;
-  if (n > 99) return 99;
-  return n;
-}
-function _toISOorNow(v){
-  if (!v) return new Date().toISOString();
-  const d = new Date(v);
-  return Number.isNaN(+d) ? new Date().toISOString() : d.toISOString();
-}
-async function _playerName(pid){
-  const r = await q(`SELECT name FROM players WHERE player_id=$1`, [pid]);
-  return r.rows[0]?.name || pid;
-}
 
-/* ====== ROUTES DUELS (utilise tes middlewares EXISTANTS: auth, adminOnly) ====== */
+/* ======================= DUELS (hors saison) ======================= */
 
-// Créer un duel
-app.post('/duels', auth, async (req, res) => {
+// POST /duels  -> créer un duel
+app.post('/duels', auth, async (req,res)=>{
   try{
-    const { p1, p2, score_a, score_b, played_at } = req.body || {};
-    const P1 = String(p1||'').trim();
-    const P2 = String(p2||'').trim();
-    if(!P1 || !P2) return bad(res, 400, 'joueurs manquants');
-    if(P1 === P2)  return bad(res, 400, 'Choisir deux joueurs différents');
+    let { played_at, p1, p2, s1, s2, note } = req.body||{};
+    p1 = String(p1||'').trim(); p2 = String(p2||'').trim();
+    s1 = Number(s1); s2 = Number(s2);
+    if(!p1 || !p2 || p1===p2) return bad(res,400,'Choisir deux joueurs différents');
+    if(!(Number.isInteger(s1) && s1>=0 && Number.isInteger(s2) && s2>=0)) return bad(res,400,'Scores invalides');
 
-    let A = _clampScore(_toIntOrNull(score_a));
-    let B = _clampScore(_toIntOrNull(score_b));
-    if (A === null || B === null) return bad(res, 400, 'score incorrect');
+    const chk = await q(`SELECT player_id FROM players WHERE player_id=ANY($1::text[])`, [[p1,p2]]);
+    if(chk.rowCount<2) return bad(res,404,'Joueur introuvable');
 
-    const when = _toISOorNow(played_at);
-
+    const dt = played_at ? new Date(played_at) : new Date();
     const ins = await q(
-      `INSERT INTO duels (p1_id, p2_id, score_a, score_b, played_at)
-       VALUES ($1,$2,$3,$4,$5)
-       RETURNING id, p1_id, p2_id, score_a, score_b, played_at`,
-      [P1, P2, A, B, when]
+      `INSERT INTO duels(played_at,p1,p2,s1,s2,note,created_by)
+       VALUES ($1,$2,$3,$4,$5,$6,$7)
+       RETURNING *`,
+      [dt, p1,p2,s1,s2,(note||'').trim(), req.user.uid]
     );
-
-    const d = ins.rows[0];
-    const p1_name = await _playerName(d.p1_id);
-    const p2_name = await _playerName(d.p2_id);
-
-    ok(res, { duel: { ...d, p1_name, p2_name } });
-  }catch(e){
-    console.error(e);
-    bad(res, 500, 'server');
-  }
+    ok(res,{ duel: ins.rows[0] });
+  }catch(e){ console.error(e); bad(res,500,'Erreur création duel'); }
 });
 
-// Derniers duels (limite 1..50, défaut 5)
-app.get('/duels/recent', auth, async (req, res) => {
+// GET /duels?from=YYYY-MM-DD&to=YYYY-MM-DD&player=PID&p1=PID&p2=PID&limit=50&offset=0
+// - player = retourne tous les duels où player est impliqué
+// - p1+p2 = retourne uniquement la paire (ordre indifférent)
+app.get('/duels', auth, async (req,res)=>{
   try{
-    const L = parseInt(String(req.query.limit||'5'), 10);
-    const limit = (Number.isFinite(L) ? Math.min(Math.max(L,1),50) : 5);
-    const r = await q(
-      `SELECT d.id, d.p1_id, d.p2_id, d.score_a, d.score_b, d.played_at,
-              pa.name AS p1_name, pb.name AS p2_name
-       FROM duels d
-       LEFT JOIN players pa ON pa.player_id = d.p1_id
-       LEFT JOIN players pb ON pb.player_id = d.p2_id
-       ORDER BY d.played_at DESC
-       LIMIT $1`,
-      [limit]
-    );
-    ok(res, { duels: r.rows });
-  }catch(e){
-    console.error(e);
-    bad(res, 500, 'server');
-  }
-});
+    const { from, to, player, p1, p2 } = req.query||{};
+    const limit = Math.min(200, Math.max(1, parseInt(req.query.limit||'100',10)));
+    const offset = Math.max(0, parseInt(req.query.offset||'0',10));
 
-// Comparaison (face-à-face rapide)
-app.get('/duels/compare', auth, async (req, res) => {
-  try{
-    const P1 = String(req.query.p1||'').trim();
-    const P2 = String(req.query.p2||'').trim();
-    if(!P1 || !P2) return bad(res, 400, 'joueurs manquants');
-    if(P1 === P2)  return bad(res, 400, 'Choisir deux joueurs différents');
+    const cond=[], vals=[];
+    if(from){ vals.push(from); cond.push(`played_at >= $${vals.length}::date`); }
+    if(to){   vals.push(to);   cond.push(`played_at <  ($${vals.length}::date + INTERVAL '1 day')`); }
 
-    const from = (String(req.query.from||'').slice(0,10) || '1900-01-01');
-    const to   = (String(req.query.to||'').slice(0,10)   || '2999-12-31');
-
-    const r = await q(
-      `SELECT d.id, d.p1_id, d.p2_id, d.score_a, d.score_b, d.played_at,
-              pa.name AS p1_name, pb.name AS p2_name
-       FROM duels d
-       LEFT JOIN players pa ON pa.player_id = d.p1_id
-       LEFT JOIN players pb ON pb.player_id = d.p2_id
-       WHERE date(d.played_at) BETWEEN $3 AND $4
-         AND ( (d.p1_id=$1 AND d.p2_id=$2) OR (d.p1_id=$2 AND d.p2_id=$1) )
-       ORDER BY d.played_at DESC`,
-      [P1, P2, from, to]
-    );
-
-    // Totaux calculés du point de vue P1
-    let wins=0, draws=0, losses=0, gf=0, ga=0;
-    for(const row of r.rows){
-      let A=row.score_a, B=row.score_b;
-      if(row.p1_id !== P1){ A=row.score_b; B=row.score_a; } // réorienter
-      if(A > B) wins++; else if(A < B) losses++; else draws++;
-      gf += A; ga += B;
+    if(player){
+      vals.push(player); cond.push(`(p1 = $${vals.length} OR p2 = $${vals.length})`);
+    }
+    if(p1 && p2){
+      vals.push(p1); vals.push(p2);
+      cond.push(`((p1=$${vals.length-1} AND p2=$${vals.length}) OR (p1=$${vals.length} AND p2=$${vals.length-1}))`);
     }
 
-    ok(res, {
-      p1: { id:P1, name: await _playerName(P1) },
-      p2: { id:P2, name: await _playerName(P2) },
-      totals: { wins, draws, losses, gf, ga, legs: r.rowCount },
-      duels: r.rows
-    });
-  }catch(e){
-    console.error(e);
-    bad(res, 500, 'server');
-  }
+    const where = cond.length? `WHERE ${cond.join(' AND ')}` : '';
+    vals.push(limit); vals.push(offset);
+    const r = await q(`SELECT * FROM duels ${where} ORDER BY played_at DESC LIMIT $${vals.length-1} OFFSET $${vals.length}`, vals);
+    ok(res,{ duels: r.rows });
+  }catch(e){ console.error(e); bad(res,500,'Erreur lecture duels'); }
 });
 
-// Suppression (admin)
-app.delete('/duels/:id', auth, adminOnly, async (req, res) => {
-  try{
-    const id = parseInt(req.params.id, 10);
-    if(!Number.isFinite(id)) return bad(res, 400, 'id invalide');
-    await q(`DELETE FROM duels WHERE id=$1`, [id]);
-    ok(res, { ok:true });
-  }catch(e){
-    console.error(e);
-    bad(res, 500, 'server');
-  }
+// GET /duels/:id
+app.get('/duels/:id', auth, async (req,res)=>{
+  const r=await q(`SELECT * FROM duels WHERE id=$1`, [+req.params.id]);
+  if(!r.rowCount) return bad(res,404,'introuvable');
+  ok(res,{ duel:r.rows[0] });
 });
+
+// DELETE /duels/:id  (admin, ou créateur dans les 2h)
+app.delete('/duels/:id', auth, async (req,res)=>{
+  const id=+req.params.id;
+  const r=await q(`SELECT id, created_by, created_at FROM duels WHERE id=$1`, [id]);
+  if(!r.rowCount) return bad(res,404,'introuvable');
+
+  const isAdmin = (req.user?.role==='admin');
+  const isCreator = (r.rows[0].created_by===req.user.uid);
+  const within2h = (Date.now()-new Date(r.rows[0].created_at).getTime()) <= 2*3600*1000;
+
+  if(!(isAdmin || (isCreator && within2h))) return bad(res,403,'Droits insuffisants');
+  await q(`DELETE FROM duels WHERE id=$1`,[id]);
+  ok(res,{ ok:true });
+});
+
+// GET /duels/faceoff/:a/:b?from=...&to=...
+app.get('/duels/faceoff/:a/:b', auth, async (req,res)=>{
+  try{
+    const a=req.params.a, b=req.params.b;
+    if(!a||!b||a===b) return bad(res,400,'ids invalides');
+    const { from, to } = req.query||{};
+    const vals=[a,b]; const cond=[`((p1=$1 AND p2=$2) OR (p1=$2 AND p2=$1))`];
+    if(from){ vals.push(from); cond.push(`played_at >= $${vals.length}::date`); }
+    if(to){   vals.push(to);   cond.push(`played_at <  ($${vals.length}::date + INTERVAL '1 day')`); }
+
+    const r = await q(`SELECT * FROM duels WHERE ${cond.join(' AND ')} ORDER BY played_at DESC`, vals);
+
+    let wins=0,draws=0,losses=0,gf=0,ga=0;
+    const legs=[];
+    for(const m of r.rows){
+      const meHome = (m.p1===a);
+      const _gf = meHome? m.s1 : m.s2;
+      const _ga = meHome? m.s2 : m.s1;
+      gf+=_gf; ga+=_ga;
+      if(_gf>_ga) wins++; else if(_gf<_ga) losses++; else draws++;
+      legs.push({date:m.played_at, gf:_gf, ga:_ga, home:meHome});
+    }
+    ok(res,{ a,b, totals:{legs:r.rowCount,wins,draws,losses,gf,ga}, legs });
+  }catch(e){ console.error(e); bad(res,500,'Erreur face-off duels'); }
+});
+
 
 /* ====== WebSockets ====== */
 io.on('connection', (socket)=>{

@@ -1136,7 +1136,21 @@ app.get('/duels/compare', auth, async (req,res)=>{
     bad(res,400,'Erreur comparaison');
   }
 });
-                  
+ // aId = valeur du <select> (vraiment l'ID, pas "Nom — ID")
+const payload = {
+  player_a: aId,
+  player_b: bId,
+  score_a: Number(scoreA),
+  score_b: Number(scoreB),
+  played_at: dateISO   // ex: new Date(dateInput.value).toISOString()
+};
+
+await fetch(API + '/duels', {
+  method: 'POST',
+  headers: { 'Content-Type': 'application/json', Authorization: 'Bearer ' + TOKEN },
+  body: JSON.stringify(payload)
+});
+
 /* ---------- start ---------- */
 (async ()=>{
   try{

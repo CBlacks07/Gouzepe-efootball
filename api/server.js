@@ -988,176 +988,177 @@ io.on('connection', (socket)=>{
    DUELS (hors saison)
    ========================================================= */
 
-async function _validateDuelInput(body) {
-  // utilitaires
-  const pick = (obj, keys) => {
-    for (const k of keys) {
-      if (obj[k] !== undefined && obj[k] !== null && String(obj[k]).trim() !== '') {
-        return String(obj[k]).trim();
-      }
-    }
-    return '';
-  };
-  const normalizeId = (v) => {
-    // accepte "Nom — ID" ou "Nom - ID" -> renvoie "ID"
-    let s = String(v || '').trim();
-    if (!s) return '';
-    // coupe sur les tirets s’il y en a
-    if (s.includes('—')) s = s.split('—').pop().trim();
-    else if (s.includes('-')) {
-      const parts = s.split('-');
-      s = parts[parts.length - 1].trim();
-    }
-    return s;
-  };
+// --- validator tolérant ---
+async function validateDuelInput(body) {
+  const aRaw = pick(body, ['player_a', 'a', 'playerA', 'joueur_a', 'joueurA', 'A', 'idA']);
+  const bRaw = pick(body, ['player_b', 'b', 'playerB', 'joueur_b', 'joueurB', 'B', 'idB']);
+  const saRaw = pick(body, ['score_a', 'sa', 'scoreA', 'scorea']);
+  const sbRaw = pick(body, ['score_b', 'sb', 'scoreB', 'scoreb']);
+  const whenRaw = pick(body, ['played_at', 'when', 'date', 'dateTime', 'datetime']);
 
-  // récupérer A / B via multiples clés possibles
-  const aRaw = pick(body, ['player_a','a','playerA','joueur_a','joueurA','A','idA']);
-  const bRaw = pick(body, ['player_b','b','playerB','joueur_b','joueurB','B','idB']);
-  const a = normalizeId(aRaw);
-  const b = normalizeId(bRaw);
-
-  const sa = Number(pick(body, ['score_a','sa','scoreA','scorea']));
-  const sb = Number(pick(body, ['score_b','sb','scoreB','scoreb']));
-  const whenRaw = pick(body, ['played_at','when','date','dateTime','datetime']);
+  const a = extractId(aRaw);
+  const b = extractId(bRaw);
+  const score_a = safeInt(saRaw, NaN);
+  const score_b = safeInt(sbRaw, NaN);
   const played_at = whenRaw ? new Date(whenRaw) : new Date();
 
   if (!a || !b) throw new Error('Joueurs requis');
   if (a === b) throw new Error('Choisir deux joueurs différents');
-  if (!Number.isFinite(sa) || sa < 0 || !Number.isFinite(sb) || sb < 0) {
+  if (!Number.isFinite(score_a) || score_a < 0 || !Number.isFinite(score_b) || score_b < 0) {
     throw new Error('Score incorrect');
   }
   if (isNaN(+played_at)) throw new Error('Date invalide');
 
-  // Vérifie existence joueurs
-  const rp = await q(`SELECT player_id FROM players WHERE player_id = ANY($1::text[])`, [[a, b]]);
-  if (rp.rowCount !== 2) throw new Error('Joueur introuvable');
+  // existence des joueurs
+  const chk = await q(`SELECT player_id FROM players WHERE player_id = ANY($1::text[])`, [[a, b]]);
+  if (chk.rowCount !== 2) throw new Error('Joueur introuvable');
 
-  return { a, b, sa, sb, played_at };
+  return { a, b, score_a, score_b, played_at: played_at.toISOString() };
 }
 
- * POST /duels
- * - admin : peut créer pour n’importe quels joueurs
- * - member : l’un des deux joueurs doit être lui-même
- */
-app.post('/duels', auth, async (req, res) => {
-  try {
-    const { a, b, sa, sb, played_at } = await _validateDuelInput(req.body);
+/** règle sécurité membre: doit être l’un des deux joueurs */
+async function ensureMemberCanWrite(req, a, b) {
+  const role = String(req.user?.role || 'member').toLowerCase();
+  if (role === 'admin') return; // admin = ok
+  const myPlayerId = req.user?.player_id || (await getLinkedPlayerId(req.user.id));
+  if (!myPlayerId || (myPlayerId !== a && myPlayerId !== b)) {
+    throw new Error('Vous devez être l’un des deux joueurs');
+  }
+}
 
-    // Permission
-    const role = (req.user?.role || 'member').toLowerCase();
+// POST /duels — crée un duel
+app.post('/duels', requireAuth, async (req, res) => {
+  try {
+    const { a, b, score_a, score_b, played_at } = await validateDuelInput(req.body);
+    await ensureMemberCanWrite(req, a, b);
+
+    const created_by = req.user.id;
+    const ins = await q(
+      `INSERT INTO duels (player_a, player_b, score_a, score_b, played_at, created_by)
+       VALUES ($1,$2,$3,$4,$5,$6)
+       RETURNING id`,
+      [a, b, score_a, score_b, played_at, created_by]
+    );
+
+    res.status(201).json({ ok: true, id: ins.rows[0].id });
+  } catch (e) {
+    res.status(400).json({ error: e.message || 'Erreur' });
+  }
+});
+
+// GET /duels/compare?a=ID&b=ID&from=YYYY-MM-DD&to=YYYY-MM-DD
+app.get('/duels/compare', requireAuth, async (req, res) => {
+  try {
+    const a = extractId(req.query.a);
+    const b = extractId(req.query.b);
+    if (!a || !b || a === b) return res.status(400).json({ error: 'Paramètres a/b requis et distincts' });
+
+    let from = req.query.from ? new Date(req.query.from) : null;
+    let to   = req.query.to   ? new Date(req.query.to)   : null;
+    if (from && isNaN(+from)) from = null;
+    if (to   && isNaN(+to))   to = null;
+
+    const params = [a, b];
+    let where = `(player_a = $1 AND player_b = $2) OR (player_a = $2 AND player_b = $1)`;
+    if (from) { params.push(from.toISOString()); where += ` AND played_at >= $${params.length}`; }
+    if (to)   { params.push(to.toISOString());   where += ` AND played_at <  $${params.length}`; }
+
+    const rs = await q(`
+      SELECT id, player_a, player_b, score_a, score_b, played_at
+      FROM duels
+      WHERE ${where}
+      ORDER BY played_at DESC
+      LIMIT 200
+    `, params);
+
+    const legs = rs.rows.map(r => ({
+      id: r.id,
+      date: r.played_at,
+      a: r.player_a,
+      b: r.player_b,
+      sa: r.score_a,
+      sb: r.score_b
+    }));
+
+    // totaux
+    let winsA = 0, winsB = 0, draws = 0, gfA = 0, gfB = 0;
+    for (const L of legs) {
+      // perspective A=param a
+      const aIsHome = L.a === a;
+      const gf = aIsHome ? L.sa : L.sb;
+      const ga = aIsHome ? L.sb : L.sa;
+      gfA += gf; gfB += ga;
+      if (gf > ga) winsA++;
+      else if (gf < ga) winsB++;
+      else draws++;
+    }
+    const leader = winsA === winsB ? null : (winsA > winsB ? a : b);
+
+    res.json({
+      a, b,
+      totals: { winsA, winsB, draws, gfA, gfB, legs: legs.length, leader },
+      legs
+    });
+  } catch (e) {
+    res.status(400).json({ error: e.message || 'Erreur' });
+  }
+});
+
+// GET /duels/recent?limit=5  (optionnel: player=ID pour filtrer)
+app.get('/duels/recent', requireAuth, async (req, res) => {
+  try {
+    const limit = Math.max(1, Math.min(50, safeInt(req.query.limit, 5)));
+    const player = extractId(req.query.player || '');
+    let sql = `SELECT id, player_a, player_b, score_a, score_b, played_at FROM duels`;
+    const params = [];
+    if (player) {
+      sql += ` WHERE player_a = $1 OR player_b = $1`;
+      params.push(player);
+    }
+    sql += ` ORDER BY played_at DESC LIMIT ${limit}`;
+    const rs = await q(sql, params);
+    res.json({ duels: rs.rows });
+  } catch (e) {
+    res.status(400).json({ error: e.message || 'Erreur' });
+  }
+});
+
+// DELETE /duels/:id — admin ou créateur (membre si concerné)
+app.delete('/duels/:id', requireAuth, async (req, res) => {
+  try {
+    const id = safeInt(req.params.id, NaN);
+    if (!Number.isFinite(id)) return res.status(400).json({ error: 'ID invalide' });
+
+    // récup pour contrôle
+    const rs = await q(`SELECT player_a, player_b, created_by FROM duels WHERE id = $1`, [id]);
+    if (!rs.rowCount) return res.status(404).json({ error: 'Introuvable' });
+
+    const row = rs.rows[0];
+    const role = String(req.user?.role || 'member').toLowerCase();
+
     if (role !== 'admin') {
-      const mePid = await getLinkedPlayerId(req.user.uid);
-      if (!mePid || (mePid !== a && mePid !== b)) {
-        return bad(res, 403, "Vous devez être l'un des deux joueurs");
+      const myPlayerId = req.user?.player_id || (await getLinkedPlayerId(req.user.id));
+      const isCreator = String(row.created_by) === String(req.user.id);
+      const involved = myPlayerId && (myPlayerId === row.player_a || myPlayerId === row.player_b);
+      if (!isCreator && !involved) {
+        return res.status(403).json({ error: 'Interdit' });
       }
     }
 
-    const r = await q(
-      `INSERT INTO duels(player_a,player_b,score_a,score_b,played_at,created_by)
-       VALUES ($1,$2,$3,$4,$5,$6)
-       RETURNING id,player_a,player_b,score_a,score_b,played_at,created_by,created_at`,
-      [a, b, sa, sb, played_at, req.user.uid]
-    );
-
-    // Ajoute les noms pour le confort du client
-    const ids = [a,b];
-    const names = await q(`SELECT player_id,name FROM players WHERE player_id=ANY($1::text[])`, [ids]);
-    const byId = new Map(names.rows.map(x=>[x.player_id,x.name]));
-    const row = r.rows[0];
-    row.player_a_name = byId.get(row.player_a) || row.player_a;
-    row.player_b_name = byId.get(row.player_b) || row.player_b;
-
-    ok(res, { duel: row });
+    await q(`DELETE FROM duels WHERE id = $1`, [id]);
+    res.json({ ok: true });
   } catch (e) {
-    console.error(e);
-    bad(res, 400, e.message || 'Erreur enregistrement duel');
+    res.status(400).json({ error: e.message || 'Erreur' });
   }
 });
 
-/**
- * GET /duels?limit=5
- * Derniers duels (pour le tableau en bas)
- */
-app.get('/duels', auth, async (req, res) => {
-  const limit = Math.min(Math.max(parseInt(req.query.limit||'5',10)||5, 1), 50);
-  const r = await q(
-    `SELECT d.id, d.player_a, d.player_b, d.score_a, d.score_b, d.played_at
-       , pa.name AS player_a_name, pb.name AS player_b_name
-     FROM duels d
-     JOIN players pa ON pa.player_id = d.player_a
-     JOIN players pb ON pb.player_id = d.player_b
-     ORDER BY d.played_at DESC, d.id DESC
-     LIMIT $1`, [limit]
-  );
-  ok(res, { duels: r.rows, canDelete: (req.user?.role||'member').toLowerCase()==='admin' });
+// ========== FIN DUELS ==========
+
+// (Optionnel) endpoint presence
+app.post('/presence/ping', requireAuth, async (req, res) => {
+  // tu peux loguer dans une table presence si tu veux.
+  res.json({ ok: true, at: new Date().toISOString() });
 });
-
-/**
- * DELETE /duels/:id  (admin uniquement)
- */
-app.delete('/duels/:id', auth, adminOnly, async (req,res)=>{
-  await q(`DELETE FROM duels WHERE id=$1`,[+req.params.id]);
-  ok(res,{ ok:true });
-});
-
-/**
- * GET /duels/compare?A=&B=&from=YYYY-MM-DD&to=YYYY-MM-DD
- * Résumé face-à-face (hors-saison)
- * Retourne viewerCanColor=false si l’utilisateur n’est pas A/B et n’est pas admin.
- */
-app.get('/duels/compare', auth, async (req,res)=>{
-  try{
-    const A = String(req.query.A||req.query.a||'').trim();
-    const B = String(req.query.B||req.query.b||'').trim();
-    if(!A || !B) return bad(res,400,'A & B requis');
-    if(A===B)   return bad(res,400,'Choisir deux joueurs différents');
-
-    const from = req.query.from ? new Date(req.query.from) : null;
-    const to   = req.query.to   ? new Date(req.query.to)   : null;
-
-    let sql = `SELECT id, player_a, player_b, score_a, score_b, played_at
-               FROM duels WHERE
-               ((player_a=$1 AND player_b=$2) OR (player_a=$2 AND player_b=$1))`;
-    const params = [A,B];
-    if(from && !isNaN(+from)){ params.push(from); sql += ` AND played_at >= $${params.length}`; }
-    if(to && !isNaN(+to)){ params.push(to); sql += ` AND played_at <  ($${params.length})`; }
-    sql += ' ORDER BY played_at DESC, id DESC';
-
-    const r = await q(sql, params);
-    let W=0,N=0,D=0; // W pour A, D pour B
-    r.rows.forEach(x=>{
-      const aIsA = (x.player_a === A);
-      const sa = x.score_a, sb = x.score_b;
-      const gf = aIsA ? sa : sb;
-      const ga = aIsA ? sb : sa;
-      if(gf>ga) W++; else if(gf<ga) D++; else N++;
-    });
-
-    // Noms
-    const names = await q(`SELECT player_id,name FROM players WHERE player_id=ANY($1::text[])`, [[A,B]]);
-    const byId = new Map(names.rows.map(x=>[x.player_id,x.name]));
-
-    // Droit d’afficher les couleurs ?
-    const role = (req.user?.role||'member').toLowerCase();
-    const mePid = await getLinkedPlayerId(req.user.uid);
-    const viewerCanColor = role==='admin' || (!!mePid && (mePid===A || mePid===B));
-
-    ok(res,{
-      players: {
-        a: { id:A, name: byId.get(A)||A },
-        b: { id:B, name: byId.get(B)||B }
-      },
-      counters: { W, N, D }, // pour A
-      viewerCanColor,
-      matches: r.rows
-    });
-  }catch(e){
-    console.error(e);
-    bad(res,400,'Erreur comparaison');
-  }
-});
-
 /* ---------- start ---------- */
 (async ()=>{
   try{

@@ -323,21 +323,29 @@ async function buildSeasonAggregation(seasonId){
           else if(m.a1<m.a2){B.V++;A.D++;B.form.push('V');A.form.push('D');}
           else {A.N++;B.N++;A.form.push('N');B.form.push('N');}
         }
-        if(m.r1!=null&&m.r2!=null){
-          // au retour, les scores sont inversés côté joueurs
-          A.J++;B.J++; A.BP+=m.r2;A.BC+=m.r1; B.BP+=m.r1;B.BC+=m.r2;
-          if(m.r2>m.r1){A.V++;B.D++;A.form.push('V');B.form.push('D');}
-          else if(m.r2<m.r1){B.V++;A.D++;B.form.push('V');A.form.push('D');}
-          else {A.N++;B.N++;A.form.push('N');B.form.push('N');}
-        }
-        if(div===1){A.d1++;B.d1++;} else if(div===2){A.d2++;B.d2++;}
-      }
+        if (m.r1 != null && m.r2 != null) {
+  // RETOUR : on crédite chaque joueur avec SES propres buts
+  A.J++; B.J++;
+  A.BP += m.r1; A.BC += m.r2;     // A: GF=r1, GA=r2
+  B.BP += m.r2; B.BC += m.r1;     // B: GF=r2, GA=r1
+
+  if (m.r1 > m.r2) {              // A a gagné
+    A.V++; B.D++;
+    A.form.push('V'); B.form.push('D');
+  } else if (m.r1 < m.r2) {       // B a gagné
+    B.V++; A.D++;
+    B.form.push('V'); A.form.push('D');
+  } else {                        // Nul
+    A.N++; B.N++;
+    A.form.push('N'); B.form.push('N');
+  }
+  }
     };
     apply(d1,1); apply(d2,2);
   }
 }
 
-/* tri : d’abord Total, puis Moyenne (demande du client) */
+
 function sortStandings(arr){
   return arr.slice().sort((a,b)=>
     (b.moyenne - a.moyenne) ||

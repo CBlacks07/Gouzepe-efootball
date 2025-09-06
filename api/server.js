@@ -12,19 +12,19 @@ const bcrypt = require('bcryptjs');
 const jwt = require('jsonwebtoken');
 const multer = require('multer');
 const dayjs = require('dayjs');
-const crypto = require('crypto'); // ← sessions
+const crypto = require('crypto');
 
-const PORT = parseInt(process.env.PORT || '3000', 10);
+const PORT        = parseInt(process.env.PORT || '3000', 10);
 const CORS_ORIGIN = process.env.CORS_ORIGIN || '*';
-const JWT_SECRET = process.env.JWT_SECRET || '1XS1r4QJNp6AtkjORvKUU01RZRfzbGV+echJsio9gq8lAOc2NW7sSYsQuncE6+o9';
-const EMAIL_DOMAIN = process.env.EMAIL_DOMAIN || 'gz.local';
+const JWT_SECRET  = process.env.JWT_SECRET || '1XS1r4QJNp6AtkjORvKUU01RZRfzbGV+echJsio9gq8lAOc2NW7sSYsQuncE6+o9';
+const EMAIL_DOMAIN= process.env.EMAIL_DOMAIN || 'gz.local';
 
 const useSSL = (process.env.PGSSL === 'true') || process.env.RENDER === 'true' || process.env.NODE_ENV === 'production';
 const pool = new Pool({
-  host: process.env.PGHOST || '127.0.0.1',
-  port: +(process.env.PGPORT || 5432),
+  host:     process.env.PGHOST     || '127.0.0.1',
+  port:    +(process.env.PGPORT     || 5432),
   database: process.env.PGDATABASE || 'EFOOTBALL',
-  user: process.env.PGUSER || 'postgres',
+  user:     process.env.PGUSER     || 'postgres',
   password: process.env.PGPASSWORD || 'Admin123',
   ssl: useSSL ? { rejectUnauthorized: false } : false,
 });
@@ -39,13 +39,12 @@ app.use(helmet({ crossOriginResourcePolicy: { policy: "cross-origin" } }));
 app.use(cors({ origin: CORS_ORIGIN === '*' ? true : CORS_ORIGIN, credentials: true }));
 app.use(express.json({ limit: '2mb' }));
 
-/* ---------- uploads (photos profils joueurs) ---------- */
+/* ---------- uploads (photos de profil) ---------- */
 const UP = path.join(__dirname, 'uploads');
 const UP_PLAYERS = path.join(UP, 'players');
 if(!fs.existsSync(UP)) fs.mkdirSync(UP);
 if(!fs.existsSync(UP_PLAYERS)) fs.mkdirSync(UP_PLAYERS);
 app.use('/uploads', express.static(UP));
-
 const upload = multer({
   storage: multer.diskStorage({
     destination: (_req, _file, cb)=> cb(null, UP_PLAYERS),
@@ -65,22 +64,46 @@ const ok  = (res, data={}) => res.json(data);
 const bad = (res, code=400, msg='Bad request') => res.status(code).json({ error: String(msg) });
 const normEmail = (x)=>{ x=String(x||'').trim().toLowerCase(); if(!x) return x; if(!x.includes('@')) x=`${x}@${EMAIL_DOMAIN}`; return x; };
 
+/* petits utilitaires robustes pour la zone duels */
+const safeInt = (v, dflt=NaN) => {
+  if (v === null || v === undefined || v==='') return dflt;
+  const n = Number(v);
+  return Number.isFinite(n) ? (n|0) : dflt;
+};
+const pick = (obj, keys=[]) => {
+  if(!obj) return undefined;
+  for(const k of keys){ if(obj[k]!==undefined && obj[k]!==null) return obj[k]; }
+  return undefined;
+};
+// Extrait un player_id depuis : "Nom — ID", "ID — Nom", "ID"
+const extractId = (raw) => {
+  if(raw==null) return '';
+  let s = String(raw).trim();
+  if(!s) return '';
+  // supporte "Foo — BAR_ID" ou "BAR_ID — Foo"
+  if(s.includes('—')) s = s.split('—').map(x=>x.trim()).find(x=>/_GZ$/i.test(x) || /^[A-Z0-9_@.-]+$/.test(x)) || s;
+  // si on a "Nom (ID)", on prend le contenu parenthèses
+  const m = s.match(/\(([A-Za-z0-9_@.-]+)\)\s*$/);
+  if(m) s = m[1];
+  return s;
+};
+
 /* === présence (soft, en mémoire) === */
 const PRESENCE_TTL_MS = 70 * 1000;
 const presence = { players: new Map() }; // player_id -> lastSeen (ms)
 
-/* === Equipes différentes (basées sur "Champion avec ...") === */
+/* === Equipes différentes (bonus D1/D2) === */
 const TEAM_KEY_LEN = parseInt(process.env.TEAM_KEY_LEN || '6', 10);
 function teamKey(raw){
   if(!raw) return '';
   let s = String(raw)
-    .normalize('NFD').replace(/[\u0300-\u036f]/g,'')                 // accents
-    .replace(/\p{Emoji_Presentation}|\p{Extended_Pictographic}/gu,'')// emoji/drapeaux
+    .normalize('NFD').replace(/[\u0300-\u036f]/g,'')
+    .replace(/\p{Emoji_Presentation}|\p{Extended_Pictographic}/gu,'')
     .toUpperCase()
-    .replace(/\b(FC|CF|SC|AC|REAL|THE)\b/g, ' ')                    // mots vides fréquents
-    .replace(/[^A-Z0-9]+/g,'')                                      // garde lettres/chiffres
+    .replace(/\b(FC|CF|SC|AC|REAL|THE)\b/g, ' ')
+    .replace(/[^A-Z0-9]+/g,'')
     .trim();
-  return s.slice(0, TEAM_KEY_LEN);                                  // ex: 6 premières lettres
+  return s.slice(0, TEAM_KEY_LEN);
 }
 
 /* ---------- schéma & seed ---------- */
@@ -102,7 +125,6 @@ async function ensureSchema(){
     player_id TEXT,
     created_at TIMESTAMP DEFAULT now()
   )`);
-  await q(`ALTER TABLE users ADD COLUMN IF NOT EXISTS player_id TEXT`);
   await q(`
     DO $$
     BEGIN
@@ -115,7 +137,7 @@ async function ensureSchema(){
           FOREIGN KEY (player_id) REFERENCES players(player_id)
           ON DELETE SET NULL;
       END IF;
-    END$$
+    END$$;
   `);
   await q(`CREATE UNIQUE INDEX IF NOT EXISTS users_player_id_uniq ON users(player_id) WHERE player_id IS NOT NULL`);
 
@@ -138,7 +160,7 @@ async function ensureSchema(){
     updated_at TIMESTAMPTZ DEFAULT now()
   )`);
 
-  // === sessions (multi-appareils, force takeover) ===
+  // === sessions (multi-appareils) ===
   await q(`CREATE TABLE IF NOT EXISTS user_sessions(
     id BIGSERIAL PRIMARY KEY,
     user_id INTEGER NOT NULL REFERENCES users(id) ON DELETE CASCADE,
@@ -168,7 +190,7 @@ async function ensureSchema(){
     await q(`INSERT INTO seasons(name,is_closed) VALUES ('Saison courante', false)`);
   }
 
- // === Hors-saison : duels amicaux ===
+  // === Hors-saison : duels amicaux ===
   await q(`CREATE TABLE IF NOT EXISTS duels(
     id          BIGSERIAL PRIMARY KEY,
     player_a    TEXT NOT NULL REFERENCES players(player_id) ON DELETE RESTRICT,
@@ -179,7 +201,7 @@ async function ensureSchema(){
     created_by  INTEGER NOT NULL REFERENCES users(id) ON DELETE SET NULL,
     created_at  TIMESTAMPTZ NOT NULL DEFAULT now()
   )`);
-  await q(`CREATE INDEX IF NOT EXISTS duels_played_at_idx ON duels(played_at DESC, id DESC)`); 
+  await q(`CREATE INDEX IF NOT EXISTS duels_played_at_idx ON duels(played_at DESC, id DESC)`);
 }
 
 /* ---------- auth + sessions ---------- */
@@ -196,11 +218,11 @@ function auth(req,res,next){
     next();
   }catch(e){ return bad(res,401,'Invalid token'); }
 }
+const requireAuth = auth; // alias (évite l'erreur "requireAuth is not defined")
 function adminOnly(req,res,next){
   if((req.user?.role||'member')!=='admin') return bad(res,403,'Admin only');
   next();
 }
-// sessions helpers
 async function activeSessionForUser(userId){
   const r = await q(
     `SELECT * FROM user_sessions
@@ -224,7 +246,7 @@ async function heartbeatByJti(jti){
   await q(`UPDATE user_sessions SET last_seen=now() WHERE jti=$1 AND revoked_at IS NULL`, [jti]);
 }
 
-/* ---------- helpers saisons ---------- */
+/* ---------- helpers saisons & players ---------- */
 async function currentSeasonId(){
   const r=await q(`SELECT id FROM seasons WHERE is_closed=false ORDER BY id DESC LIMIT 1`);
   return r.rows[0]?.id;
@@ -234,7 +256,6 @@ async function previousSeasonId(){
   return r.rows[0]?.id || null;
 }
 async function resolveSeasonId(qv){
-  // qv: 'current' | 'previous' | number | name
   if(!qv || String(qv).toLowerCase()==='current') return await currentSeasonId();
   if(String(qv).toLowerCase()==='previous') {
     const p = await previousSeasonId(); return p || await currentSeasonId();
@@ -244,18 +265,20 @@ async function resolveSeasonId(qv){
     const r=await q(`SELECT id FROM seasons WHERE id=$1`,[sid]);
     return r.rowCount ? sid : await currentSeasonId();
   }
-  // par nom approx
   const r=await q(`SELECT id FROM seasons WHERE name ILIKE $1 ORDER BY id DESC LIMIT 1`, ['%'+qv+'%']);
   return r.rowCount ? r.rows[0].id : await currentSeasonId();
 }
 async function getPlayersRoles(){
   const r=await q(`SELECT player_id,role FROM players`);
-  const map=new Map(); r.rows.forEach(p=>map.set(p.player_id,(p.role||'MEMBRE').toUpperCase())); return map;
+  const map=new Map(r.rows.map(x=>[x.player_id,(x.role||'MEMBRE').toUpperCase()])); return map;
+}
+async function getLinkedPlayerId(userId){
+  const r=await q(`SELECT player_id FROM users WHERE id=$1`,[userId]);
+  return r.rows[0]?.player_id || null;
 }
 
-/* ---------- calculs standings ---------- */
+/* ---------- calculs standings (inchangé) ---------- */
 function computeStandings(matches){
-  // matches: [{p1,p2,a1,a2,r1,r2}]
   const agg={};
   function add(A,B,ga,gb){
     if(ga==null||gb==null) return;
@@ -271,14 +294,12 @@ function computeStandings(matches){
   for(const m of matches||[]){
     if(!m.p1||!m.p2) continue;
     if(m.a1!=null&&m.a2!=null) add(m.p1,m.p2,m.a1,m.a2);
-    if(m.r1!=null&&m.r2!=null) add(m.p2,m.p1,m.r2,m.r1); // retour inversé
+    if(m.r1!=null&&m.r2!=null) add(m.p2,m.p1,m.r2,m.r1);
   }
   const arr = Object.entries(agg).map(([id,x])=>({id,...x,PTS:x.V*3+x.N,DIFF:x.BP-x.BC}));
   arr.sort((a,b)=>b.PTS-a.PTS||b.DIFF-a.DIFF||b.BP-a.BP||a.id.localeCompare(b.id));
   return arr;
 }
-
-// Barème saison : D1 = 9 au dernier +1 par rang, bonus champion D1 +1 ; D2 table fixe
 const BONUS_D1_CHAMPION = 1;
 function pointsD1(nPlayers, rank){ if(rank<1||rank>nPlayers) return 0; return 9+(nPlayers-rank); }
 function pointsD2(rank){ const table=[10,8,7,6,5,4,3,2,1,1,1]; return rank>0 && rank<=table.length ? table[rank-1] : 1; }
@@ -287,7 +308,7 @@ async function computeSeasonStandings(seasonId){
   const days = await q(`SELECT day,payload FROM matchday WHERE season_id=$1 ORDER BY day ASC`,[seasonId]);
   const roles = await getPlayersRoles();
 
-  const totals = new Map(); // id -> {id,total,participations,won_d1,won_d2,teams:Set}
+  const totals = new Map();
   const ensure = id=>{ if(!totals.has(id)) totals.set(id,{id,total:0,participations:0,won_d1:0,won_d2:0,teams:new Set()}); return totals.get(id); };
 
   for(const row of days.rows){
@@ -303,26 +324,17 @@ async function computeSeasonStandings(seasonId){
     st1.forEach((r,idx)=>{ const o=ensure(r.id); o.total += pointsD1(n1, idx+1); o.participations+=1; });
     st2.forEach((r,idx)=>{ const o=ensure(r.id); o.total += pointsD2(idx+1);   o.participations+=1; });
 
-    // === Bonus / gagnants ===
     const champD1=p?.champions?.d1?.id||null;
     if(champD1 && (roles.get(champD1)||'MEMBRE')!=='INVITE'){ ensure(champD1).total += BONUS_D1_CHAMPION; ensure(champD1).won_d1++; }
     const champD2=p?.champions?.d2?.id||null;
     if(champD2 && (roles.get(champD2)||'MEMBRE')!=='INVITE'){ ensure(champD2).won_d2++; }
 
-    // === Equipes différentes : UNIQUEMENT depuis "Champion avec ..." ===
     const teamD1 = p?.champions?.d1?.team;
-    if (champD1 && teamD1){
-      const k = teamKey(teamD1);
-      if (k) ensure(champD1).teams.add(k);
-    }
+    if (champD1 && teamD1){ const k = teamKey(teamD1); if (k) ensure(champD1).teams.add(k); }
     const teamD2 = p?.champions?.d2?.team;
-    if (champD2 && teamD2){
-      const k = teamKey(teamD2);
-      if (k) ensure(champD2).teams.add(k);
-    }
+    if (champD2 && teamD2){ const k = teamKey(teamD2); if (k) ensure(champD2).teams.add(k); }
   }
 
-  // noms + moyenne
   const allIds=[...totals.keys()];
   if(allIds.length){
     const r=await q(`SELECT player_id,name FROM players WHERE player_id=ANY($1::text[])`,[allIds]);
@@ -337,7 +349,6 @@ async function computeSeasonStandings(seasonId){
     moyenne:o.moyenne, won_d1:o.won_d1, won_d2:o.won_d2,
     teams_used: o.teams ? o.teams.size : 0
   }));
-  // TRI: Total desc puis Moyenne desc (exigence)
   arr.sort((a,b)=> b.total-a.total || b.moyenne-a.moyenne || a.name.localeCompare(b.name));
   return arr;
 }
@@ -400,10 +411,6 @@ app.post('/auth/heartbeat', auth, async (req,res)=>{
 });
 
 /* ---------- presence ---------- */
-async function getLinkedPlayerId(userId){
-  const r=await q(`SELECT player_id FROM users WHERE id=$1`,[userId]);
-  return r.rows[0]?.player_id || null;
-}
 app.post('/presence/ping', auth, async (req,res)=>{
   const pid = await getLinkedPlayerId(req.user.uid);
   if(pid){ presence.players.set(pid, Date.now()); }
@@ -501,164 +508,7 @@ app.get('/players/:pid', auth, async (req,res)=>{
   ok(res,{ player:{...row, online: !!online} });
 });
 
-/* résumé & matches d’un joueur (panel membre) */
-app.get('/players/:pid/summary', auth, async (req,res)=>{
-  const sid = await resolveSeasonId(req.query.season);
-  const r=await q(`SELECT name FROM players WHERE player_id=$1`,[req.params.pid]);
-  if(!r.rowCount) return bad(res,404,'not found');
-
-  const days = await q(`SELECT day,payload FROM matchday WHERE season_id=$1 ORDER BY day ASC`,[sid]);
-  let legs=0,gf=0,ga=0,best={gf:0,ga:0,date:null,leg:null,division:null};
-
-  for(const d of days.rows){
-    const P=d.payload||{};
-    for(const div of ['d1','d2']){
-      for(const m of (P[div]||[])){
-        if(!m?.p1 || !m?.p2) continue;
-        const pid=req.params.pid;
-        if(m.p1!==pid && m.p2!==pid) continue;
-        const home=(m.p1===pid);
-        const aller=(m.a1!=null&&m.a2!=null)?{gf:home?m.a1:m.a2,ga:home?m.a2:m.a1}:null;
-        const retour=(m.r1!=null&&m.r2!=null)?{gf:home?m.r1:m.r2,ga:home?m.r2:m.r1}:null;
-        if(aller){legs++;gf+=aller.gf;ga+=aller.ga;if(aller.gf>best.gf)best={gf:aller.gf,ga:aller.ga,date:d.day,leg:'Aller',division:div.toUpperCase()};}
-        if(retour){legs++;gf+=retour.gf;ga+=retour.ga;if(retour.gf>best.gf)best={gf:retour.gf,ga:retour.ga,date:d.day,leg:'Retour',division:div.toUpperCase()};}
-      }
-    }
-  }
-
-  // rang/points
-  let rank=null,points=null,moyenne=null;
-  try{
-    const st=await computeSeasonStandings(sid);
-    const ix=st.findIndex(x=>x.id===req.params.pid);
-    if(ix>=0){ rank=ix+1; points=st[ix].total; moyenne=st[ix].moyenne; }
-  }catch(_){}
-
-  ok(res,{ season_id:sid, player:{ player_id:req.params.pid, name:r.rows[0].name }, legs, goals_for:gf, goals_against:ga, best, rank, points, moyenne });
-});
-app.get('/players/:pid/matches', auth, async (req,res)=>{
-  const sid = await resolveSeasonId(req.query.season);
-  const days = await q(`SELECT day,payload FROM matchday WHERE season_id=$1 ORDER BY day ASC`,[sid]);
-  const out=[];
-  for(const d of days.rows){
-    const P=d.payload||{};
-    for(const div of ['d1','d2']){
-      for(const m of (P[div]||[])){
-        if(!m?.p1 || !m?.p2) continue;
-        const pid=req.params.pid;
-        if(m.p1!==pid && m.p2!==pid) continue;
-        const home=(m.p1===pid);
-        const opp  =home?m.p2:m.p1;
-        const aller=(m.a1!=null&&m.a2!=null)?{gf:home?m.a1:m.a2,ga:home?m.a2:m.a1}:null;
-        const retour=(m.r1!=null&&m.r2!=null)?{gf:home?m.r1:m.r2,ga:home?m.r2:m.r1}:null;
-        out.push({date:d.day, division:div.toUpperCase(), opponent:opp, aller, retour});
-      }
-    }
-  }
-  ok(res,{ season_id:sid, matches: out });
-});
-
-/* ---------- admin players CRUD ---------- */
-app.post('/admin/players', auth, adminOnly, async (req,res)=>{
-  const { player_id, name, role } = req.body||{};
-  if(!player_id||!name) return bad(res,400,'player_id et name requis');
-  await q(`INSERT INTO players(player_id,name,role) VALUES ($1,$2,$3)
-           ON CONFLICT (player_id) DO UPDATE SET name=EXCLUDED.name, role=EXCLUDED.role`,
-           [player_id, name, (role||'MEMBRE').toUpperCase()]);
-  const r=await q(`SELECT player_id,name,role FROM players WHERE player_id=$1`,[player_id]);
-  ok(res,{ player:r.rows[0] });
-});
-app.put('/admin/players/:id', auth, adminOnly, async (req,res)=>{
-  const oldId = req.params.id;
-  let { player_id, name, role } = req.body || {};
-  player_id = (player_id || '').trim();
-  name = (name || '').trim();
-  role = (role || 'MEMBRE').toUpperCase();
-  if(!name) return bad(res,400,'name requis');
-
-  if(player_id && player_id !== oldId){
-    await q(`INSERT INTO players(player_id,name,role)
-             VALUES ($1,$2,$3)
-             ON CONFLICT (player_id) DO UPDATE SET name=EXCLUDED.name, role=EXCLUDED.role`,
-             [player_id, name, role]);
-    await q(`UPDATE users SET player_id=$1 WHERE player_id=$2`,[player_id, oldId]);
-    await q(`DELETE FROM players WHERE player_id=$1`,[oldId]);
-    const r=await q(`SELECT player_id,name,role FROM players WHERE player_id=$1`,[player_id]);
-    return ok(res,{ player:r.rows[0] });
-  }
-
-  const r=await q(`UPDATE players SET name=$1, role=$2 WHERE player_id=$3
-                   RETURNING player_id,name,role`, [name,role,oldId]);
-  if(!r.rowCount) return bad(res,404,'introuvable');
-  ok(res,{ player:r.rows[0] });
-});
-app.delete('/admin/players/:id', auth, adminOnly, async (req,res)=>{
-  await q(`DELETE FROM players WHERE player_id=$1`,[req.params.id]);
-  ok(res,{ ok:true });
-});
-
-/* ---------- lier/délier user <-> player ---------- */
-app.get('/admin/players/:pid/user', auth, adminOnly, async (req,res)=>{
-  const r = await q(`SELECT id,email,role,player_id FROM users WHERE player_id=$1`,[req.params.pid]);
-  ok(res, { user: r.rows[0] || null });
-});
-async function linkUserToPlayer(pid, emailRaw, passwordRaw){
-  const email = normEmail(emailRaw);
-  if(!email) throw new Error('email requis');
-  const pj = await q(`SELECT 1 FROM players WHERE player_id=$1`,[pid]);
-  if(!pj.rowCount) throw new Error('joueur introuvable');
-
-  await q(`UPDATE users SET player_id=NULL WHERE player_id=$1`,[pid]); // libère l’ancienne liaison
-
-  const u = await q(`SELECT id FROM users WHERE email=$1`,[email]);
-  if(u.rowCount===0){
-    const pwd = (passwordRaw && passwordRaw.length>=6) ? passwordRaw : Math.random().toString(36).slice(-10);
-    const hash = await bcrypt.hash(pwd,10);
-    const ins = await q(
-      `INSERT INTO users(email,password_hash,role,player_id)
-       VALUES ($1,$2,'member',$3)
-       RETURNING id,email,role,player_id`,
-      [email,hash,pid]
-    );
-    return { user: ins.rows[0], created:true };
-  }else{
-    const id = u.rows[0].id;
-    if(passwordRaw && passwordRaw.length>=6){
-      const hash = await bcrypt.hash(passwordRaw,10);
-      await q(`UPDATE users SET password_hash=$2 WHERE id=$1`, [id,hash]);
-    }
-    await q(`UPDATE users SET role='member', player_id=$2 WHERE id=$1`, [id,pid]);
-    const out = await q(`SELECT id,email,role,player_id FROM users WHERE id=$1`,[id]);
-    return { user: out.rows[0], created:false };
-  }
-}
-app.post('/admin/players/:pid/attach_user', auth, adminOnly, async (req,res)=>{
-  try{
-    const { email, password } = req.body||{};
-    const r = await linkUserToPlayer(req.params.pid, email, password);
-    ok(res, r);
-  }catch(e){ bad(res,400,e.message||'erreur liaison'); }
-});
-app.post('/admin/players/:pid/link-user', auth, adminOnly, async (req,res)=>{
-  try{
-    const { email, password } = req.body||{};
-    const r = await linkUserToPlayer(req.params.pid, email, password);
-    ok(res, r);
-  }catch(e){ bad(res,400,e.message||'erreur liaison'); }
-});
-app.post('/admin/players/:pid/link', auth, adminOnly, async (req,res)=>{
-  try{
-    const { email, password } = req.body||{};
-    const r = await linkUserToPlayer(req.params.pid, email, password);
-    ok(res, r);
-  }catch(e){ bad(res,400,e.message||'erreur liaison'); }
-});
-app.delete('/admin/players/:pid/attach_user', auth, adminOnly, async (req,res)=>{
-  await q(`UPDATE users SET player_id=NULL WHERE player_id=$1`,[req.params.pid]);
-  ok(res,{ ok:true });
-});
-
-/* ---------- Panel Membre (/me*) ---------- */
+/* ---------- Panel Membre (résumés & matches) ---------- */
 async function loadDaysForSeason(seasonId){
   const r = await q(`SELECT day,payload FROM matchday WHERE season_id=$1 ORDER BY day ASC`, [seasonId]);
   return { season_id: seasonId, rows: r.rows };
@@ -677,7 +527,6 @@ function rowsForPlayer(payload, pid, date){
   }
   return out;
 }
-
 app.get('/me/player', auth, async (req,res)=>{
   const r=await q(`SELECT id,email,role,player_id FROM users WHERE id=$1`,[req.user.uid]);
   const user = r.rows[0];
@@ -761,34 +610,10 @@ app.post('/me/photo', auth, upload.single('photo'), async (req,res)=>{
   ok(res,{ player:r.rows[0] });
 });
 
-/* ---------- presence (en ligne) ---------- */
-// ping de présence (toutes les 30–60s côté client)
-app.post('/presence/beat', auth, async (req,res)=>{
-  const r = await q(`SELECT player_id FROM users WHERE id=$1`,[req.user.uid]);
-  const pid = r.rows[0]?.player_id;
-  if(pid){ presence.players.set(pid, Date.now()); }
-  ok(res,{ ok:true });
-});
-// liste des player_id "online" récemment
-app.get('/presence/players', auth, async (_req,res)=>{
-  const now=Date.now(), TTL=PRESENCE_TTL_MS;
-  const online=[];
-  for(const [pid,ts] of presence.players.entries()){
-    if(now - ts <= TTL) online.push(pid);
-  }
-  ok(res,{ online });
-});
-
-
-/* ---------- matchdays (saisies) ---------- */
+/* ---------- matchdays, standings, seasons (inchangé) ---------- */
 app.get('/matchdays', auth, async (req,res)=>{
   const sid = await resolveSeasonId(req.query.season);
-  const r = await q(
-    `SELECT day FROM matchday
-     WHERE season_id=$1
-     ORDER BY day ASC`,
-    [sid]
-  );
+  const r = await q(`SELECT day FROM matchday WHERE season_id=$1 ORDER BY day ASC`, [sid]);
   ok(res, { season_id: sid, days: r.rows.map(x=>dayjs(x.day).format('YYYY-MM-DD')) });
 });
 app.get('/matchdays/:date', auth, async (req,res)=>{
@@ -797,85 +622,14 @@ app.get('/matchdays/:date', auth, async (req,res)=>{
   if (!r.rowCount) return bad(res,404,'introuvable');
   res.json(r.rows[0].payload);
 });
-
-
-/* ---------- drafts (brouillons temps réel) ---------- */
-app.get('/matchdays/draft/:date', auth, async (req,res)=>{
-  const d = req.params.date;
-  try{
-    const r = await q('SELECT payload FROM draft WHERE day=$1',[d]);
-    if(!r.rowCount) return bad(res,404,'no draft');
-    ok(res,{ payload: r.rows[0].payload });
-  }catch(e){ bad(res,500,'draft get error'); }
-});
-app.put('/matchdays/draft/:date', auth, async (req,res)=>{
-  const d = req.params.date;
-  const payload = req.body || {};
-  try{
-    await q(`INSERT INTO draft(day,payload,updated_at)
-             VALUES ($1,$2,now())
-             ON CONFLICT (day) DO UPDATE SET payload=EXCLUDED.payload, updated_at=now()`,
-             [d, payload]);
-    io.to(`draft:${d}`).emit('draft:update', { date:d });
-    ok(res,{ ok:true });
-  }catch(e){ bad(res,500,'draft save error'); }
-});
-app.delete('/matchdays/draft/:date', auth, async (req,res)=>{
-  try{
-    await q('DELETE FROM draft WHERE day=$1',[req.params.date]);
-    ok(res,{ ok:true });
-  }catch(e){ bad(res,500,'draft delete error'); }
-});
-
-app.put('/matchdays/:day/season', auth, adminOnly, async (req,res)=>{
-  const day = req.params.day;
-  const { season_id } = req.body||{};
-  if(!season_id) return bad(res,400,'season_id requis');
-  const chk = await q(`SELECT 1 FROM seasons WHERE id=$1`,[+season_id]);
-  if(!chk.rowCount) return bad(res,404,'saison inconnue');
-  await q(`UPDATE matchday SET season_id=$2 WHERE day=$1`,[day,+season_id]);
-  ok(res,{ ok:true });
-});
-app.post('/matchdays/confirm', auth, adminOnly, async (req,res)=>{
-  const { date, d1=[], d2=[], barrage={}, champions={}, season_id } = req.body||{};
-  if(!date) return bad(res,400,'date requise');
-  const sid = season_id ? +season_id : await currentSeasonId();
-  const payload = { d1, d2, barrage, champions };
-  await q(`INSERT INTO matchday(day,season_id,payload,created_at)
-           VALUES ($1,$2,$3,now())
-           ON CONFLICT (day) DO UPDATE SET season_id=EXCLUDED.season_id, payload=EXCLUDED.payload`,
-           [date, sid, payload]);
-  // supprimer un éventuel brouillon et notifier tout le monde
-  await q('DELETE FROM draft WHERE day=$1',[date]);
-  io.to(`draft:${date}`).emit('day:confirmed', { date });
-  io.emit('season:changed');
-  ok(res,{ ok:true });
-});
-app.delete('/matchdays/:date', auth, adminOnly, async (req,res)=>{
-  await q(`DELETE FROM matchday WHERE day=$1`,[req.params.date]);
-  ok(res,{ ok:true });
-});
-
-/* ---------- standings ---------- */
 app.get('/standings', auth, async (req,res)=>{
   const sid = await resolveSeasonId(req.query.season);
-  const list = await computeSeasonStandings(sid);
-  ok(res,{ season_id:sid, standings:list });
+  ok(res,{ season_id:sid, standings: await computeSeasonStandings(sid) });
 });
 app.get('/season/standings', auth, async (req,res)=>{
   const sid = await resolveSeasonId(req.query.season);
-  const list = await computeSeasonStandings(sid);
-  ok(res,{ season_id:sid, standings:list });
+  ok(res,{ season_id:sid, standings: await computeSeasonStandings(sid) });
 });
-app.get('/seasons/:id/standings', auth, async (req,res)=>{
-  const sid = +req.params.id;
-  const chk = await q(`SELECT 1 FROM seasons WHERE id=$1`,[sid]);
-  if(!chk.rowCount) return bad(res,404,'saison inconnue');
-  const list = await computeSeasonStandings(sid);
-  ok(res,{ season_id:sid, standings:list });
-});
-
-/* ---------- saisons (liste + création + fallbacks) ---------- */
 app.get('/seasons', auth, async (_req,res)=>{
   const r=await q(`SELECT id,name,is_closed,started_at,ended_at FROM seasons ORDER BY id DESC`);
   ok(res,{ seasons:r.rows });
@@ -884,30 +638,13 @@ app.get('/season/list', auth, async (_req,res)=>{
   const r=await q(`SELECT id,name FROM seasons ORDER BY id DESC`);
   ok(res,{ seasons:r.rows });
 });
-app.get('/season/ids', auth, async (_req,res)=>{
-  const r=await q(`SELECT id FROM seasons ORDER BY id DESC`);
-  ok(res, r.rows.map(x=>x.id));
-});
-app.post('/seasons', auth, adminOnly, async (req,res)=>{
-  const { name } = req.body||{};
-  if(!name || !name.trim()) return bad(res,400,'nom requis');
-  const r=await q(`INSERT INTO seasons(name,is_closed) VALUES ($1,false) RETURNING id,name,is_closed,started_at,ended_at`,[name.trim()]);
-  ok(res,{ season:r.rows[0] });
-});
 app.get('/season/current', auth, async (_req,res)=>{
   const r=await q(`SELECT id,name FROM seasons WHERE is_closed=false ORDER BY id DESC LIMIT 1`);
   if(!r.rowCount) return bad(res,404,'aucune saison en cours');
   ok(res, r.rows[0]);
 });
-app.get('/seasons/:id/matchdays', auth, async (req,res)=>{
-  const sid = +req.params.id;
-  const chk = await q(`SELECT 1 FROM seasons WHERE id=$1`,[sid]);
-  if(!chk.rowCount) return bad(res,404,'saison inconnue');
-  const r = await q(`SELECT day FROM matchday WHERE season_id=$1 ORDER BY day ASC`,[sid]);
-  ok(res,{ days: r.rows.map(x=>dayjs(x.day).format('YYYY-MM-DD')) });
-});
 
-/* ---------- face-à-face (membre connecté vs opp) ---------- */
+/* ---------- face-à-face saison (membre connecté vs opp) ---------- */
 app.get('/faceoff/:oppId', auth, async (req,res)=>{
   const mePid = await getLinkedPlayerId(req.user.uid);
   const oppId = req.params.oppId;
@@ -971,30 +708,17 @@ app.get('/faceoff/:oppId', auth, async (req,res)=>{
   });
 });
 
-/* ---------- websockets ---------- */
-io.on('connection', (socket)=>{
-  // rejoindre une "room" (par date)
-  socket.on('join', ({room})=>{
-    if(room && typeof room === 'string') socket.join(room);
-  });
-  // relais des notifications de brouillon
-  socket.on('draft:update', ({date})=>{
-    if(!date) return;
-    io.to(`draft:${date}`).emit('draft:update', { date });
-  });
-});
-
 /* =========================================================
    DUELS (hors saison)
    ========================================================= */
 
-// --- validator tolérant ---
+// Valide le payload et tolère différents alias (scoreA/score_a, playerA/player_a, etc.)
 async function validateDuelInput(body) {
-  const aRaw = pick(body, ['player_a', 'a', 'playerA', 'joueur_a', 'joueurA', 'A', 'idA']);
-  const bRaw = pick(body, ['player_b', 'b', 'playerB', 'joueur_b', 'joueurB', 'B', 'idB']);
-  const saRaw = pick(body, ['score_a', 'sa', 'scoreA', 'scorea']);
-  const sbRaw = pick(body, ['score_b', 'sb', 'scoreB', 'scoreb']);
-  const whenRaw = pick(body, ['played_at', 'when', 'date', 'dateTime', 'datetime']);
+  const aRaw = pick(body, ['player_a','a','playerA','joueur_a','joueurA','A','idA']);
+  const bRaw = pick(body, ['player_b','b','playerB','joueur_b','joueurB','B','idB']);
+  const saRaw= pick(body, ['score_a','sa','scoreA','scorea']);
+  const sbRaw= pick(body, ['score_b','sb','scoreB','scoreb']);
+  const whenRaw = pick(body,['played_at','when','date','dateTime','datetime']);
 
   const a = extractId(aRaw);
   const b = extractId(bRaw);
@@ -1009,7 +733,6 @@ async function validateDuelInput(body) {
   }
   if (isNaN(+played_at)) throw new Error('Date invalide');
 
-  // existence des joueurs
   const chk = await q(`SELECT player_id FROM players WHERE player_id = ANY($1::text[])`, [[a, b]]);
   if (chk.rowCount !== 2) throw new Error('Joueur introuvable');
 
@@ -1020,26 +743,24 @@ async function validateDuelInput(body) {
 async function ensureMemberCanWrite(req, a, b) {
   const role = String(req.user?.role || 'member').toLowerCase();
   if (role === 'admin') return; // admin = ok
-  const myPlayerId = req.user?.player_id || (await getLinkedPlayerId(req.user.id));
+  const myPlayerId = req.user?.player_id || (await getLinkedPlayerId(req.user.uid));
   if (!myPlayerId || (myPlayerId !== a && myPlayerId !== b)) {
     throw new Error('Vous devez être l’un des deux joueurs');
   }
 }
 
-// POST /duels — crée un duel
+// POST /duels — crée un duel (membre = doit être concerné)
 app.post('/duels', requireAuth, async (req, res) => {
   try {
     const { a, b, score_a, score_b, played_at } = await validateDuelInput(req.body);
     await ensureMemberCanWrite(req, a, b);
-
-    const created_by = req.user.id;
+    const created_by = req.user.uid;
     const ins = await q(
       `INSERT INTO duels (player_a, player_b, score_a, score_b, played_at, created_by)
        VALUES ($1,$2,$3,$4,$5,$6)
        RETURNING id`,
       [a, b, score_a, score_b, played_at, created_by]
     );
-
     res.status(201).json({ ok: true, id: ins.rows[0].id });
   } catch (e) {
     res.status(400).json({ error: e.message || 'Erreur' });
@@ -1080,10 +801,8 @@ app.get('/duels/compare', requireAuth, async (req, res) => {
       sb: r.score_b
     }));
 
-    // totaux
     let winsA = 0, winsB = 0, draws = 0, gfA = 0, gfB = 0;
     for (const L of legs) {
-      // perspective A=param a
       const aIsHome = L.a === a;
       const gf = aIsHome ? L.sa : L.sb;
       const ga = aIsHome ? L.sb : L.sa;
@@ -1104,7 +823,7 @@ app.get('/duels/compare', requireAuth, async (req, res) => {
   }
 });
 
-// GET /duels/recent?limit=5  (optionnel: player=ID pour filtrer)
+// GET /duels/recent?limit=5  (optionnel: player=ID)
 app.get('/duels/recent', requireAuth, async (req, res) => {
   try {
     const limit = Math.max(1, Math.min(50, safeInt(req.query.limit, 5)));
@@ -1123,13 +842,12 @@ app.get('/duels/recent', requireAuth, async (req, res) => {
   }
 });
 
-// DELETE /duels/:id — admin ou créateur (membre si concerné)
+// DELETE /duels/:id — admin ou créateur ou joueur impliqué
 app.delete('/duels/:id', requireAuth, async (req, res) => {
   try {
     const id = safeInt(req.params.id, NaN);
     if (!Number.isFinite(id)) return res.status(400).json({ error: 'ID invalide' });
 
-    // récup pour contrôle
     const rs = await q(`SELECT player_a, player_b, created_by FROM duels WHERE id = $1`, [id]);
     if (!rs.rowCount) return res.status(404).json({ error: 'Introuvable' });
 
@@ -1137,8 +855,8 @@ app.delete('/duels/:id', requireAuth, async (req, res) => {
     const role = String(req.user?.role || 'member').toLowerCase();
 
     if (role !== 'admin') {
-      const myPlayerId = req.user?.player_id || (await getLinkedPlayerId(req.user.id));
-      const isCreator = String(row.created_by) === String(req.user.id);
+      const myPlayerId = req.user?.player_id || (await getLinkedPlayerId(req.user.uid));
+      const isCreator = String(row.created_by) === String(req.user.uid);
       const involved = myPlayerId && (myPlayerId === row.player_a || myPlayerId === row.player_b);
       if (!isCreator && !involved) {
         return res.status(403).json({ error: 'Interdit' });
@@ -1152,13 +870,13 @@ app.delete('/duels/:id', requireAuth, async (req, res) => {
   }
 });
 
-// ========== FIN DUELS ==========
-
-// (Optionnel) endpoint presence
-app.post('/presence/ping', requireAuth, async (req, res) => {
-  // tu peux loguer dans une table presence si tu veux.
-  res.json({ ok: true, at: new Date().toISOString() });
+/* ---------- websockets basiques ---------- */
+io.on('connection', (socket)=>{
+  socket.on('join', ({room})=>{
+    if(room && typeof room === 'string') socket.join(room);
+  });
 });
+
 /* ---------- start ---------- */
 (async ()=>{
   try{

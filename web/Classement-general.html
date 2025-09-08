@@ -110,7 +110,6 @@
     <div id="menu" class="menu top">
       <a class="btn" href="Accueil.html">🏠 Accueil</a>
       <a class="btn" id="btnProfile" href="Panel-Membre.html" style="display:none">👤 Mon profil</a>
-      <a class="btn" href="Duel.html">💪🏽 Duel</a>
       <a class="btn" id="linkMembers" href="Admin-Joueurs.html">👥 Admin-Joueurs</a>
       <a class="btn adminOnly" href="Admin-Utilisateurs.html">🛡️ Admin-Utilisateurs</a>
       <button id="theme" class="btn" title="Basculer thème">☀️</button>
@@ -826,48 +825,6 @@ renderSeason();
     ping(); setInterval(ping, 15000);
   }
 })();
-(function(){
-  const API=(localStorage.getItem('efoot.api')|| (location.protocol.startsWith('http')?location.protocol:'http:')+'//'+location.hostname+':3000').replace(/\/+$/,'');
-  const token=localStorage.getItem('efoot.token')||'';
-  const role =(localStorage.getItem('efoot.role')||'member').toLowerCase();
-
-  if(!token) return;
-
-  // 1) PING présence pour les membres (pas nécessaire pour les admins)
-  if(role !== 'admin'){
-    const ping = ()=> fetch(`${API}/presence/ping`, { method:'POST', headers:{Authorization:`Bearer ${token}`} }).catch(()=>{});
-    ping();
-    setInterval(ping, 15000);
-  }
-
-  // 2) Mise à jour visuelle des pastilles
-  async function refreshOnline(){
-    try{
-      const r = await fetch(`${API}/presence/players`, { headers:{Authorization:`Bearer ${token}`}});
-      if(!r.ok) return;
-      const d = await r.json();
-      const onlineSet = new Set((d.online||[]).map(x=> typeof x==='string'? x : x.player_id));
-
-      // Pour chaque ligne/carte portant data-player-id, on applique .online si présent
-      document.querySelectorAll('[data-player-id]').forEach(el=>{
-        const pid = el.getAttribute('data-player-id');
-        let dot = el.querySelector('.dot');
-        if(!dot){
-          dot = document.createElement('span');
-          dot.className = 'dot';
-          const nameEl = el.querySelector('.name') || el.firstElementChild || el;
-          nameEl.parentNode.insertBefore(dot, nameEl); // ajoute la pastille avant le nom
-        }
-        dot.classList.toggle('online', onlineSet.has(pid));
-      });
-    }catch(_){}
-  }
-
-  // Première maj rapide puis toutes les 30s (TTL serveur ≈ 70s)
-  refreshOnline();
-  setInterval(refreshOnline, 30000);
-})();
-
 </script>
 
 <footer style="text-align: center; font-family:'Gill Sans', 'Gill Sans MT', Calibri, 'Trebuchet MS', sans-serif;">Copyright © -GOUZEPE GAMING CLUB 2025</footer>

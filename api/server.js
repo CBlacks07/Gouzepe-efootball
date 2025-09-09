@@ -24,7 +24,7 @@ const useSSL = (process.env.PGSSL === 'true') || process.env.RENDER === 'true' |
 const { Pool } = require('pg');
 
 const pool = new Pool({
-  connectionString: process.env.postgresql://gouzepe_db_fvy8_user:rcs1qHRNBAyy8mE6xY7rtg818rzHlcur@dpg-d3026bqdbo4c73b6kko0-a/gouzepe_db_fvy8
+  connectionString: process.env.DATABASE_URL
   ssl: {
     rejectUnauthorized: false // <-- Très important pour les connexions sur Render
   }

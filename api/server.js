@@ -20,16 +20,23 @@ const CORS_ORIGIN = process.env.CORS_ORIGIN || '*';
 const JWT_SECRET = process.env.JWT_SECRET || '1XS1r4QJNp6AtkjORvKUU01RZRfzbGV+echJsio9gq8lAOc2NW7sSYsQuncE6+o9';
 const EMAIL_DOMAIN = process.env.EMAIL_DOMAIN || 'gz.local';
 
-const useSSL = (process.env.PGSSL === 'true') || process.env.RENDER === 'true' || process.env.NODE_ENV === 'production';
-const { Pool } = require('pg');
+const useSSL =
+  process.env.PGSSL === 'true' ||
+  process.env.RENDER === 'true' ||
+  process.env.NODE_ENV === 'production';
 
-const pool = new Pool({
-  connectionString: process.env.DATABASE_URL
-  ssl: {
-    rejectUnauthorized: false // <-- Très important pour les connexions sur Render
-  }
-});
+const pgOpts = process.env.DATABASE_URL
+  ? { connectionString: process.env.DATABASE_URL, ssl: useSSL ? { rejectUnauthorized: false } : false }
+  : {
+      host: process.env.PGHOST || '127.0.0.1',
+      port: +(process.env.PGPORT || 5432),
+      database: process.env.PGDATABASE || 'EFOOTBALL',
+      user: process.env.PGUSER || 'postgres',
+      password: process.env.PGPASSWORD || 'Admin123',
+      ssl: useSSL ? { rejectUnauthorized: false } : false,
+    };
 
+const pool = new Pool(pgOpts);
 const app = express();
 const server = http.createServer(app);
 const io = require('socket.io')(server, {
@@ -156,23 +163,22 @@ async function ensureSchema(){
 await q(`ALTER TABLE draft ADD COLUMN IF NOT EXISTS author_user_id INTEGER`);
 await q(`CREATE INDEX IF NOT EXISTS draft_author_idx ON draft(author_user_id)`);
 
-await q(`ALTER TABLE sessions ADD COLUMN IF NOT EXISTS logout_at TIMESTAMPTZ`);
-await q(`ALTER TABLE sessions ADD COLUMN IF NOT EXISTS cleaned_after_logout BOOLEAN NOT NULL DEFAULT false`);
-
-
   /* === SESSIONS & HANDOFF (nouveau) === */
   await q(`CREATE TABLE IF NOT EXISTS sessions(
-    id TEXT PRIMARY KEY,
-    user_id INTEGER REFERENCES users(id) ON DELETE CASCADE,
-    device TEXT,
-    user_agent TEXT,
-    ip TEXT,
-    created_at TIMESTAMPTZ DEFAULT now(),
-    last_seen TIMESTAMPTZ DEFAULT now(),
-    is_active BOOLEAN NOT NULL DEFAULT true,
-    revoked_at TIMESTAMPTZ
-  )`);
+     id TEXT PRIMARY KEY,
+     user_id INTEGER REFERENCES users(id) ON DELETE CASCADE,
+     device TEXT,
+     user_agent TEXT,
+     ip TEXT,
+     created_at TIMESTAMPTZ DEFAULT now(),
+     last_seen TIMESTAMPTZ DEFAULT now(),
+     is_active BOOLEAN NOT NULL DEFAULT true,
+     revoked_at TIMESTAMPTZ
+   )`);
   await q(`CREATE INDEX IF NOT EXISTS sessions_user_active ON sessions(user_id) WHERE is_active`);
+  await q(`ALTER TABLE sessions ADD COLUMN IF NOT EXISTS logout_at TIMESTAMPTZ`);
+  await q(`ALTER TABLE sessions ADD COLUMN IF NOT EXISTS cleaned_after_logout BOOLEAN NOT NULL DEFAULT false`);
+
 
   await q(`CREATE TABLE IF NOT EXISTS handoff_requests(
     id TEXT PRIMARY KEY,

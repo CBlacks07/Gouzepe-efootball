@@ -20,10 +20,11 @@ const CORS_ORIGIN = process.env.CORS_ORIGIN || '*';
 const JWT_SECRET = process.env.JWT_SECRET || '1XS1r4QJNp6AtkjORvKUU01RZRfzbGV+echJsio9gq8lAOc2NW7sSYsQuncE6+o9';
 const EMAIL_DOMAIN = process.env.EMAIL_DOMAIN || 'gz.local';
 
-const useSSL =
-  process.env.PGSSL === 'true' ||
-  process.env.RENDER === 'true' ||
-  process.env.NODE_ENV === 'production';
+const useSSL = process.env.PGSSL === 'true' || process.env.RENDER === 'true' || process.env.NODE_ENV === 'production';
+const pgOpts = process.env.DATABASE_URL
+  ? { connectionString: process.env.DATABASE_URL, ssl: useSSL ? { rejectUnauthorized: false } : false }
+  : { /* config locale */ };
+const pool = new Pool(pgOpts);
 
 const pgOpts = process.env.DATABASE_URL
   ? { connectionString: process.env.DATABASE_URL, ssl: useSSL ? { rejectUnauthorized: false } : false }
@@ -35,6 +36,23 @@ const pgOpts = process.env.DATABASE_URL
       password: process.env.PGPASSWORD || 'Admin123',
       ssl: useSSL ? { rejectUnauthorized: false } : false,
     };
+const allow = (process.env.CORS_ORIGIN || '*')
+  .split(',')
+  .map(s => s.trim())
+  .filter(Boolean);
+
+app.use(cors({
+  origin: (origin, cb) => {
+    if (!origin) return cb(null, true); // requêtes server-to-server
+    if (allow.includes('*') || allow.includes(origin)) return cb(null, true);
+    return cb(new Error('CORS blocked'), false);
+  },
+  credentials: true,
+  methods: 'GET,POST,PUT,PATCH,DELETE,OPTIONS',
+  allowedHeaders: 'Content-Type, Authorization'
+}));
+app.options('*', cors());
+
 
 const pool = new Pool(pgOpts);
 const app = express();

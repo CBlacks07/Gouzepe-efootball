@@ -21,13 +21,13 @@ const JWT_SECRET = process.env.JWT_SECRET || '1XS1r4QJNp6AtkjORvKUU01RZRfzbGV+ec
 const EMAIL_DOMAIN = process.env.EMAIL_DOMAIN || 'gz.local';
 
 const useSSL = (process.env.PGSSL === 'true') || process.env.RENDER === 'true' || process.env.NODE_ENV === 'production';
+const { Pool } = require('pg');
+
 const pool = new Pool({
-  host: process.env.PGHOST || '127.0.0.1',
-  port: +(process.env.PGPORT || 5432),
-  database: process.env.PGDATABASE || 'EFOOTBALL',
-  user: process.env.PGUSER || 'postgres',
-  password: process.env.PGPASSWORD || 'Admin123',
-  ssl: useSSL ? { rejectUnauthorized: false } : false,
+  connectionString: process.env.postgresql://gouzepe_db_fvy8_user:rcs1qHRNBAyy8mE6xY7rtg818rzHlcur@dpg-d3026bqdbo4c73b6kko0-a/gouzepe_db_fvy8
+  ssl: {
+    rejectUnauthorized: false // <-- Très important pour les connexions sur Render
+  }
 });
 
 const app = express();

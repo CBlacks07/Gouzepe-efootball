@@ -20,22 +20,30 @@ const CORS_ORIGIN = process.env.CORS_ORIGIN || '*';
 const JWT_SECRET = process.env.JWT_SECRET || '1XS1r4QJNp6AtkjORvKUU01RZRfzbGV+echJsio9gq8lAOc2NW7sSYsQuncE6+o9';
 const EMAIL_DOMAIN = process.env.EMAIL_DOMAIN || 'gz.local';
 
-const useSSL = process.env.PGSSL === 'true' || process.env.RENDER === 'true' || process.env.NODE_ENV === 'production';
-const pgOpts = process.env.DATABASE_URL
-  ? { connectionString: process.env.DATABASE_URL, ssl: useSSL ? { rejectUnauthorized: false } : false }
-  : { /* config locale */ };
-const pool = new Pool(pgOpts);
+// === PostgreSQL connection (unique) ===
+const useSSL =
+  process.env.PGSSL === 'true' ||
+  process.env.RENDER === 'true' ||
+  process.env.NODE_ENV === 'production';
 
-const pgOpts = process.env.DATABASE_URL
-  ? { connectionString: process.env.DATABASE_URL, ssl: useSSL ? { rejectUnauthorized: false } : false }
-  : {
-      host: process.env.PGHOST || '127.0.0.1',
-      port: +(process.env.PGPORT || 5432),
-      database: process.env.PGDATABASE || 'EFOOTBALL',
-      user: process.env.PGUSER || 'postgres',
-      password: process.env.PGPASSWORD || 'Admin123',
+const pgConfigFromUrl = process.env.DATABASE_URL
+  ? {
+      connectionString: process.env.DATABASE_URL,
       ssl: useSSL ? { rejectUnauthorized: false } : false,
-    };
+    }
+  : null;
+
+const pgConfigFallback = {
+  host: process.env.PGHOST || '127.0.0.1',
+  port: +(process.env.PGPORT || 5432),
+  database: process.env.PGDATABASE || 'EFOOTBALL',
+  user: process.env.PGUSER || 'postgres',
+  password: process.env.PGPASSWORD || 'Admin123',
+  ssl: useSSL ? { rejectUnauthorized: false } : false,
+};
+
+// Une seule création de pool :
+const pool = new Pool(pgConfigFromUrl || pgConfigFallback);
 const allow = (process.env.CORS_ORIGIN || '*')
   .split(',')
   .map(s => s.trim())

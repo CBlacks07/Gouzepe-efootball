@@ -20,6 +20,30 @@ const CORS_ORIGIN = process.env.CORS_ORIGIN || '*';
 const JWT_SECRET = process.env.JWT_SECRET || '1XS1r4QJNp6AtkjORvKUU01RZRfzbGV+echJsio9gq8lAOc2NW7sSYsQuncE6+o9';
 const EMAIL_DOMAIN = process.env.EMAIL_DOMAIN || 'gz.local';
 
+const ALLOWED_ORIGINS = (process.env.CORS_ORIGIN || '*')
+  .split(',')
+  .map(s => s.trim())
+  .filter(Boolean);
+
+const app = express();
+app.use(helmet({ crossOriginResourcePolicy: { policy: 'cross-origin' } }));
+app.use(express.json({ limit: '2mb' }));
+app.use(
+  cors({
+    origin: (origin, cb) => {
+      if (!origin) return cb(null, true); // server-to-server / curl
+      if (ALLOWED_ORIGINS.includes('*') || ALLOWED_ORIGINS.includes(origin)) {
+        return cb(null, true);
+      }
+      return cb(new Error('CORS blocked'), false);
+    },
+    credentials: true,
+    methods: 'GET,POST,PUT,PATCH,DELETE,OPTIONS',
+    allowedHeaders: 'Content-Type, Authorization',
+  })
+);
+app.options('*', cors());
+
 // === PostgreSQL connection (unique) ===
 const useSSL =
   process.env.PGSSL === 'true' ||
@@ -42,13 +66,16 @@ const pgConfigFallback = {
   ssl: useSSL ? { rejectUnauthorized: false } : false,
 };
 
-// Une seule création de pool :
 const pool = new Pool(pgConfigFromUrl || pgConfigFallback);
-const allow = (process.env.CORS_ORIGIN || '*')
-  .split(',')
-  .map(s => s.trim())
-  .filter(Boolean);
 
+async function q(sql, params = []) {
+  const client = await pool.connect();
+  try {
+    return await client.query(sql, params);
+  } finally {
+    client.release();
+  }
+}
 app.use(cors({
   origin: (origin, cb) => {
     if (!origin) return cb(null, true); // requêtes server-to-server
@@ -60,14 +87,6 @@ app.use(cors({
   allowedHeaders: 'Content-Type, Authorization'
 }));
 app.options('*', cors());
-
-
-const pool = new Pool(pgOpts);
-const app = express();
-const server = http.createServer(app);
-const io = require('socket.io')(server, {
-  cors: { origin: CORS_ORIGIN === '*' ? true : CORS_ORIGIN, methods: ['GET','POST','PUT','DELETE'] }
-});
 
 /* ====== Middlewares ====== */
 app.use(helmet({ crossOriginResourcePolicy: { policy: "cross-origin" } }));

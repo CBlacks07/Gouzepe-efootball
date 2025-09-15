@@ -637,7 +637,7 @@ const rowsHTML = (rows)=> rows.map((p,i)=>{
 }).join('');
 
   let html='<!doctype html><html><head><meta charset="utf-8"><title>Classement Saison</title><style>'+css+'</style></head><body onload="window.print()">';
-  html+='<h1>'+(logo?`<img src="${logo}" alt="logo">`:'')+'Classement Général — Saison</h1>';
+  html+='<h1>'+(logo?`<img src="${logo}" alt="logo">`:'')+'Classement Général — Saison 2025-2026</h1>';
   html+=`<div class="muted">Seuil de classement : ${threshold} participations (25% des journées) — Journées: ${seasonDaysCount}</div>`;
 
   html+='<h2>Classés</h2><table><thead>'+headRow()+'</thead><tbody>'+rowsHTML(classed)+'</tbody></table>';

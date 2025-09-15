@@ -14,6 +14,28 @@ const pool = new Pool({
   try {
     const r = await pool.query('SELECT current_database() AS db, current_user AS usr');
     console.log('OK ->', r.rows[0]);
+
+    const criticalTables = [
+      'users',
+      'players',
+      'drafts',
+      'matchdays',
+      'season_totals',
+      'champion_result'
+    ];
+
+    for (const tableName of criticalTables) {
+      const tableCheck = await pool.query(
+        `SELECT 1 FROM information_schema.tables WHERE table_schema = $1 AND table_name = $2 LIMIT 1`,
+        ['public', tableName]
+      );
+      if (tableCheck.rowCount === 0) {
+        console.error(`Table manquante: ${tableName}`);
+        process.exitCode = 1;
+      } else {
+        console.log(`Table présente: ${tableName}`);
+      }
+    }
   } catch (e) {
     console.error('KO ->', e.message);
     process.exitCode = 1;

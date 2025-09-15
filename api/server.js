@@ -92,7 +92,7 @@ const PRESENCE_TTL_MS = 70 * 1000;
 const presence = { players: new Map() }; // player_id -> lastSeen (ms)
 
 /* === Equipes différentes (basées sur "Champion avec ...") === */
-const TEAM_KEY_LEN = parseInt(process.env.TEAM_KEY_LEN || '6', 10);
+const TEAM_KEY_LEN = parseInt(process.env.TEAM_KEY_LEN || '15', 20);
 function teamKey(raw){
   if(!raw) return '';
   let s = String(raw)

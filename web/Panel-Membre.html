@@ -5,10 +5,8 @@
   <meta name="viewport" content="width=device-width, initial-scale=1"/>
   <title>Panel Membre — GOUZEPE</title>
 
-  <!-- Styles globaux -->
   <link rel="stylesheet" href="theme.css"/>
 
-  <!-- Styles spécifiques (léger) -->
   <style>
     :root{
       --font-ui: system-ui,-apple-system,Segoe UI,Roboto,Inter,Ubuntu,"Trebuchet MS",sans-serif;
@@ -17,8 +15,6 @@
     html,body{font-family:var(--font-ui); line-height:var(--lh); letter-spacing:var(--tracking)}
     .wrap{max-width:1200px;margin:auto;padding:12px}
     .status{margin:8px 0;color:var(--muted)}
-
-    /* Sections rétractables */
     .section{ margin-top:12px }
     .section-head{
       display:flex;align-items:center;justify-content:space-between;gap:10px;flex-wrap:wrap;
@@ -26,22 +22,14 @@
     }
     .toggle-card{ display:inline-flex; align-items:center; gap:6px }
     .section-body[hidden]{ display:none !important }
-
-    /* KPIs */
     .kpis{display:grid;grid-template-columns:repeat(auto-fit,minmax(160px,1fr));gap:10px;margin:10px 0}
     .kpi .big{font-size:24px;font-weight:800}
-
-    /* Table wrap mobile */
     .tableWrap{overflow:auto}
     .tbl{min-width:700px}
-
-    /* Résultats (Mes confrontations) */
     .score-pill{display:inline-block;min-width:46px;text-align:center;padding:4px 8px;border-radius:10px;border:1px solid var(--border);font-weight:700}
     .score-pill.win{background:#064e3b;color:#b7fbdc}
     .score-pill.draw{background:#1f2937;color:#e5e7eb}
     .score-pill.lose{background:#5b0b0b;color:#fed7d7}
-
-    /* Comparateur */
     .cmp-grid{display:grid;grid-template-columns:1fr;gap:12px}
     @media (min-width: 920px){ .cmp-grid{grid-template-columns:1fr 1fr} }
     .avatar{width:56px;height:56px;border-radius:12px;object-fit:cover;border:1px solid var(--border)}
@@ -54,8 +42,6 @@
     .form5 .W{background:#064e3b;color:#b7fbdc}
     .form5 .D{background:#1f2937;color:#e5e7eb}
     .form5 .L{background:#5b0b0b;color:#fed7d7}
-
-    /* Modale Face-à-face (déjà en place, peaufinée) */
     dialog{border:none;border-radius:14px;max-width:980px;width:min(96vw,980px);padding:0;background:var(--panel);color:var(--text)}
     dialog::backdrop{background:rgba(0,0,0,.4);backdrop-filter:blur(1.5px)}
     .h2h-h{display:flex;align-items:center;gap:12px;padding:14px 16px;border-bottom:1px solid var(--border);font-weight:700}
@@ -75,7 +61,6 @@
 <body>
 <div class="wrap">
 
-  <!-- NAV -->
   <div class="top">
     <div class="nav">
       <div class="logo" aria-hidden="true"></div>
@@ -94,7 +79,6 @@
   <main style="margin-top:12px">
     <div id="status" class="status">—</div>
 
-    <!-- Identité -->
     <section class="card section">
       <div class="section-head">
         <h3 style="margin:6px 0">Mon espace</h3>
@@ -132,7 +116,6 @@
       </div>
     </section>
 
-    <!-- Mon profil -->
     <section class="card section">
       <div class="section-head">
         <h3 style="margin:6px 0">Mon profil</h3>
@@ -158,7 +141,6 @@
       </div>
     </section>
 
-    <!-- Mes confrontations récentes -->
     <section class="card section">
       <div class="section-head">
         <h3 style="margin:6px 0">Mes confrontations récentes</h3>
@@ -183,7 +165,6 @@
       </div>
     </section>
 
-    <!-- Comparateur de joueurs -->
     <section class="card section">
       <div class="section-head">
         <h3 style="margin:6px 0">Comparateur de joueurs</h3>
@@ -207,7 +188,6 @@
       </div>
     </section>
 
-    <!-- Recherche & Profil joueur -->
     <section class="card section">
       <div class="section-head">
         <h3 style="margin:6px 0">Rechercher un joueur</h3>
@@ -222,7 +202,6 @@
       </div>
     </section>
 
-    <!-- Classement rapide -->
     <section class="card section" id="seasonBlock">
       <div class="section-head">
         <h3 style="margin:6px 0">Classement — Saison</h3>
@@ -251,7 +230,6 @@
             <tbody></tbody>
           </table>
         </div>
-        <!-- cartes mobiles -->
         <div id="seasonCards" style="margin-top:10px"></div>
       </div>
     </section>
@@ -259,7 +237,6 @@
   </main>
 </div>
 
-<!-- Modale Profil joueur -->
 <dialog id="pModal">
   <div style="padding:14px;border-bottom:1px solid var(--border);font-weight:700" id="pmTitle">Profil joueur</div>
   <div style="padding:14px;display:grid;gap:10px">
@@ -290,7 +267,6 @@
   </div>
 </dialog>
 
-<!-- Modale Face-à-face -->
 <dialog id="h2hModal">
   <form method="dialog" style="margin:0">
     <div class="h2h-h">
@@ -587,29 +563,13 @@ function formDotsHTML(form){
   return '<div class="form5">'+ form.map(c=>`<span class="dot ${c}">${c}</span>`).join('') + '</div>';
 }
 async function getSummary(pid, season){
-  // 1) résumé
+  // Simplification : on utilise uniquement /players/:pid/summary qui contient toutes les infos
   const rs = await fetch(API+`/players/${pid}/summary?season=${season}`, { headers:{Authorization:'Bearer '+TOKEN} });
   const sum = await rs.json();
 
-  // 2) matches (pour calcul de forme)
+  // Pour la forme, on a besoin des matches séparément
   const rm = await fetch(API+`/players/${pid}/matches?season=${season}`, { headers:{Authorization:'Bearer '+TOKEN} });
   const mat = await rm.json();
-
-  // 3) fallback : si l'API n'a pas (encore) won_d1/won_d2, va les chercher dans le standings
-  if (typeof sum.won_d1 !== 'number' || typeof sum.won_d2 !== 'number') {
-    try{
-      const r2 = await fetch(API+`/season/standings?season=${season}`, { headers:{Authorization:'Bearer '+TOKEN} });
-      const d2 = await r2.json();
-      const rec = (d2.standings||[]).find(x=>x.id===pid);
-      if(rec){
-        sum.won_d1 = rec.won_d1 ?? 0;
-        sum.won_d2 = rec.won_d2 ?? 0;
-        if(typeof sum.points!=='number')   sum.points   = rec.total ?? sum.points;
-        if(typeof sum.moyenne!=='number')  sum.moyenne  = rec.moyenne ?? sum.moyenne;
-        if(typeof sum.rank!=='number')     sum.rank     = (d2.standings||[]).findIndex(x=>x.id===pid)+1 || sum.rank;
-      }
-    }catch(_) {}
-  }
 
   return { sum, matches: mat.matches||[] };
 }
@@ -618,9 +578,9 @@ function buildCmpCard(pid, data){
   const pic  = PIC_BY_ID.get(pid)||'assets/fond.png';
   const s = data.sum||{};
   const form = formDotsHTML( last5Form(data.matches||[]) );
-const wonD1 = (typeof s.won_d1 === 'number') ? s.won_d1 : '—';
-const wonD2 = (typeof s.won_d2 === 'number') ? s.won_d2 : '—';
-
+  const wonD1 = (typeof s.won_d1 === 'number') ? s.won_d1 : '—';
+  const wonD2 = (typeof s.won_d2 === 'number') ? s.won_d2 : '—';
+  const teamsUsed = (typeof s.teams_used === 'number') ? s.teams_used : '—';
 
   const block = document.createElement('div');
   block.className='card cmp-card';
@@ -639,6 +599,7 @@ const wonD2 = (typeof s.won_d2 === 'number') ? s.won_d2 : '—';
     <div class="stat-row"><span class="muted">Manches</span><b>${s.legs ?? 0}</b></div>
     <div class="stat-row"><span class="muted">BM / BC</span><b>${s.goals_for ?? 0} / ${s.goals_against ?? 0}</b></div>
     <div class="stat-row"><span class="muted">Titres D1 / D2</span><b>${wonD1} / ${wonD2}</b></div>
+    <div class="stat-row"><span class="muted">Équipes diff.</span><b>${teamsUsed}</b></div>
     <div class="stat-row"><span class="muted">Forme (5)</span>${form}</div>
   `;
   return block;

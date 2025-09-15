@@ -78,7 +78,12 @@
     if (here.startsWith('admin-')) {
       const isAdmin = (getRole() || '').toLowerCase() === 'admin';
       const isPlayersAdmin = here === 'admin-joueurs.html';
-      
+
+      if (!isAdmin && !isPlayersAdmin) {
+        toast('Accès réservé aux administrateurs.');
+        location.replace('Accueil.html');
+        return;
+      }
     }
 })();
 

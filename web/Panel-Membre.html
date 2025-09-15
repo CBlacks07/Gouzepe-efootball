@@ -8,7 +8,7 @@
   <!-- Styles globaux -->
   <link rel="stylesheet" href="theme.css"/>
 
-  <!-- Styles spécifiques -->
+  <!-- Styles spécifiques (léger) -->
   <style>
     :root{
       --font-ui: system-ui,-apple-system,Segoe UI,Roboto,Inter,Ubuntu,"Trebuchet MS",sans-serif;
@@ -31,11 +31,11 @@
     .kpis{display:grid;grid-template-columns:repeat(auto-fit,minmax(160px,1fr));gap:10px;margin:10px 0}
     .kpi .big{font-size:24px;font-weight:800}
 
-    /* table wrap */
+    /* Table wrap mobile */
     .tableWrap{overflow:auto}
     .tbl{min-width:700px}
 
-    /* Résultats */
+    /* Résultats (Mes confrontations) */
     .score-pill{display:inline-block;min-width:46px;text-align:center;padding:4px 8px;border-radius:10px;border:1px solid var(--border);font-weight:700}
     .score-pill.win{background:#064e3b;color:#b7fbdc}
     .score-pill.draw{background:#1f2937;color:#e5e7eb}
@@ -55,7 +55,7 @@
     .form5 .D{background:#1f2937;color:#e5e7eb}
     .form5 .L{background:#5b0b0b;color:#fed7d7}
 
-    /* Modales */
+    /* Modale Face-à-face (déjà en place, peaufinée) */
     dialog{border:none;border-radius:14px;max-width:980px;width:min(96vw,980px);padding:0;background:var(--panel);color:var(--text)}
     dialog::backdrop{background:rgba(0,0,0,.4);backdrop-filter:blur(1.5px)}
     .h2h-h{display:flex;align-items:center;gap:12px;padding:14px 16px;border-bottom:1px solid var(--border);font-weight:700}
@@ -69,8 +69,6 @@
     .badge.win{background:#064e3b;color:#b7fbdc}
     .badge.draw{background:#1f2937;color:#e5e7eb}
     .badge.lose{background:#5b0b0b;color:#fed7d7}
-    /* nouvel indicateur : qui mène ? */
-    .badge.lead{background:#1e3a8a;color:#dbeafe;border-color:#1e3a8a}
   </style>
 </head>
 
@@ -86,7 +84,6 @@
     <button id="menuToggle" class="menu-toggle" aria-label="Ouvrir le menu" aria-expanded="false" aria-controls="menu">☰</button>
     <div id="menu" class="menu top">
       <a class="btn" href="Accueil.html">🏠 Accueil</a>
-      <a class="btn" href="Duel.html">💪🏽 Duel</a>
       <a class="btn" href="Classement-general.html">📊 Classements</a>
       <a class="btn" id="linkMembers" href="Admin-Joueurs.html">👥 Admin-Joueurs</a>
       <button id="theme" class="btn" title="Basculer thème">☀️</button>
@@ -267,7 +264,7 @@
   <div style="padding:14px;border-bottom:1px solid var(--border);font-weight:700" id="pmTitle">Profil joueur</div>
   <div style="padding:14px;display:grid;gap:10px">
     <div style="display:flex;gap:12px;align-items:center">
-      <img id="pmAvatar" class="avatar" alt="">
+      <img id="pmAvatar" class="avatar">
       <div>
         <div id="pmName" style="font-weight:700">—</div>
         <div id="pmId" class="muted">—</div>
@@ -324,7 +321,6 @@
           <span class="badge draw" id="h2hD">N 0</span>
           <span class="badge lose" id="h2hL">D 0</span>
           <span class="badge"      id="h2hGFGA">0-0</span>
-          <!-- injecté dynamiquement si absent -->
         </div>
       </div>
 
@@ -374,7 +370,7 @@ const TOKEN = localStorage.getItem('efoot.token');
   document.addEventListener('keydown',(e)=>{ if(e.key==='Escape') open(false); });
 })();
 
-/* ===== Déconnexion ===== */
+/* ===== Déconnexion (avec confirmation) ===== */
 $('#logoutBtn').onclick=()=>{
   if(confirm('Voulez-vous vraiment vous déconnecter ?')){
     ['efoot.token','efoot.role','efoot.expAt'].forEach(k=>localStorage.removeItem(k));
@@ -382,15 +378,14 @@ $('#logoutBtn').onclick=()=>{
   }
 };
 
-/* ===== fetch protégé ===== */
+/* ===== lib fetch protégée ===== */
 async function safeFetch(url,opt={},ms=12000){
   const c=new AbortController(); const t=setTimeout(()=>c.abort(),ms);
   try{ return await fetch(url,{signal:c.signal,...opt}); } finally{ clearTimeout(t); }
 }
 
-/* ===== Données "moi" ===== */
+/* ===== Identité + KPIs + confrontations ===== */
 (async function initMe(){
-  // identité rapide
   try{
     const rp = await safeFetch(API+'/me/player', { headers:{Authorization:'Bearer '+TOKEN} }, 8000);
     const dp = await rp.json();
@@ -400,14 +395,8 @@ async function safeFetch(url,opt={},ms=12000){
   }catch(e){ console.error(e); }
 
   async function refresh(){
-    // 🔧 FIX: on prend la saison et la limite de CE bloc
-    const season = ($('#seasonConfSel')?.value || $('#seasonSel')?.value || 'current');
-    const limit  = Number($('#confLimit')?.value || 15);
-
-    // KPIs (on s'aligne sur le même paramètre saison)
-    const rs = await safeFetch(`${API}/me/stats?season=${season}`, {
-      headers:{Authorization:'Bearer '+TOKEN}
-    });
+    const season = $('#seasonSel').value;
+    const rs = await safeFetch(API+'/me/stats?season='+season, { headers:{Authorization:'Bearer '+TOKEN} });
     const ds = await rs.json();
     $('#k_played').textContent = ds.played_legs ?? 0;
     $('#k_bm').textContent     = ds.goals_for ?? 0;
@@ -416,60 +405,39 @@ async function safeFetch(url,opt={},ms=12000){
     $('#k_pts').textContent    = ds.season_points ?? '—';
     $('#k_avg').textContent    = (ds.season_average ?? '—');
 
-    // Confrontations
-    const rm = await safeFetch(`${API}/me/matches?season=${season}`, {
-      headers:{Authorization:'Bearer '+TOKEN}
-    });
+    const rm = await safeFetch(API+'/me/matches?season='+season, { headers:{Authorization:'Bearer '+TOKEN} });
     const dm = await rm.json();
-
-    const tb = $('#confTbody');
-    tb.innerHTML='';
-    (dm.matches||[])
-      .sort((a,b)=> new Date(b.date)-new Date(a.date))
-      .slice(0, limit)
+    const tb = $('#confTbody'); tb.innerHTML='';
+    (dm.matches||[]).sort((a,b)=> new Date(b.date)-new Date(a.date))
+      .slice(0, Number($('#confLimit').value||15))
       .forEach(x=>{
-        const add = (leg,sc,badge) => {
-          const tr = document.createElement('tr');
-          tr.innerHTML = `
+        const add = (leg,sc,badge) => `<tr>
             <td>${new Date(x.date).toLocaleDateString('fr-FR')}</td>
             <td>${x.division}</td>
-            <td>${x.opponent_name||x.opponent}</td>
+            <td>${(x.opponent_name||x.opponent)}</td>
             <td>${leg}</td>
             <td><span class="score-pill ${badge}">${sc}</span></td>
-            <td><button class="btn" data-view="${x.opponent}">Face-à-face</button></td>`;
-          tb.appendChild(tr);
-        };
+            <td><button class="btn" data-view="${x.opponent}">Face-à-face</button></td>
+          </tr>`;
         if(x.aller){
           const r = x.aller.gf>x.aller.ga?'win':x.aller.gf<x.aller.ga?'lose':'draw';
-          add('Aller',  `${x.aller.gf}-${x.aller.ga}`,  r);
+          tb.insertAdjacentHTML('beforeend', add('Aller', `${x.aller.gf}-${x.aller.ga}`, r));
         }
         if(x.retour){
           const r = x.retour.gf>x.retour.ga?'win':x.retour.gf<x.retour.ga?'lose':'draw';
-          add('Retour', `${x.retour.gf}-${x.retour.ga}`, r);
+          tb.insertAdjacentHTML('beforeend', add('Retour', `${x.retour.gf}-${x.retour.ga}`, r));
         }
       });
   }
-
-  // 🔧 FIX: on relie bien les bons sélecteurs à refresh()
-  $('#seasonConfSel')?.addEventListener('change', refresh);
-  $('#confLimit')?.addEventListener('change', refresh);
-
-  // Optionnel : garder les deux sélecteurs de saison synchronisés
-  $('#seasonConfSel')?.addEventListener('change', ()=>{
-    if($('#seasonSel')) $('#seasonSel').value = $('#seasonConfSel').value;
-  });
-
-  // Et si la saison globale change (en haut), on peut relancer refresh
-  $('#seasonSel')?.addEventListener('change', refresh);
-
-  // bouton Face-à-face
+  $('#seasonSel').onchange = refresh;
+  $('#confLimit').onchange = refresh;
+  $('#seasonConfSel').onchange = refresh;
   $('#confTbody').addEventListener('click',(e)=>{
     const pid=e.target?.dataset?.view; if(!pid) return; openH2H(pid);
   });
-
-  // premier rendu
   refresh();
 })();
+
 /* ===== Profil : nom / mot de passe / photo ===== */
 (function profile(){
   $('#saveName').onclick=async ()=>{
@@ -552,115 +520,39 @@ async function openPlayerPreview(pid){
   await fill(); modal.showModal();
 }
 
-/* ===== Face-à-face : filtres & qui mène ===== */
+/* ===== Face-à-face (modale) ===== */
 function _pressed(el){ return el.getAttribute('aria-pressed')==='true'; }
 function _toggle(el){ el.setAttribute('aria-pressed', _pressed(el)?'false':'true'); }
-
 async function openH2H(oppId){
-  const modal = document.getElementById('h2hModal');
-  const selSeason = document.getElementById('h2hSeason');
-  const selDay    = document.getElementById('h2hDay');
-  const chipD1    = document.getElementById('h2hD1');
-  const chipD2    = document.getElementById('h2hD2');
-  const chipAller = document.getElementById('h2hAller');
-  const chipRetour= document.getElementById('h2hRetour');
-  const body      = document.getElementById('h2hBody');
+  const modal = $('#h2hModal');
+  async function load(){
+    const r = await fetch(API+`/faceoff/${encodeURIComponent(oppId)}?season=${encodeURIComponent($('#h2hSeason').value||'current')}`, { headers:{Authorization:'Bearer '+TOKEN} });
+    const d = await r.json(); if(!r.ok) throw new Error(d.error||('HTTP '+r.status));
+    const t = d.totals || {legs:0,wins:0,draws:0,losses:0,gf:0,ga:0};
+    $('#h2hTitle').textContent = `Face-à-face : ${(d.me?.name||'Moi')} vs ${(d.opponent?.name||'Adversaire')}`;
+    $('#h2hMePic').src = d.me?.profile_pic_url ? (API+d.me.profile_pic_url) : 'assets/fond.png';
+    $('#h2hW').textContent = `V ${t.wins}`; $('#h2hD').textContent = `N ${t.draws}`; $('#h2hL').textContent = `D ${t.losses}`;
+    $('#h2hGFGA').textContent = `${t.gf}-${t.ga}`;
 
-  if(!document.getElementById('h2hLead')){
-    const lead = document.createElement('span');
-    lead.id='h2hLead'; lead.className='badge lead'; lead.style.marginLeft='6px';
-    document.querySelector('.h2h-hero .wdl').appendChild(lead);
-  }
-
-  let rawLegs = [];
-  let me = null, opp = null;
-
-  async function fetchH2H(){
-    const r = await fetch(API+`/faceoff/${encodeURIComponent(oppId)}?season=${encodeURIComponent(selSeason.value||'current')}`, {
-      headers:{Authorization:`Bearer ${TOKEN}`}
-    });
-    const d = await r.json();
-    if(!r.ok) throw new Error(d.error||('HTTP '+r.status));
-    me  = d.me; opp = d.opponent;
-
-    rawLegs = (d.legs||[]).map(L=>({
-      date: new Date(L.date),
-      dateKey: new Date(L.date).toISOString().slice(0,10),
-      division: (L.division||'').toUpperCase(),
-      leg: (L.leg||''),
-      gf: Number(L.gf||0),
-      ga: Number(L.ga||0)
-    })).sort((a,b)=> b.date - a.date);
-
-    document.getElementById('h2hTitle').textContent =
-      `Face-à-face : ${(me?.name||'Moi')} vs ${(opp?.name||'Adversaire')}`;
-    document.getElementById('h2hMePic').src =
-      (me?.profile_pic_url ? (API+me.profile_pic_url) : 'assets/fond.png');
-
-    const uniqDays = Array.from(new Set(rawLegs.map(x=>x.dateKey)));
-    selDay.innerHTML = `<option value="">Toutes journées</option>` +
-       uniqDays.map(dk=>`<option value="${dk}">${new Date(dk).toLocaleDateString('fr-FR')}</option>`).join('');
-
-    render();
-  }
-
-  function render(){
-    const fD1     = _pressed(chipD1);
-    const fD2     = _pressed(chipD2);
-    const fAller  = _pressed(chipAller);
-    const fRetour = _pressed(chipRetour);
-    const pickDay = selDay.value;
-
-    let rows = rawLegs.filter(L=>{
-      if(pickDay && L.dateKey!==pickDay) return false;
-      if(fD1||fD2){
-        if(fD1 && L.division!=='D1') return false;
-        if(fD2 && L.division!=='D2') return false;
-      }
-      if(fAller||fRetour){
-        if(fAller  && L.leg!=='Aller')  return false;
-        if(fRetour && L.leg!=='Retour') return false;
-      }
-      return true;
-    });
-
-    let W=0,D=0,Ls=0, GF=0, GA=0;
-    body.innerHTML='';
-    rows.forEach(L=>{
-      const res = (L.gf>L.ga)?'win':(L.gf<L.ga?'lose':'draw');
-      if(res==='win') W++; else if(res==='lose') Ls++; else D++;
-      GF+=L.gf; GA+=L.ga;
+    const tb=$('#h2hBody'); tb.innerHTML='';
+    (d.legs||[]).sort((a,b)=> new Date(b.date)-new Date(a.date)).forEach(L=>{
+      const badge = (+L.gf>+L.ga)?'win':(+L.gf<+L.ga?'lose':'draw');
       const tr=document.createElement('tr');
-      tr.innerHTML = `
-        <td>${L.date.toLocaleDateString('fr-FR')}</td>
-        <td>${L.division}</td>
-        <td>${L.leg}</td>
-        <td><span class="score-pill ${res}">${L.gf}&nbsp;–&nbsp;${L.ga}</span></td>`;
-      body.appendChild(tr);
+      tr.innerHTML = `<td>${new Date(L.date).toLocaleDateString('fr-FR')}</td>
+                      <td>${L.division||''}</td>
+                      <td>${L.leg||''}</td>
+                      <td><span class="score-pill ${badge}">${L.gf}&nbsp;–&nbsp;${L.ga}</span></td>`;
+      tb.appendChild(tr);
     });
-
-    document.getElementById('h2hW').textContent = `V ${W}`;
-    document.getElementById('h2hD').textContent = `N ${D}`;
-    document.getElementById('h2hL').textContent = `D ${Ls}`;
-    document.getElementById('h2hGFGA').textContent = `${GF}-${GA}`;
-
-    const lead = document.getElementById('h2hLead');
-    if(W>Ls)      lead.textContent = `Avantage : ${me?.name||'Moi'}`;
-    else if(Ls>W) lead.textContent = `Avantage : ${opp?.name||'Adversaire'}`;
-    else          lead.textContent = `Avantage : égalité`;
   }
-
   if(!modal._bound){
-    selSeason.addEventListener('change', fetchH2H);
-    selDay.addEventListener('change', render);
-    [chipD1,chipD2,chipAller,chipRetour].forEach(btn=>{
-      btn.addEventListener('click', e=>{ _toggle(e.currentTarget); render(); });
+    $('#h2hSeason').addEventListener('change', load);
+    ['h2hD1','h2hD2','h2hAller','h2hRetour'].forEach(id=>{
+      document.getElementById(id).addEventListener('click',(e)=>{ _toggle(e.currentTarget); /* filtres visuels (option à brancher si besoin) */ });
     });
     modal._bound=true;
   }
-
-  await fetchH2H();
-  modal.showModal();
+  await load(); modal.showModal();
 }
 
 /* ===== Comparateur ===== */
@@ -679,16 +571,15 @@ function fillSelectOptions(sel){
   sel.innerHTML = '<option value="">Choisir…</option>' + [...NAME_BY_ID.keys()]
     .map(id=>`<option value="${id}">${NAME_BY_ID.get(id)} — ${id}</option>`).join('');
 }
-function last5Form(matches){
-  const arr = [];
-  (matches||[]).forEach(x=>{
-    if(x.aller){
-      arr.push(x.aller.gf>x.aller.ga?'W':(x.aller.gf<x.aller.ga?'L':'D'));
-    }
-    if(x.retour){
-      arr.push(x.retour.gf>x.retour.ga?'W':(x.retour.gf<x.retour.ga?'L':'D'));
-    }
-  });
+function last5Form(legs){
+  const arr = legs.map(L=>{
+    const gf=L.aller?.gf??null, ga=L.aller?.ga??null;
+    const gf2=L.retour?.gf??null, ga2=L.retour?.ga??null;
+    const out=[];
+    if(gf!=null && ga!=null) out.push(gf>ga?'W':(gf<ga?'L':'D'));
+    if(gf2!=null && ga2!=null) out.push(gf2>ga2?'W':(gf2<ga2?'L':'D'));
+    return out;
+  }).flat();
   return arr.slice(-5);
 }
 function formDotsHTML(form){
@@ -696,59 +587,46 @@ function formDotsHTML(form){
   return '<div class="form5">'+ form.map(c=>`<span class="dot ${c}">${c}</span>`).join('') + '</div>';
 }
 async function getSummary(pid, season){
+  // 1) résumé
   const rs = await fetch(API+`/players/${pid}/summary?season=${season}`, { headers:{Authorization:'Bearer '+TOKEN} });
   const sum = await rs.json();
 
+  // 2) matches (pour calcul de forme)
   const rm = await fetch(API+`/players/${pid}/matches?season=${season}`, { headers:{Authorization:'Bearer '+TOKEN} });
   const mat = await rm.json();
-  const matches = mat.matches || [];
 
-  // fallback manches + BM/BC
-  let calcLegs=0, calcGF=0, calcGA=0;
-  matches.forEach(m=>{
-    if(m.aller){ calcLegs++; calcGF+=Number(m.aller.gf||0);  calcGA+=Number(m.aller.ga||0); }
-    if(m.retour){calcLegs++; calcGF+=Number(m.retour.gf||0); calcGA+=Number(m.retour.ga||0); }
-  });
-  if(typeof sum.legs        !== 'number') sum.legs        = calcLegs;
-  if(typeof sum.goals_for   !== 'number') sum.goals_for   = calcGF;
-  if(typeof sum.goals_against!== 'number') sum.goals_against = calcGA;
-
-  // titres / rang / points / moyenne via standings si nécessaire
-  if (typeof sum.won_d1 !== 'number' || typeof sum.won_d2 !== 'number' ||
-      typeof sum.points !== 'number' || typeof sum.moyenne !== 'number' || typeof sum.rank !== 'number'){
+  // 3) fallback : si l'API n'a pas (encore) won_d1/won_d2, va les chercher dans le standings
+  if (typeof sum.won_d1 !== 'number' || typeof sum.won_d2 !== 'number') {
     try{
       const r2 = await fetch(API+`/season/standings?season=${season}`, { headers:{Authorization:'Bearer '+TOKEN} });
       const d2 = await r2.json();
-      const srow = (d2.standings||[]).find(x=>x.id===pid);
-      if(srow){
-        if(typeof sum.won_d1  !== 'number') sum.won_d1  = srow.won_d1 ?? 0;
-        if(typeof sum.won_d2  !== 'number') sum.won_d2  = srow.won_d2 ?? 0;
-        if(typeof sum.points  !== 'number') sum.points  = srow.total ?? 0;
-        if(typeof sum.moyenne !== 'number') sum.moyenne = srow.moyenne ?? 0;
-        if(typeof sum.rank    !== 'number') sum.rank    = (d2.standings||[]).findIndex(x=>x.id===pid)+1 || null;
+      const rec = (d2.standings||[]).find(x=>x.id===pid);
+      if(rec){
+        sum.won_d1 = rec.won_d1 ?? 0;
+        sum.won_d2 = rec.won_d2 ?? 0;
+        if(typeof sum.points!=='number')   sum.points   = rec.total ?? sum.points;
+        if(typeof sum.moyenne!=='number')  sum.moyenne  = rec.moyenne ?? sum.moyenne;
+        if(typeof sum.rank!=='number')     sum.rank     = (d2.standings||[]).findIndex(x=>x.id===pid)+1 || sum.rank;
       }
-    }catch(_){}
+    }catch(_) {}
   }
 
-  return { sum, matches };
+  return { sum, matches: mat.matches||[] };
 }
 function buildCmpCard(pid, data){
   const name = NAME_BY_ID.get(pid)||pid;
   const pic  = PIC_BY_ID.get(pid)||'assets/fond.png';
-  const s    = data.sum || {};
+  const s = data.sum||{};
   const form = formDotsHTML( last5Form(data.matches||[]) );
+const wonD1 = (typeof s.won_d1 === 'number') ? s.won_d1 : '—';
+const wonD2 = (typeof s.won_d2 === 'number') ? s.won_d2 : '—';
 
-  const wonD1 = (typeof s.won_d1 === 'number') ? s.won_d1 : '—';
-  const wonD2 = (typeof s.won_d2 === 'number') ? s.won_d2 : '—';
-  const legs  = (typeof s.legs    === 'number') ? s.legs    : 0;
-  const bm    = (typeof s.goals_for === 'number') ? s.goals_for : 0;
-  const bc    = (typeof s.goals_against === 'number') ? s.goals_against : 0;
 
   const block = document.createElement('div');
   block.className='card cmp-card';
   block.innerHTML = `
     <div style="display:flex;gap:10px;align-items:center">
-      <img src="${pic}" class="avatar" alt="">
+      <img src="${pic}" class="avatar">
       <div>
         <h4>${name}</h4>
         <div class="muted">${pid}</div>
@@ -758,8 +636,8 @@ function buildCmpCard(pid, data){
     <div class="stat-row"><span class="muted">Rang</span><b>${s.rank ?? '—'}</b></div>
     <div class="stat-row"><span class="muted">Points</span><b>${s.points ?? '—'}</b></div>
     <div class="stat-row"><span class="muted">Moyenne</span><b>${(s.moyenne ?? '—')}</b></div>
-    <div class="stat-row"><span class="muted">Manches</span><b>${legs}</b></div>
-    <div class="stat-row"><span class="muted">BM / BC</span><b>${bm} / ${bc}</b></div>
+    <div class="stat-row"><span class="muted">Manches</span><b>${s.legs ?? 0}</b></div>
+    <div class="stat-row"><span class="muted">BM / BC</span><b>${s.goals_for ?? 0} / ${s.goals_against ?? 0}</b></div>
     <div class="stat-row"><span class="muted">Titres D1 / D2</span><b>${wonD1} / ${wonD2}</b></div>
     <div class="stat-row"><span class="muted">Forme (5)</span>${form}</div>
   `;
@@ -786,7 +664,7 @@ function buildCmpCard(pid, data){
   };
 })();
 
-/* ===== Classement rapide ===== */
+/* ===== Classement (bas de page) ===== */
 let seasonData=[];
 async function loadSeason(){
   try{
@@ -854,7 +732,7 @@ function bindToggles(){
 }
 bindToggles();
 
-/* ===== Ping présence ===== */
+/* ===== Ping présence (membres) ===== */
 (function(){
   const role=(localStorage.getItem('efoot.role')||'member').toLowerCase();
   if(!TOKEN || role==='admin') return;

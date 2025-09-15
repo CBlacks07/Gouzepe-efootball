@@ -140,7 +140,7 @@
       <div id="boot" class="muted">—</div>
 
       <div class="footer">
-        <span class="muted">Session : 24h</span>
+        <span class="muted">Session : 1h</span>
         <button id="submit" class="btn" type="submit">Se connecter</button>
       </div>
     </form>
@@ -337,10 +337,10 @@ document.getElementById('f').addEventListener('submit', async (e)=>{
 
       const token=d.token;
       const role=(d.user&&d.user.role)||'member';
-      const expHours = Number(d.expHours||24);
+      const expHours = Number(d.expHours||1);
       localStorage.setItem('efoot.token', token);
       localStorage.setItem('efoot.role', role.toLowerCase());
-      localStorage.setItem('efoot.expAt', String(Date.now()+expHours*3600*1000));
+      localStorage.setItem('efoot.expAt', String(Date.now()+expHours*60*1000));
 
       // <— NOUVEAU : on attend que l’API soit prête avant de quitter la page
       showBoot('Connexion réussie. Le serveur se réveille…');

@@ -209,12 +209,51 @@ await q(`CREATE INDEX IF NOT EXISTS draft_author_idx ON draft(author_user_id)`);
   }
 }
 
+ // Seed admin
+  const adminEmail = process.env.ADMIN_EMAIL || 'admin@gz.local';
+  const adminPass = process.env.ADMIN_PASSWORD || 'connect';
+  const { rows } = await q(`SELECT id FROM users WHERE email=$1`, [adminEmail]);
+  if (rows.length === 0) {
+    const hash = await bcrypt.hash(adminPass, 10);
+    await q(
+      `INSERT INTO users(email, password_hash, role) VALUES($1,$2,'admin')`,
+      [adminEmail, hash]
+    );
+    console.log(
+      `[seed] Admin créé: ${adminEmail} / (mot de passe défini via ADMIN_PASSWORD)`
+    );
+  }
+}
+
+/* =========================
+ *  Auth helpers
+ * ========================= */
+function signToken(user) {
+  const payload = { sub: user.id, email: user.email, role: user.role };
+  return jwt.sign(payload, process.env.JWT_SECRET || 'dev_secret', {
+    expiresIn: '8h',
+  });
+}
+
+async function auth(req, res, next) {
+  const h = req.headers.authorization || '';
+  const token = h.startsWith('Bearer ') ? h.slice(7) : null;
+  if (!token) return res.status(401).json({ error: 'Missing token' });
+  try {
+    req.user = jwt.verify(token, process.env.JWT_SECRET || 'dev_secret');
+    next();
+  } catch (e) {
+    return res.status(401).json({ error: 'Invalid token' });
+  }
+}
+
+
 /* ====== Auth & sessions ====== */
 function signToken(user, sessionId){
   return jwt.sign(
     { uid:user.id, role:user.role, email:user.email, sid:sessionId },
     JWT_SECRET,
-    { expiresIn: '24h' } // <- 24h
+    { expiresIn: '1h' } // <- 1h
   );
 }
 

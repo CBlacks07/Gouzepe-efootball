@@ -1,0 +1,352 @@
+<!doctype html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<title>Connexion — GOUZEPE</title>
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta http-equiv="Cache-Control" content="no-store" />
+<link rel="stylesheet" href="theme.css">
+<meta name="color-scheme" content="dark light">
+
+<style>
+  :root{
+    --bg:#0b1220; --panel:#0f1627; --panel-veil:rgba(2,6,23,.55);
+    --text:#e5e7eb; --muted:#94a3b8; --border:#1f2937;
+    --accent:#60a5fa; --accent-veil:rgba(96,165,250,.25);
+    --btn:#14532d; --btn2:#0b1b0f; --btnText:#d1fae5;
+  }
+  :root.light{
+    --bg:#f4f6fb; --panel:#ffffff; --panel-veil:rgba(255,255,255,.75);
+    --text:#0f172a; --muted:#475569; --border:#e5e7eb;
+    --accent:#2563eb; --accent-veil:rgba(37,99,235,.18);
+    --btn:#155e75; --btn2:#e6f4ff; --btnText:#0b1220;
+  }
+  *{box-sizing:border-box}
+  html,body{height:100%}
+  body{
+    margin:0; background:var(--bg); color:var(--text);
+    font-family:system-ui,-apple-system,Segoe UI,Roboto,Ubuntu,"Trebuchet MS",sans-serif;
+    -webkit-font-smoothing:antialiased; text-rendering:optimizeLegibility;
+  }
+  .wrap{
+    min-height:100dvh; min-block-size:100svh;
+    display:grid; place-items:center;
+    padding:max(16px, env(safe-area-inset-top)) max(16px, env(safe-area-inset-right)) max(16px, env(safe-area-inset-bottom)) max(16px, env(safe-area-inset-left));
+    background:
+      radial-gradient(900px 600px at 20% 0%, rgba(96,165,250,.12), transparent 40%),
+      radial-gradient(900px 600px at 80% 100%, rgba(34,197,94,.10), transparent 40%),
+      url('assets/fond.png') center/cover fixed no-repeat;
+  }
+  html.light .wrap{
+    background:
+      radial-gradient(900px 600px at 20% 0%, rgba(96,165,250,.18), transparent 42%),
+      radial-gradient(900px 600px at 80% 100%, rgba(34,197,94,.16), transparent 42%),
+      url('assets/fond.png') center/cover fixed no-repeat;
+  }
+
+  .card{
+    position:relative; margin-inline:auto; width:min(560px,94vw);
+    background:linear-gradient(to bottom right, var(--panel), var(--panel));
+    border:1px solid var(--border); border-radius:18px;
+    box-shadow:0 14px 60px rgba(0,0,0,.45);
+    overflow:hidden;
+    backdrop-filter:saturate(1.2) blur(6px);
+  }
+  .head{padding:20px 18px; border-bottom:1px solid var(--border)}
+  .head.center{display:grid; place-items:center}
+  .logo{height:68px; width:auto; display:block; border-radius:14px}
+
+  .body{padding:18px 18px 10px}
+  h2{margin:0 0 12px; font-size:18px; font-weight:700; text-align:center}
+  label{display:block; margin:10px 0 6px; color:var(--muted); font-weight:600}
+  input{
+    width:100%; padding:14px; border:1px solid var(--border); border-radius:12px;
+    background:rgba(11,16,32,.85); color:var(--text); font-size:16px;
+    outline:none; transition:border-color .15s ease, box-shadow .15s ease, background .15s;
+  }
+  html.light input{background:#fff}
+  input::placeholder{color:color-mix(in oklab, var(--muted) 75%, transparent)}
+  input:focus-visible{
+    border-color:var(--accent);
+    box-shadow:0 0 0 3px var(--accent-veil);
+    background:rgba(11,16,32,.92);
+  }
+
+  .field{position:relative}
+  .field .toggle{
+    position:absolute; right:8px; top:50%; transform:translateY(-50%);
+    border:1px solid var(--border); background:transparent; border-radius:10px;
+    padding:6px 8px; cursor:pointer;
+  }
+
+  .btn{
+    border:1px solid var(--border); background:linear-gradient(to bottom, var(--btn2), var(--btn));
+    color:var(--btnText); border-radius:12px; padding:12px 16px; cursor:pointer;
+    font-weight:700; letter-spacing:.2px; transition:transform .08s ease, filter .12s ease;
+  }
+  .btn:hover{filter:brightness(1.05)}
+  .btn:active{transform:translateY(1px)}
+  .iconbtn{
+    border:1px solid var(--border); background:transparent; border-radius:12px;
+    padding:10px 12px; cursor:pointer; color:var(--text);
+  }
+  .iconbtn.float{position:absolute; top:10px; right:10px}
+
+  .error{color:#ef4444; min-height:20px; margin-top:8px}
+  .muted{color:var(--muted)}
+
+  .footer{
+    padding:14px 18px 18px;
+    display:flex; gap:12px; align-items:center; justify-content:space-between;
+  }
+
+  @media (max-width: 520px){
+    .footer{flex-direction:column; align-items:stretch}
+    .btn{width:100%}
+  }
+  .gear{position:fixed; right:16px; bottom:16px; z-index:30}
+
+  dialog{border:none; border-radius:14px; max-width:520px; width:min(92vw,520px); padding:0; background:var(--panel); color:var(--text)}
+  dialog::backdrop{background:rgba(0,0,0,.35)}
+  .dlg-h{padding:14px 16px; border-bottom:1px solid var(--border); font-weight:700}
+  .dlg-b{padding:14px 16px; display:grid; gap:10px}
+  .dlg-f{padding:14px 16px; border-top:1px solid var(--border); display:flex; gap:10px; justify-content:flex-end}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <div class="card">
+    <div class="head center">
+      <img class="logo" src="assets/fond.png" alt="GOUZEPE">
+    </div>
+    <button id="theme" class="iconbtn float" title="Basculer thème">🌙</button>
+
+    <form id="f" class="body" autocomplete="on">
+      <h2>Connexion</h2>
+
+      <label>Email</label>
+      <input id="email" type="email" placeholder="admin@gz.local" required>
+
+      <label>Mot de passe</label>
+      <div class="field">
+        <input id="pwd" type="password" placeholder="••••••••" required>
+        <button type="button" id="togglePwd" class="toggle" title="Afficher / masquer">👁️</button>
+      </div>
+
+      <div id="err" class="error"></div>
+
+      <div class="footer">
+        <span class="muted">Session : 24h</span>
+        <button id="submit" class="btn" type="submit">Se connecter</button>
+      </div>
+    </form>
+  </div>
+
+  <button id="cfgBtn" class="iconbtn gear" title="Configurer l'API">⚙️</button>
+  <dialog id="cfg">
+    <div class="dlg-h">Configuration de l’API</div>
+    <div class="dlg-b">
+      <label>Adresse (ex: https://gouzepe-efootball.onrender.com)</label>
+      <input id="apiUrl">
+      <div id="cfgMsg" class="muted">—</div>
+    </div>
+    <div class="dlg-f">
+      <button class="iconbtn" id="cfgTest">Tester</button>
+      <button class="iconbtn" id="cfgSave">Enregistrer</button>
+      <button class="iconbtn" id="cfgClose">Fermer</button>
+    </div>
+  </dialog>
+</div>
+
+<script>
+/* ===== Thème ===== */
+(function(){
+  const k='efoot.theme';
+  const apply=m=>{document.documentElement.classList.toggle('light',m==='light'); localStorage.setItem(k,m); document.getElementById('theme').textContent=m==='light'?'🌙':'☀️'}
+  apply(localStorage.getItem(k)||'dark');
+  document.getElementById('theme').onclick=()=>apply(document.documentElement.classList.contains('light')?'dark':'light');
+})();
+
+/* ===== Helpers ===== */
+const PROD_API = 'https://gouzepe-efootball.onrender.com';
+const isPrivateNet = (h)=>/^(localhost|127\.0\.0\.1|10\.\d+\.\d+\.\d+|192\.168\.\d+\.\d+|172\.(1[6-9]|2\d|3[01])\.\d+\.\d+)$/.test(h);
+const DEF_API = ()=>{
+  const host = location.hostname || '';
+  if (isPrivateNet(host)) {
+    return (location.protocol.startsWith('http') ? location.protocol : 'http:') + '//' + host + ':3000';
+  }
+  return PROD_API;
+};
+function getAPI(){ return (localStorage.getItem('efoot.api')||DEF_API()).replace(/\/+$/,''); }
+function setAPI(v){ localStorage.setItem('efoot.api', v.replace(/\/+$/,'')); }
+function showErr(msg){ const el=document.getElementById('err'); el.textContent=msg||''; }
+async function safeFetch(url, opt={}, ms=8000){
+  const ctrl = new AbortController();
+  const t = setTimeout(()=>ctrl.abort(), ms);
+  try{ return await fetch(url, {signal:ctrl.signal, ...opt}); }
+  finally{ clearTimeout(t); }
+}
+function goAfterLogin(role){
+  const r=(role||'member').toLowerCase();
+  location.replace(r==='admin' ? 'Accueil.html' : 'Panel-Membre.html');
+}
+
+/* ===== Déjà loggé ? Redirection ===== */
+(function(){
+  const token = localStorage.getItem('efoot.token');
+  const expAt = +localStorage.getItem('efoot.expAt') || 0;
+  if (token && Date.now() < expAt) {
+    const role = (localStorage.getItem('efoot.role') || 'member').toLowerCase();
+    goAfterLogin(role);
+  }
+})();
+
+/* ===== Validation côté API (si token présent) ===== */
+(async function(){
+  const token=localStorage.getItem('efoot.token');
+  const expAt=parseInt(localStorage.getItem('efoot.expAt')||'0',10);
+  if(!token || Date.now()>=expAt) return;
+  try{
+    const r=await safeFetch(getAPI()+'/auth/me',{headers:{Authorization:'Bearer ' + token}},6000);
+    if(!r || !r.ok) throw 0;
+    const d=await r.json();
+    const role=(d.user&&d.user.role)||localStorage.getItem('efoot.role')||'member';
+    goAfterLogin(role);
+  }catch(_){ /* on garde le formulaire */ }
+})();
+
+/* ===== Afficher/masquer le mot de passe ===== */
+(function(){
+  const btn=document.getElementById('togglePwd');
+  btn?.addEventListener('click', ()=>{
+    const i=document.getElementById('pwd');
+    if(!i) return;
+    const t=i.getAttribute('type')==='password'?'text':'password';
+    i.setAttribute('type', t);
+    btn.textContent=(t==='password')?'👁️':'🙈';
+  });
+})();
+
+/* ===== Soumission (avec gestion handoff 1 session) ===== */
+document.getElementById('f').addEventListener('submit', async (e)=>{
+  e.preventDefault();
+  showErr('');
+  const btn=document.getElementById('submit');
+  btn.disabled=true; btn.textContent='Connexion…';
+
+  let email=(document.getElementById('email').value||'').trim();
+  const password=document.getElementById('pwd').value||'';
+  if(email && !email.includes('@')) email = email+'@gz.local';
+
+  // petit helper pour afficher un bouton "C’est moi" si ça traîne
+  let forceBtn;
+  function showForce(){
+    if(forceBtn) return;
+    forceBtn = document.createElement('button');
+    forceBtn.type = 'button';
+    forceBtn.className = 'btn';
+    forceBtn.style.marginTop = '10px';
+    forceBtn.textContent = "C'est moi — connecter ici";
+    forceBtn.onclick = async ()=>{
+      // on retente un login: grâce au patch serveur "auto-approbation même appareil",
+      // ça passera si c’est le même navigateur
+      try{
+        const rr = await safeFetch(getAPI()+'/auth/login', {
+          method:'POST',
+          headers:{'Content-Type':'application/json'},
+          body:JSON.stringify({email,password})
+        }, 10000);
+        const dd=await rr.json().catch(()=>({}));
+        if(rr.ok && dd.token){
+          const role=(dd.user&&dd.user.role)||'member';
+          localStorage.setItem('efoot.token', dd.token);
+          localStorage.setItem('efoot.role', role.toLowerCase());
+          localStorage.setItem('efoot.expAt', String(Date.now()+Number(dd.expHours||24)*3600*1000));
+          goAfterLogin(role); return;
+        }
+        showErr((dd&&dd.message)||"Toujours bloqué par une autre session.");
+      }catch(err){ showErr("Erreur réseau"); }
+    };
+    document.querySelector('.footer')?.appendChild(forceBtn);
+  }
+
+  try{
+    const r=await safeFetch(getAPI()+'/auth/login', {
+      method:'POST',
+      headers:{'Content-Type':'application/json'},
+      body:JSON.stringify({email,password})
+    }, 10000);
+
+    if(r && r.status===409){
+      const d=await r.json().catch(()=>({}));
+      showErr("Une autre session est active. Validation requise sur l'autre appareil…");
+      // si ça reste bloqué > 6s, on affiche "C'est moi"
+      setTimeout(showForce, 6000);
+
+      // on continue quand même le polling du statut si tu as validé ailleurs
+      if(d && d.request_id && d.nonce){
+        const poll = async ()=>{
+          try{
+            const rr = await safeFetch(getAPI()+`/auth/handoff/status?request_id=${encodeURIComponent(d.request_id)}&nonce=${encodeURIComponent(d.nonce)}`, {}, 8000);
+            const dd = await rr.json();
+            if(dd.status==='approved' && dd.token){
+              const role=(dd.user&&dd.user.role)||'member';
+              localStorage.setItem('efoot.token', dd.token);
+              localStorage.setItem('efoot.role', role.toLowerCase());
+              localStorage.setItem('efoot.expAt', String(Date.now()+Number(dd.expHours||24)*3600*1000));
+              goAfterLogin(role); return;
+            }
+            if(dd.status==='denied'){ showErr('Connexion refusée depuis l’autre appareil.'); btn.disabled=false; btn.textContent='Se connecter'; return; }
+            if(dd.status==='expired'){ showErr('Demande expirée. Recommencez.'); btn.disabled=false; btn.textContent='Se connecter'; return; }
+            setTimeout(poll, 1800);
+          }catch(_){ setTimeout(poll, 2200); }
+        };
+        poll();
+      }else{
+        btn.disabled=false; btn.textContent='Se connecter';
+      }
+      return;
+    }
+
+    const d=await r.json().catch(()=>({}));
+    if(!r || !r.ok){ throw new Error((d&&d.error)||'Identifiants invalides'); }
+
+    const token=d.token;
+    const role=(d.user&&d.user.role)||'member';
+    const expHours = Number(d.expHours||24);
+    localStorage.setItem('efoot.token', token);
+    localStorage.setItem('efoot.role', role.toLowerCase());
+    localStorage.setItem('efoot.expAt', String(Date.now()+expHours*3600*1000));
+    goAfterLogin(role);
+
+  }catch(err){
+    console.error(err);
+    showErr(err.message||'Erreur réseau');
+    btn.disabled=false; btn.textContent='Se connecter';
+  }
+});
+/* ===== Config API ===== */
+(function(){
+  const dlg=document.getElementById('cfg');
+  const btn=document.getElementById('cfgBtn');
+  const input=document.getElementById('apiUrl');
+  const msg=document.getElementById('cfgMsg');
+
+  btn.onclick=()=>{ input.value=getAPI(); msg.textContent='—'; dlg.showModal(); };
+  document.getElementById('cfgClose').onclick=()=>dlg.close();
+  document.getElementById('cfgSave').onclick=()=>{ setAPI(input.value.trim()); msg.textContent='Sauvé.'; };
+  document.getElementById('cfgTest').onclick=async()=>{
+    msg.textContent='Test…';
+    try{
+      const u=(input.value||'').trim().replace(/\/+$/,'')||DEF_API();
+      const r=await safeFetch(u+'/health',{cache:'no-store'},6000);
+      if(!r || !r.ok) throw 0;
+      msg.textContent='OK ✅';
+    }catch(_){ msg.textContent="Échec ❌ — vérifie l'URL (CORS/SSL)"; }
+  };
+})();
+</script>
+
+<footer style="text-align:center; color:var(--muted); margin:12px 0">Copyright © -GOUZEPE GAMING CLUB 2025</footer>
+</body>
+</html>

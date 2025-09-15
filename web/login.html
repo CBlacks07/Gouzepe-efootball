@@ -111,6 +111,9 @@
   .dlg-h{padding:14px 16px; border-bottom:1px solid var(--border); font-weight:700}
   .dlg-b{padding:14px 16px; display:grid; gap:10px}
   .dlg-f{padding:14px 16px; border-top:1px solid var(--border); display:flex; gap:10px; justify-content:flex-end}
+
+  /* petite ligne de statut */
+  #boot{min-height:20px; margin-top:6px; font-size:14px; color:var(--muted)}
 </style>
 </head>
 <body>
@@ -134,6 +137,7 @@
       </div>
 
       <div id="err" class="error"></div>
+      <div id="boot" class="muted">—</div>
 
       <div class="footer">
         <span class="muted">Session : 24h</span>
@@ -179,43 +183,78 @@ const DEF_API = ()=>{
 };
 function getAPI(){ return (localStorage.getItem('efoot.api')||DEF_API()).replace(/\/+$/,''); }
 function setAPI(v){ localStorage.setItem('efoot.api', v.replace(/\/+$/,'')); }
-function showErr(msg){ const el=document.getElementById('err'); el.textContent=msg||''; }
+
+function showErr(msg){ document.getElementById('err').textContent=msg||''; }
+function showBoot(msg){ document.getElementById('boot').textContent=msg||''; }
+function setBusy(v){
+  const b=document.getElementById('submit');
+  b.disabled=!!v; b.textContent=v?'Connexion…':'Se connecter';
+}
+
 async function safeFetch(url, opt={}, ms=8000){
   const ctrl = new AbortController();
   const t = setTimeout(()=>ctrl.abort(), ms);
   try{ return await fetch(url, {signal:ctrl.signal, ...opt}); }
   finally{ clearTimeout(t); }
 }
+
+/* Attente du /health (Render “cold start”) */
+async function waitForHealth(base, maxMs=90000){
+  const start=Date.now();
+  let delay=900;               // première tentative rapide
+  const mult=1.5, maxDelay=5000;
+  while(Date.now()-start < maxMs){
+    try{
+      const r=await safeFetch(base+'/health',{cache:'no-store'},Math.min(4000,delay));
+      if(r && r.ok){
+        const d=await r.json().catch(()=>({}));
+        if(d && (d.ok===true || d.service)){ return true; }
+      }
+    }catch(_){}
+    const waited = Math.round((Date.now()-start)/1000);
+    showBoot(`Le serveur démarre… (${waited}s)`);
+    await new Promise(res=>setTimeout(res, delay));
+    delay = Math.min(maxDelay, Math.round(delay*mult));
+  }
+  return false;
+}
+
+/* Validation du token avant redirection */
+async function validateSession(){
+  const token = localStorage.getItem('efoot.token');
+  const expAt = +localStorage.getItem('efoot.expAt') || 0;
+  if(!token || Date.now()>=expAt) return null;
+  try{
+    const r=await safeFetch(getAPI()+'/auth/me',{headers:{Authorization:'Bearer ' + token}},7000);
+    if(!r || !r.ok) return null;
+    const d=await r.json();
+    return (d.user && d.user.role) ? d.user.role : (localStorage.getItem('efoot.role')||'member');
+  }catch(_){ return null; }
+}
+
 function goAfterLogin(role){
   const r=(role||'member').toLowerCase();
   location.replace(r==='admin' ? 'Accueil.html' : 'Panel-Membre.html');
 }
 
-/* ===== Déjà loggé ? Redirection ===== */
-(function(){
+/* Bootstrap quand une session existe déjà (NE PLUS rediriger à l’aveugle) */
+(async function bootstrapIfAlreadyLogged(){
   const token = localStorage.getItem('efoot.token');
   const expAt = +localStorage.getItem('efoot.expAt') || 0;
-  if (token && Date.now() < expAt) {
-    const role = (localStorage.getItem('efoot.role') || 'member').toLowerCase();
-    goAfterLogin(role);
-  }
-})();
-
-/* ===== Validation côté API (si token présent) ===== */
-(async function(){
-  const token=localStorage.getItem('efoot.token');
-  const expAt=parseInt(localStorage.getItem('efoot.expAt')||'0',10);
   if(!token || Date.now()>=expAt) return;
-  try{
-    const r=await safeFetch(getAPI()+'/auth/me',{headers:{Authorization:'Bearer ' + token}},6000);
-    if(!r || !r.ok) throw 0;
-    const d=await r.json();
-    const role=(d.user&&d.user.role)||localStorage.getItem('efoot.role')||'member';
-    goAfterLogin(role);
-  }catch(_){ /* on garde le formulaire */ }
+  setBusy(true); showErr(''); showBoot('Préparation…');
+
+  // 1) Attendre /health (serveur prêt)
+  const ok = await waitForHealth(getAPI(), 90000);
+  if(!ok){ setBusy(false); showBoot(''); return; }
+
+  // 2) Valider la session et partir
+  const role = await validateSession();
+  if(role){ showBoot(''); goAfterLogin(role); }
+  else { setBusy(false); showBoot(''); }
 })();
 
-/* ===== Afficher/masquer le mot de passe ===== */
+/* Afficher/masquer le mot de passe */
 (function(){
   const btn=document.getElementById('togglePwd');
   btn?.addEventListener('click', ()=>{
@@ -227,18 +266,16 @@ function goAfterLogin(role){
   });
 })();
 
-/* ===== Soumission (avec gestion handoff 1 session) ===== */
+/* Soumission + handoff multi-appareil, AVEC attente serveur prêt avant redirection */
 document.getElementById('f').addEventListener('submit', async (e)=>{
   e.preventDefault();
-  showErr('');
-  const btn=document.getElementById('submit');
-  btn.disabled=true; btn.textContent='Connexion…';
+  showErr(''); showBoot(''); setBusy(true);
 
   let email=(document.getElementById('email').value||'').trim();
   const password=document.getElementById('pwd').value||'';
   if(email && !email.includes('@')) email = email+'@gz.local';
 
-  // petit helper pour afficher un bouton "C’est moi" si ça traîne
+  // bouton de “force” si handoff bloque trop
   let forceBtn;
   function showForce(){
     if(forceBtn) return;
@@ -247,84 +284,84 @@ document.getElementById('f').addEventListener('submit', async (e)=>{
     forceBtn.className = 'btn';
     forceBtn.style.marginTop = '10px';
     forceBtn.textContent = "C'est moi — connecter ici";
-    forceBtn.onclick = async ()=>{
-      // on retente un login: grâce au patch serveur "auto-approbation même appareil",
-      // ça passera si c’est le même navigateur
-      try{
-        const rr = await safeFetch(getAPI()+'/auth/login', {
-          method:'POST',
-          headers:{'Content-Type':'application/json'},
-          body:JSON.stringify({email,password})
-        }, 10000);
-        const dd=await rr.json().catch(()=>({}));
-        if(rr.ok && dd.token){
-          const role=(dd.user&&dd.user.role)||'member';
-          localStorage.setItem('efoot.token', dd.token);
-          localStorage.setItem('efoot.role', role.toLowerCase());
-          localStorage.setItem('efoot.expAt', String(Date.now()+Number(dd.expHours||24)*3600*1000));
-          goAfterLogin(role); return;
-        }
-        showErr((dd&&dd.message)||"Toujours bloqué par une autre session.");
-      }catch(err){ showErr("Erreur réseau"); }
-    };
+    forceBtn.onclick = doLogin; // on relance la tentative directe
     document.querySelector('.footer')?.appendChild(forceBtn);
   }
 
-  try{
-    const r=await safeFetch(getAPI()+'/auth/login', {
-      method:'POST',
-      headers:{'Content-Type':'application/json'},
-      body:JSON.stringify({email,password})
-    }, 10000);
+  const doLogin = async ()=>{
+    try{
+      const r=await safeFetch(getAPI()+'/auth/login', {
+        method:'POST',
+        headers:{'Content-Type':'application/json'},
+        body:JSON.stringify({email,password})
+      }, 12000);
 
-    if(r && r.status===409){
-      const d=await r.json().catch(()=>({}));
-      showErr("Une autre session est active. Validation requise sur l'autre appareil…");
-      // si ça reste bloqué > 6s, on affiche "C'est moi"
-      setTimeout(showForce, 6000);
-
-      // on continue quand même le polling du statut si tu as validé ailleurs
-      if(d && d.request_id && d.nonce){
-        const poll = async ()=>{
-          try{
-            const rr = await safeFetch(getAPI()+`/auth/handoff/status?request_id=${encodeURIComponent(d.request_id)}&nonce=${encodeURIComponent(d.nonce)}`, {}, 8000);
-            const dd = await rr.json();
-            if(dd.status==='approved' && dd.token){
-              const role=(dd.user&&dd.user.role)||'member';
-              localStorage.setItem('efoot.token', dd.token);
-              localStorage.setItem('efoot.role', role.toLowerCase());
-              localStorage.setItem('efoot.expAt', String(Date.now()+Number(dd.expHours||24)*3600*1000));
-              goAfterLogin(role); return;
-            }
-            if(dd.status==='denied'){ showErr('Connexion refusée depuis l’autre appareil.'); btn.disabled=false; btn.textContent='Se connecter'; return; }
-            if(dd.status==='expired'){ showErr('Demande expirée. Recommencez.'); btn.disabled=false; btn.textContent='Se connecter'; return; }
-            setTimeout(poll, 1800);
-          }catch(_){ setTimeout(poll, 2200); }
-        };
-        poll();
-      }else{
-        btn.disabled=false; btn.textContent='Se connecter';
+      if(r && r.status===409){
+        const d=await r.json().catch(()=>({}));
+        showErr("Une autre session est active. Validation requise sur l'autre appareil…");
+        setTimeout(showForce, 6000);
+        if(d && d.request_id && d.nonce){
+          const poll = async ()=>{
+            try{
+              const rr=await safeFetch(getAPI()+`/auth/handoff/status?request_id=${encodeURIComponent(d.request_id)}&nonce=${encodeURIComponent(d.nonce)}`,{},8000);
+              const dd=await rr.json();
+              if(dd.status==='approved' && dd.token){
+                const role=(dd.user&&dd.user.role)||'member';
+                localStorage.setItem('efoot.token', dd.token);
+                localStorage.setItem('efoot.role', role.toLowerCase());
+                localStorage.setItem('efoot.expAt', String(Date.now()+Number(dd.expHours||24)*3600*1000));
+                // attendre serveur prêt puis /auth/me
+                showBoot('Connexion approuvée. Préparation du serveur…');
+                const ok = await waitForHealth(getAPI(), 90000);
+                if(ok){
+                  const vr = await validateSession();
+                  if(vr){ showBoot(''); goAfterLogin(vr); return; }
+                }
+                showErr("Le serveur est lent à démarrer. Réessaie dans quelques secondes.");
+                setBusy(false); showBoot(''); return;
+              }
+              if(dd.status==='denied'){ showErr('Connexion refusée depuis l’autre appareil.'); setBusy(false); return; }
+              if(dd.status==='expired'){ showErr('Demande expirée. Recommencez.'); setBusy(false); return; }
+              setTimeout(poll, 1800);
+            }catch(_){ setTimeout(poll, 2200); }
+          };
+          poll();
+        }else{
+          setBusy(false);
+        }
+        return;
       }
-      return;
+
+      const d=await r.json().catch(()=>({}));
+      if(!r || !r.ok){ throw new Error((d&&d.error)||'Identifiants invalides'); }
+
+      const token=d.token;
+      const role=(d.user&&d.user.role)||'member';
+      const expHours = Number(d.expHours||24);
+      localStorage.setItem('efoot.token', token);
+      localStorage.setItem('efoot.role', role.toLowerCase());
+      localStorage.setItem('efoot.expAt', String(Date.now()+expHours*3600*1000));
+
+      // <— NOUVEAU : on attend que l’API soit prête avant de quitter la page
+      showBoot('Connexion réussie. Le serveur se réveille…');
+      const ok = await waitForHealth(getAPI(), 90000);
+      if(!ok){ showErr("Le serveur est lent à démarrer (Render). Patiente et réessaie."); setBusy(false); showBoot(''); return; }
+
+      // on valide le token et on part
+      const vr = await validateSession();
+      if(vr){ showBoot(''); goAfterLogin(vr); }
+      else { showErr("Impossible de valider la session pour l’instant."); setBusy(false); showBoot(''); }
+
+    }catch(err){
+      console.error(err);
+      showErr(err.message||'Erreur réseau');
+      setBusy(false); showBoot('');
     }
+  };
 
-    const d=await r.json().catch(()=>({}));
-    if(!r || !r.ok){ throw new Error((d&&d.error)||'Identifiants invalides'); }
-
-    const token=d.token;
-    const role=(d.user&&d.user.role)||'member';
-    const expHours = Number(d.expHours||24);
-    localStorage.setItem('efoot.token', token);
-    localStorage.setItem('efoot.role', role.toLowerCase());
-    localStorage.setItem('efoot.expAt', String(Date.now()+expHours*3600*1000));
-    goAfterLogin(role);
-
-  }catch(err){
-    console.error(err);
-    showErr(err.message||'Erreur réseau');
-    btn.disabled=false; btn.textContent='Se connecter';
-  }
+  doLogin();
 });
+
 /* ===== Config API ===== */
 (function(){
   const dlg=document.getElementById('cfg');

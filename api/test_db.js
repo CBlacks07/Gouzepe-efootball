@@ -18,8 +18,11 @@ const pool = new Pool({
     const criticalTables = [
       'users',
       'players',
-      'drafts',
-      'matchdays',
+      'seasons',
+      'matchday',
+      'draft',
+      'sessions',
+      'handoff_requests',
       'season_totals',
       'champion_result'
     ];

@@ -17,7 +17,7 @@ const crypto = require('crypto');
 const PORT = parseInt(process.env.PORT || '10000', 10);
 const JWT_SECRET = process.env.JWT_SECRET || '1XS1r4QJNp6AtkjORvKUU01RZRfzbGV+echJsio9gq8lAOc2NW7sSYsQuncE6+o9';
 
-// CORS: par défaut * ; restreins avec CORS_ORIGIN="https://front1,..."
+CORS_ORIGIN="https://gouzepe-api.onrender.com"
 const allowedOrigins = (process.env.CORS_ORIGIN || '*')
   .split(',').map(s => s.trim()).filter(Boolean);
 

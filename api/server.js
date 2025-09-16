@@ -1,4 +1,4 @@
-// server.js — GOUZEPE eFOOT API (Express + PostgreSQL + Socket.IO)
+// server.js — GOUZEPE eFOOT API (Express + PostgreSQL + Socket.IO) — 2025-09-16
 require('dotenv').config();
 
 const express = require('express');
@@ -14,10 +14,10 @@ const multer = require('multer');
 const crypto = require('crypto');
 
 /* ====== Config ====== */
-const PORT = parseInt(process.env.PORT || '10000', 10); // Render fournit PORT
+const PORT = parseInt(process.env.PORT || '10000', 10);
 const JWT_SECRET = process.env.JWT_SECRET || '1XS1r4QJNp6AtkjORvKUU01RZRfzbGV+echJsio9gq8lAOc2NW7sSYsQuncE6+o9';
 
-// CORS: par défaut on autorise tout (*). Pour restreindre, mets CORS_ORIGIN="https://ton-front.onrender.com,https://www.ton-domaine.com"
+// CORS: par défaut * ; restreins avec CORS_ORIGIN="https://front1,..."
 const allowedOrigins = (process.env.CORS_ORIGIN || '*')
   .split(',')
   .map(s => s.trim())
@@ -40,7 +40,6 @@ const pgOpts = process.env.DATABASE_URL
     };
 
 const pool = new Pool(pgOpts);
-
 const app = express();
 const server = http.createServer(app);
 const io = require('socket.io')(server, {
@@ -55,13 +54,12 @@ const io = require('socket.io')(server, {
 
 /* ====== Middlewares ====== */
 app.use(helmet({ crossOriginResourcePolicy: { policy: "cross-origin" } }));
-
 const corsOptions = {
   origin: (origin, cb) => {
     if (!origin || allowedOrigins.includes('*')) return cb(null, true);
     return cb(null, allowedOrigins.includes(origin));
   },
-  credentials: false, // on utilise Authorization Bearer (pas de cookies)
+  credentials: false,
   methods: ['GET','POST','PUT','DELETE','OPTIONS'],
   allowedHeaders: ['Authorization','Content-Type'],
   exposedHeaders: ['Content-Length'],
@@ -69,20 +67,18 @@ const corsOptions = {
 };
 app.use(cors(corsOptions));
 app.options('*', cors(corsOptions));
-
 app.use(express.json({ limit: '2mb' }));
 
 /* ====== Uploads ====== */
 const UP = path.join(__dirname, 'uploads');
 const UP_PLAYERS = path.join(UP, 'players');
-if(!fs.existsSync(UP_PLAYERS)) fs.mkdirSync(UP_PLAYERS, { recursive:true });
+fs.mkdirSync(UP_PLAYERS, { recursive:true });
 
 const storage = multer.diskStorage({
   destination:(req,file,cb)=> cb(null, UP_PLAYERS),
   filename:(req,file,cb)=>{
     const ext = path.extname(file.originalname).toLowerCase();
-    const safe = crypto.randomBytes(8).toString('hex') + ext;
-    cb(null, safe);
+    cb(null, crypto.randomBytes(8).toString('hex') + ext);
   }
 });
 const upload = multer({
@@ -97,12 +93,7 @@ const upload = multer({
 /* ====== Utils ====== */
 const ok  = (res, data)=> res.json({ ok:true, ...data });
 const bad = (res, code, msg)=> res.status(code).json({ ok:false, error:msg });
-
-async function q(sql, params=[]){
-  const c = await pool.connect();
-  try{ return await c.query(sql, params); }
-  finally{ c.release(); }
-}
+async function q(sql, params=[]){ const c = await pool.connect(); try{ return await c.query(sql, params); } finally{ c.release(); } }
 const newId = ()=> crypto.randomUUID();
 const normEmail = s => (s||'').trim().toLowerCase();
 const clientIp = req => (req.headers['x-forwarded-for']||req.socket.remoteAddress||'').toString().split(',')[0].trim();
@@ -111,33 +102,37 @@ const deviceLabel = req => ((req.headers['user-agent']||'').slice(0,200) || 'App
 /* ====== Static ====== */
 app.use('/uploads', express.static(UP));
 
-/* ====== DB schema (auto) ====== */
+/* ====== DB schema (auto + migrations tolérantes) ====== */
 async function ensureSchema(){
+  // users
   await q(`CREATE TABLE IF NOT EXISTS users(
     id SERIAL PRIMARY KEY,
     email TEXT UNIQUE NOT NULL,
     password_hash TEXT NOT NULL,
-    role TEXT NOT NULL DEFAULT 'member', -- admin | member
+    role TEXT NOT NULL DEFAULT 'member',
     player_id TEXT,
     created_at TIMESTAMPTZ DEFAULT now(),
     last_login TIMESTAMPTZ
   )`);
 
+  // sessions
   await q(`CREATE TABLE IF NOT EXISTS sessions(
      id TEXT PRIMARY KEY,
      user_id INTEGER REFERENCES users(id) ON DELETE CASCADE,
-     device TEXT,
-     user_agent TEXT,
-     ip TEXT,
-     created_at TIMESTAMPTZ DEFAULT now(),
-     last_seen TIMESTAMPTZ DEFAULT now(),
-     is_active BOOLEAN NOT NULL DEFAULT true,
-     revoked_at TIMESTAMPTZ,
-     logout_at TIMESTAMPTZ,
-     cleaned_after_logout BOOLEAN NOT NULL DEFAULT false
-   )`);
+     created_at TIMESTAMPTZ DEFAULT now()
+  )`);
+  // Colonnes possiblement manquantes selon anciennes versions
+  await q(`ALTER TABLE sessions ADD COLUMN IF NOT EXISTS device TEXT`);
+  await q(`ALTER TABLE sessions ADD COLUMN IF NOT EXISTS user_agent TEXT`);
+  await q(`ALTER TABLE sessions ADD COLUMN IF NOT EXISTS ip TEXT`);
+  await q(`ALTER TABLE sessions ADD COLUMN IF NOT EXISTS last_seen TIMESTAMPTZ DEFAULT now()`);
+  await q(`ALTER TABLE sessions ADD COLUMN IF NOT EXISTS is_active BOOLEAN NOT NULL DEFAULT true`);
+  await q(`ALTER TABLE sessions ADD COLUMN IF NOT EXISTS revoked_at TIMESTAMPTZ`);
+  await q(`ALTER TABLE sessions ADD COLUMN IF NOT EXISTS logout_at TIMESTAMPTZ`);
+  await q(`ALTER TABLE sessions ADD COLUMN IF NOT EXISTS cleaned_after_logout BOOLEAN NOT NULL DEFAULT false`);
   await q(`CREATE INDEX IF NOT EXISTS sessions_user_active ON sessions(user_id) WHERE is_active`);
 
+  // seasons
   await q(`CREATE TABLE IF NOT EXISTS seasons(
     id SERIAL PRIMARY KEY,
     name TEXT NOT NULL,
@@ -146,22 +141,22 @@ async function ensureSchema(){
     ended_at TIMESTAMPTZ
   )`);
   const s = await q(`SELECT id FROM seasons WHERE is_closed=false ORDER BY id DESC LIMIT 1`);
-  if(s.rowCount===0){
-    await q(`INSERT INTO seasons(name,is_closed) VALUES ('Saison courante', false)`);
-  }
+  if(s.rowCount===0){ await q(`INSERT INTO seasons(name,is_closed) VALUES ('Saison courante', false)`); }
 
+  // players (anciennes bases peuvent ne pas avoir user_id etc.)
   await q(`CREATE TABLE IF NOT EXISTS players(
     id TEXT PRIMARY KEY,
-    user_id INTEGER REFERENCES users(id) ON DELETE SET NULL,
     name TEXT NOT NULL,
-    nickname TEXT,
-    number INTEGER,
-    photo TEXT,
-    role TEXT,
     created_at TIMESTAMPTZ DEFAULT now()
   )`);
+  await q(`ALTER TABLE players ADD COLUMN IF NOT EXISTS user_id INTEGER REFERENCES users(id) ON DELETE SET NULL`);
+  await q(`ALTER TABLE players ADD COLUMN IF NOT EXISTS nickname TEXT`);
+  await q(`ALTER TABLE players ADD COLUMN IF NOT EXISTS number INTEGER`);
+  await q(`ALTER TABLE players ADD COLUMN IF NOT EXISTS photo TEXT`);
+  await q(`ALTER TABLE players ADD COLUMN IF NOT EXISTS role TEXT`);
   await q(`CREATE INDEX IF NOT EXISTS players_user_idx ON players(user_id)`);
 
+  // matches
   await q(`CREATE TABLE IF NOT EXISTS matches(
     id SERIAL PRIMARY KEY,
     season_id INTEGER REFERENCES seasons(id) ON DELETE CASCADE,
@@ -174,6 +169,7 @@ async function ensureSchema(){
     created_at TIMESTAMPTZ DEFAULT now()
   )`);
 
+  // standings
   await q(`CREATE TABLE IF NOT EXISTS standings(
     id SERIAL PRIMARY KEY,
     season_id INTEGER REFERENCES seasons(id) ON DELETE CASCADE,
@@ -189,12 +185,14 @@ async function ensureSchema(){
   )`);
   await q(`CREATE INDEX IF NOT EXISTS standings_season_player_idx ON standings(season_id, player_id)`);
 
+  // draft
   await q(`CREATE TABLE IF NOT EXISTS draft(
     id SERIAL PRIMARY KEY,
     author_user_id INTEGER REFERENCES users(id) ON DELETE SET NULL,
     date DATE NOT NULL,
     created_at TIMESTAMPTZ DEFAULT now()
   )`);
+  await q(`ALTER TABLE draft ADD COLUMN IF NOT EXISTS author_user_id INTEGER REFERENCES users(id) ON DELETE SET NULL`);
   await q(`CREATE INDEX IF NOT EXISTS draft_author_idx ON draft(author_user_id)`);
 }
 
@@ -226,7 +224,6 @@ function auth(req,res,next){
     }catch(e){ return bad(res,401,'Invalid token'); }
   })();
 }
-
 function adminOnly(req,res,next){
   if((req.user?.role||'member')!=='admin') return bad(res,403,'Admin only');
   next();
@@ -327,9 +324,7 @@ app.post('/admin/players', auth, adminOnly, upload.single('photo'), async (req,r
   const { id, name, nickname, number, role } = req.body || {};
   if(!id || !name) return bad(res,400,'id/name requis');
   let photo = null;
-  if(req.file){
-    photo = '/uploads/players/'+req.file.filename;
-  }
+  if(req.file){ photo = '/uploads/players/'+req.file.filename; }
   await q(`INSERT INTO players(id,name,nickname,number,photo,role) VALUES($1,$2,$3,$4,$5,$6)
            ON CONFLICT (id) DO UPDATE SET name=EXCLUDED.name, nickname=EXCLUDED.nickname, number=EXCLUDED.number, photo=COALESCE(EXCLUDED.photo, players.photo), role=EXCLUDED.role`,
            [id, name, nickname||null, number?parseInt(number,10):null, photo, role||null]);
@@ -376,7 +371,6 @@ async function SeasonStandings(seasonId){
   const r=await q(`SELECT s.*, p.name FROM standings s JOIN players p ON p.id=s.player_id WHERE s.season_id=$1 ORDER BY points DESC, (goals_for - goals_against) DESC`, [seasonId]);
   return r.rows;
 }
-
 app.get('/standings/:seasonId', auth, async (req,res)=>{
   const sid = parseInt(req.params.seasonId, 10);
   const list = await SeasonStandings(sid);
@@ -433,7 +427,7 @@ app.get('/healthz', (_req,res)=> res.json({ ok:true, time:Date.now() }));
 })();
 
 /* ====== Janitor (post-logout cleanups) ====== */
-const JANITOR_EVERY_MS = 60*1000; // 1 minute
+const JANITOR_EVERY_MS = 60*1000;
 setInterval(async ()=>{
   try{
     const uids = await q(`

@@ -178,20 +178,6 @@ await q(`CREATE INDEX IF NOT EXISTS draft_author_idx ON draft(author_user_id)`);
   await q(`CREATE INDEX IF NOT EXISTS sessions_user_active ON sessions(user_id) WHERE is_active`);
   await q(`ALTER TABLE sessions ADD COLUMN IF NOT EXISTS logout_at TIMESTAMPTZ`);
   await q(`ALTER TABLE sessions ADD COLUMN IF NOT EXISTS cleaned_after_logout BOOLEAN NOT NULL DEFAULT false`);
-
-
-  await q(`CREATE TABLE IF NOT EXISTS handoff_requests(
-    id TEXT PRIMARY KEY,
-    user_id INTEGER REFERENCES users(id) ON DELETE CASCADE,
-    nonce TEXT NOT NULL,
-    new_device TEXT,
-    created_at TIMESTAMPTZ DEFAULT now(),
-    status TEXT NOT NULL DEFAULT 'pending',  -- pending | approved | denied | expired
-    approved_at TIMESTAMPTZ,
-    denied_at TIMESTAMPTZ,
-    consumed_at TIMESTAMPTZ
-  )`);
-
   // admin par défaut
   const adminEmail = process.env.ADMIN_EMAIL || 'admin@gz.local';
   const adminPass  = process.env.ADMIN_PASSWORD || 'admin';
@@ -373,7 +359,7 @@ async function computeSeasonStandings(seasonId){
 app.get('/health', (_req,res)=> ok(res,{ ok:true, service:'gouzepe-api', ts:Date.now() }));
 
 /* ====== Auth ====== */
-// Login avec demande d’approbation si une session active existe
+// Login: vérifie l'utilisateur puis crée une nouvelle session
 app.post('/auth/login', async (req,res)=>{
   let {email,password}=req.body||{};
   email = normEmail(email);
@@ -385,47 +371,16 @@ app.post('/auth/login', async (req,res)=>{
   const match = await bcrypt.compare(password, u.password_hash);
   if(!match) return bad(res,401,'Mot de passe incorrect');
 
-  // … après avoir validé email/password et récupéré l'utilisateur u …
-
-// on regarde s'il existe une session active
-const active = await q(
-  `SELECT id, ip, user_agent, last_seen
-   FROM sessions WHERE user_id=$1 AND is_active=true
-   ORDER BY last_seen DESC LIMIT 1`, [u.id]);
-
-const currentUA = (req.headers['user-agent']||'').slice(0,200);
-const currentIP = (req.headers['x-forwarded-for']||req.socket.remoteAddress||'').toString().split(',')[0].trim();
-
-if (active.rowCount > 0) {
-  const s = active.rows[0];
-  const sameDevice = (s.ip === currentIP) && (s.user_agent === currentUA);
-  const idleEnough = !s.last_seen || (Date.now() - new Date(s.last_seen).getTime() > 5000); // >5s
-
-  // 1) Si c'est le même appareil (IP+UA) et qu'il n'est pas en train d'être utilisé => auto-handoff
-  if (sameDevice && idleEnough) {
-    await q(`UPDATE sessions SET is_active=false, revoked_at=now() WHERE user_id=$1 AND is_active=true`, [u.id]);
-    const sid = newId();
-    await q(`INSERT INTO sessions(id,user_id,device,user_agent,ip) VALUES ($1,$2,$3,$4,$5)`,
-      [sid, u.id, deviceLabel(req), currentUA, currentIP]);
-    const token = signToken(u, sid);   // (expire en 24h dans ta version)
-    return ok(res, { token, user:{id:u.id,email:u.email,role:u.role}, expHours:24 });
-  }
-
-  // 2) Sinon: workflow d’approbation (appareil différent)
-  // (laisse ton code existant qui crée handoff_requests et renvoie 409)
-  const rid = newId(); const nonce = newId();
-  await q(`INSERT INTO handoff_requests(id,user_id,nonce,new_device) VALUES ($1,$2,$3,$4)`,
-    [rid, u.id, nonce, deviceLabel(req)]);
-  io.to('user:'+u.id).emit('session:handoff-request', { request_id:rid, new_device:deviceLabel(req), at:Date.now() });
-  return res.status(409).json({ requireApproval:true, request_id:rid, nonce, message:"Validation requise sur l'autre appareil" });
-}
-
+  await q(`UPDATE sessions SET is_active=false, revoked_at=now() WHERE user_id=$1 AND is_active=true`, [u.id]);
 
   const sid = newId();
+  const userAgent = (req.headers['user-agent']||'').slice(0,200);
+  const expHours = 24;
+
   await q(`INSERT INTO sessions(id,user_id,device,user_agent,ip) VALUES ($1,$2,$3,$4,$5)`,
-    [sid, u.id, deviceLabel(req), (req.headers['user-agent']||'').slice(0,200), clientIp(req)]);
+    [sid, u.id, deviceLabel(req), userAgent, clientIp(req)]);
   const token = signToken(u, sid);
-  ok(res,{ token, user:{id:u.id,email:u.email,role:u.role}, expHours:48 });
+  ok(res,{ token, user:{id:u.id,email:u.email,role:u.role}, expHours });
 });
 
 // Infos utilisateur courant
@@ -439,52 +394,6 @@ app.get('/auth/me', auth, async (req,res)=>{
 app.post('/auth/logout', auth, async (req,res)=>{
   await q(`UPDATE sessions SET is_active=false, revoked_at=now() WHERE id=$1`, [req.user.sid]);
   ok(res,{ ok:true });
-});
-
-/* ====== Handoff (transfert d’appareil) ====== */
-// Appareil déjà connecté approuve
-app.post('/auth/handoff/approve', auth, async (req,res)=>{
-  const rid = (req.body&&req.body.request_id)||'';
-  const x = await q(`SELECT * FROM handoff_requests WHERE id=$1 AND user_id=$2 AND status='pending'`, [rid, req.user.uid]);
-  if(!x.rowCount) return bad(res,404,'Demande introuvable ou déjà traitée');
-  await q(`UPDATE handoff_requests SET status='approved', approved_at=now() WHERE id=$1`, [rid]);
-  await q(`UPDATE sessions SET is_active=false, revoked_at=now() WHERE user_id=$1 AND is_active=true`, [req.user.uid]);
-  io.to('user:'+req.user.uid).emit('session:revoked', { reason:'handoff' });
-  ok(res,{ ok:true });
-});
-// Refuser
-app.post('/auth/handoff/deny', auth, async (req,res)=>{
-  const rid = (req.body&&req.body.request_id)||'';
-  const x = await q(`SELECT * FROM handoff_requests WHERE id=$1 AND user_id=$2 AND status='pending'`, [rid, req.user.uid]);
-  if(!x.rowCount) return bad(res,404,'Demande introuvable ou déjà traitée');
-  await q(`UPDATE handoff_requests SET status='denied', denied_at=now() WHERE id=$1`, [rid]);
-  ok(res,{ ok:true });
-});
-// Nouvel appareil poll le statut et récupère le token si approuvé
-app.get('/auth/handoff/status', async (req,res)=>{
-  const rid = (req.query&&req.query.request_id)||'';
-  const nonce = (req.query&&req.query.nonce)||'';
-  const x = await q(`SELECT * FROM handoff_requests WHERE id=$1`, [rid]);
-  if(!x.rowCount) return bad(res,404,'Demande introuvable');
-  const row = x.rows[0];
-  if(row.nonce !== nonce) return bad(res,403,'Nonce invalide');
-
-  if(row.status==='pending') return ok(res,{ status:'pending' });
-  if(row.status==='denied')  return ok(res,{ status:'denied' });
-  if(row.status==='approved'){
-    if(row.consumed_at) return ok(res,{ status:'expired' });
-    const u = await q(`SELECT id,email,role FROM users WHERE id=$1`, [row.user_id]);
-    if(!u.rowCount) return bad(res,404,'Utilisateur inconnu');
-
-    const sid = newId();
-    await q(`INSERT INTO sessions(id,user_id,device,user_agent,ip) VALUES ($1,$2,$3,$4,$5)`,
-      [sid, row.user_id, row.new_device || 'Appareil', (req.headers['user-agent']||'').slice(0,200), clientIp(req)]);
-    await q(`UPDATE handoff_requests SET consumed_at=now() WHERE id=$1`, [rid]);
-
-    const token = signToken(u.rows[0], sid);
-    return ok(res,{ status:'approved', token, user:u.rows[0], expHours:48 });
-  }
-  return ok(res,{ status:'expired' });
 });
 
 /* ====== Presence ====== */

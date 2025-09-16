@@ -163,7 +163,7 @@ async function ensureSchema(){
 await q(`ALTER TABLE draft ADD COLUMN IF NOT EXISTS author_user_id INTEGER`);
 await q(`CREATE INDEX IF NOT EXISTS draft_author_idx ON draft(author_user_id)`);
 
-  /* === SESSIONS & HANDOFF (nouveau) === */
+  /* === SESSIONS === */
   await q(`CREATE TABLE IF NOT EXISTS sessions(
      id TEXT PRIMARY KEY,
      user_id INTEGER REFERENCES users(id) ON DELETE CASCADE,
@@ -178,6 +178,7 @@ await q(`CREATE INDEX IF NOT EXISTS draft_author_idx ON draft(author_user_id)`);
   await q(`CREATE INDEX IF NOT EXISTS sessions_user_active ON sessions(user_id) WHERE is_active`);
   await q(`ALTER TABLE sessions ADD COLUMN IF NOT EXISTS logout_at TIMESTAMPTZ`);
   await q(`ALTER TABLE sessions ADD COLUMN IF NOT EXISTS cleaned_after_logout BOOLEAN NOT NULL DEFAULT false`);
+
   // admin par défaut
   const adminEmail = process.env.ADMIN_EMAIL || 'admin@gz.local';
   const adminPass  = process.env.ADMIN_PASSWORD || 'admin';

@@ -21,7 +21,7 @@ CORS_ORIGIN="https://gouzepe-api.onrender.com"
 const allowedOrigins = (process.env.CORS_ORIGIN || '*')
   .split(',').map(s => s.trim()).filter(Boolean);
 
-const useSSL =
+const useSSL = (process.env.PGSSL === 'true') || process.env.RENDER === 'true' || process.env.NODE_ENV === 'production';
   process.env.PGSSL === 'true' ||
   process.env.RENDER === 'true' ||
   process.env.NODE_ENV === 'production';

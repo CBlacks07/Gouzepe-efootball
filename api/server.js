@@ -163,7 +163,7 @@ async function ensureSchema(){
 await q(`ALTER TABLE draft ADD COLUMN IF NOT EXISTS author_user_id INTEGER`);
 await q(`CREATE INDEX IF NOT EXISTS draft_author_idx ON draft(author_user_id)`);
 
-  /* === SESSIONS & HANDOFF (nouveau) === */
+  /* === SESSIONS === */
   await q(`CREATE TABLE IF NOT EXISTS sessions(
      id TEXT PRIMARY KEY,
      user_id INTEGER REFERENCES users(id) ON DELETE CASCADE,
@@ -179,18 +179,6 @@ await q(`CREATE INDEX IF NOT EXISTS draft_author_idx ON draft(author_user_id)`);
   await q(`ALTER TABLE sessions ADD COLUMN IF NOT EXISTS logout_at TIMESTAMPTZ`);
   await q(`ALTER TABLE sessions ADD COLUMN IF NOT EXISTS cleaned_after_logout BOOLEAN NOT NULL DEFAULT false`);
 
-
-  await q(`CREATE TABLE IF NOT EXISTS handoff_requests(
-    id TEXT PRIMARY KEY,
-    user_id INTEGER REFERENCES users(id) ON DELETE CASCADE,
-    nonce TEXT NOT NULL,
-    new_device TEXT,
-    created_at TIMESTAMPTZ DEFAULT now(),
-    status TEXT NOT NULL DEFAULT 'pending',  -- pending | approved | denied | expired
-    approved_at TIMESTAMPTZ,
-    denied_at TIMESTAMPTZ,
-    consumed_at TIMESTAMPTZ
-  )`);
 
   // admin par défaut
   const adminEmail = process.env.ADMIN_EMAIL || 'admin@gz.local';

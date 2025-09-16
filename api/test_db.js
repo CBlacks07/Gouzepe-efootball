@@ -22,7 +22,6 @@ const pool = new Pool({
       'matchday',
       'draft',
       'sessions',
-      'handoff_requests',
       'season_totals',
       'champion_result'
     ];

@@ -73,19 +73,6 @@ CREATE INDEX IF NOT EXISTS sessions_user_active
   ON sessions(user_id)
   WHERE is_active;
 
--- Demandes de transfert d'une session vers un nouvel appareil
-CREATE TABLE IF NOT EXISTS handoff_requests (
-  id          TEXT PRIMARY KEY,
-  user_id     INTEGER REFERENCES users(id) ON DELETE CASCADE,
-  nonce       TEXT NOT NULL,
-  new_device  TEXT,
-  created_at  TIMESTAMPTZ DEFAULT now(),
-  status      TEXT NOT NULL DEFAULT 'pending', -- pending | approved | denied | expired
-  approved_at TIMESTAMPTZ,
-  denied_at   TIMESTAMPTZ,
-  consumed_at TIMESTAMPTZ
-);
-
 -- Table optionnelle pour l'ancien suivi cumulé de la saison
 CREATE TABLE IF NOT EXISTS season_totals (
   id         SERIAL PRIMARY KEY,

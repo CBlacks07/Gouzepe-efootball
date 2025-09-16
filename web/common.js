@@ -43,15 +43,34 @@
   window.expAt = getExp();
   window.App = { $, $$, getAPI, getToken: getTok, getRole, getExp, toast, safeFetch, logout, requireAdmin };
 
-  /* auto-discovery de l’API (premier chargement, sans action utilisateur) */
-  (async function autoDiscoverAPI(){
-    if (localStorage.getItem('efoot.api')) return;
-    const candidates = [];
-    const h = location.hostname;
-    if (h.endsWith('.onrender.com')) {
-      if (h.includes('-static')) candidates.push('https://' + h.replace('-static', '-api'));
-      candidates.push('https://' + h.replace('-static', ''));
+ // === API base pour le front en prod ===
+window.API_BASE = 'https://gouzepe-app.onrender.com';
+
+// Si tu as déjà une fonction apiFetch, garde-la. Sinon on en fournit une simple :
+if (!window.apiFetch) {
+  window.apiFetch = async function(path, opts = {}) {
+    const token = localStorage.getItem('token');
+    const headers = Object.assign(
+      { 'Content-Type': 'application/json' },
+      (opts.headers || {}),
+      token ? { 'Authorization': 'Bearer ' + token } : {}
+    );
+    const url = path.startsWith('http')
+      ? path
+      : (window.API_BASE.replace(/\/$/, '') + '/' + path.replace(/^\//, ''));
+    const res = await fetch(url, Object.assign({ method: 'GET', headers }, opts));
+    if (!res.ok) {
+      if (res.status === 401) {
+        localStorage.removeItem('token');
+        if (!/login\.html/i.test(location.pathname)) location.href = 'login.html';
+      }
+      throw new Error('API ' + res.status + ' on ' + url);
     }
+    const ct = res.headers.get('content-type') || '';
+    return ct.includes('application/json') ? res.json() : res.text();
+  };
+}
+
     candidates.push(DEF_API());
     for (const base of candidates) {
       try {

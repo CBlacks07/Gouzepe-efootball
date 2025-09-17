@@ -32,7 +32,7 @@
   }
 
   function requireAdmin(){
-    if (getRole() !== 'admin') location.replace('Accueil.html');
+    if (getRole() !== 'admin') location.replace('accueil.html');
   }
 
   // Expose minimal API globale
@@ -43,34 +43,15 @@
   window.expAt = getExp();
   window.App = { $, $$, getAPI, getToken: getTok, getRole, getExp, toast, safeFetch, logout, requireAdmin };
 
- // === API base pour le front en prod ===
-window.API_BASE = 'https://gouzepe-app.onrender.com';
-
-// Si tu as déjà une fonction apiFetch, garde-la. Sinon on en fournit une simple :
-if (!window.apiFetch) {
-  window.apiFetch = async function(path, opts = {}) {
-    const token = localStorage.getItem('token');
-    const headers = Object.assign(
-      { 'Content-Type': 'application/json' },
-      (opts.headers || {}),
-      token ? { 'Authorization': 'Bearer ' + token } : {}
-    );
-    const url = path.startsWith('http')
-      ? path
-      : (window.API_BASE.replace(/\/$/, '') + '/' + path.replace(/^\//, ''));
-    const res = await fetch(url, Object.assign({ method: 'GET', headers }, opts));
-    if (!res.ok) {
-      if (res.status === 401) {
-        localStorage.removeItem('token');
-        if (!/login\.html/i.test(location.pathname)) location.href = 'login.html';
-      }
-      throw new Error('API ' + res.status + ' on ' + url);
+  /* auto-discovery de l’API (premier chargement, sans action utilisateur) */
+  (async function autoDiscoverAPI(){
+    if (localStorage.getItem('efoot.api')) return;
+    const candidates = [];
+    const h = location.hostname;
+    if (h.endsWith('.onrender.com')) {
+      if (h.includes('-static')) candidates.push('https://' + h.replace('-static', '-api'));
+      candidates.push('https://' + h.replace('-static', ''));
     }
-    const ct = res.headers.get('content-type') || '';
-    return ct.includes('application/json') ? res.json() : res.text();
-  };
-}
-
     candidates.push(DEF_API());
     for (const base of candidates) {
       try {
@@ -97,12 +78,7 @@ if (!window.apiFetch) {
     if (here.startsWith('admin-')) {
       const isAdmin = (getRole() || '').toLowerCase() === 'admin';
       const isPlayersAdmin = here === 'admin-joueurs.html';
-
-      if (!isAdmin && !isPlayersAdmin) {
-        toast('Accès réservé aux administrateurs.');
-        location.replace('Accueil.html');
-        return;
-      }
+      
     }
 })();
 
@@ -148,3 +124,50 @@ if (!window.apiFetch) {
 })();
 
 
+
+(async function bindLogout(){
+  const btn = document.getElementById('logoutBtn');
+  if(!btn) return;
+
+  // utilitaires
+  const isPrivateNet = (h)=>/^(localhost|127\.0\.0\.1|10\.\d+\.\d+\.\d+|192\.168\.\d+\.\d+|172\.(1[6-9]|2\d|3[01])\.\d+\.\d+)$/.test(h);
+  const DEF_API = ()=>{
+    const host = location.hostname || '';
+    if (isPrivateNet(host)) {
+      return (location.protocol.startsWith('http') ? location.protocol : 'http:') + '//' + host + ':3000';
+    }
+    return 'https://gouzepe-efootball.onrender.com';
+  };
+  const API = (localStorage.getItem('efoot.api')||DEF_API()).replace(/\/+$/,'');
+
+  async function clearCaches(){
+    try{
+      // Préserver quelques clés utiles
+      const preserve = new Set(['efoot.theme','efoot.api']);
+      for(let i=localStorage.length-1; i>=0; i--){
+        const k = localStorage.key(i);
+        if(!preserve.has(k)) localStorage.removeItem(k);
+      }
+      try{ sessionStorage.clear(); }catch(_){}
+      if('caches' in window){
+        const keys = await caches.keys();
+        for(const k of keys) await caches.delete(k);
+      }
+    }catch(_){}
+  }
+
+  async function fullLogout(){
+    const token = localStorage.getItem('efoot.token');
+    try{
+      await fetch(API+'/auth/logout',{ method:'POST', headers:{ Authorization:'Bearer '+token } });
+    }catch(_){}
+    await clearCaches();
+    // petite latence pour flush
+    setTimeout(()=> location.replace('login.html'), 180);
+  }
+
+  btn.addEventListener('click', async ()=>{
+    if(!confirm('Voulez-vous vraiment vous déconnecter ?')) return;
+    await fullLogout();
+  });
+})();

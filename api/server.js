@@ -213,6 +213,30 @@ END$$;
   )`);
   await q(`ALTER TABLE players ADD COLUMN IF NOT EXISTS profile_pic_url TEXT`);
 
+  // === DUELS: exhibitions (indépendants des journées) ===
+await q(`CREATE TABLE IF NOT EXISTS duels(
+  id        TEXT PRIMARY KEY,
+  p1_id     TEXT NOT NULL,
+  p2_id     TEXT NOT NULL,
+  score_a   INTEGER NOT NULL,
+  score_b   INTEGER NOT NULL,
+  played_at TIMESTAMPTZ NOT NULL DEFAULT now(),
+  created_at TIMESTAMPTZ DEFAULT now(),
+  created_by INTEGER,
+  deleted_at TIMESTAMPTZ
+)`);
+
+// migrations souples si table existait déjà
+await q(`ALTER TABLE duels ADD COLUMN IF NOT EXISTS created_by INTEGER`);
+await q(`ALTER TABLE duels ADD COLUMN IF NOT EXISTS deleted_at TIMESTAMPTZ`);
+await q(`ALTER TABLE duels ALTER COLUMN played_at SET DEFAULT now()`);
+
+// index utiles
+await q(`CREATE INDEX IF NOT EXISTS duels_played_at_idx ON duels(played_at DESC)`);
+await q(`CREATE INDEX IF NOT EXISTS duels_pair_idx ON duels ((LEAST(p1_id,p2_id)), (GREATEST(p1_id,p2_id)))`);
+await q(`CREATE INDEX IF NOT EXISTS duels_creator_idx ON duels(created_by)`);
+
+
   // seed admin
   const adminEmail = process.env.ADMIN_EMAIL || 'admin@gz.local';
   const adminPass  = process.env.ADMIN_PASSWORD || 'admin';
@@ -269,6 +293,320 @@ function adminOnly(req,res,next){
   if((req.user?.role||'member')!=='admin') return bad(res,403,'Admin only');
   next();
 }
+
+
+/* ====== Duels (exhibition, hors championnat) ====== */
+
+// POST /duels  -> créer un duel (A gagne / Nul / B gagne). On enregistre un score symbolique (1-0, 0-0 ou 0-1).
+app.post('/duels', auth, async (req, res) => {
+  try {
+    let { p1, p2, score_a, score_b, played_at } = req.body || {};
+    p1 = String(p1 || '').trim();
+    p2 = String(p2 || '').trim();
+    if (!p1 || !p2) return bad(res, 400, 'Deux joueurs requis');
+    if (p1 === p2)   return bad(res, 400, 'Joueurs différents requis');
+
+    const toInt = v => Number.isFinite(+v) ? Math.max(0, Math.min(99, parseInt(v,10))) : 0;
+    score_a = toInt(score_a); score_b = toInt(score_b);
+
+    // vérifier que les joueurs existent
+    const exists = await q(`SELECT player_id FROM players WHERE player_id = ANY($1)`, [[p1, p2]]);
+    const got = new Set(exists.rows.map(r => String(r.player_id)));
+    if (!got.has(p1) || !got.has(p2)) return bad(res, 400, 'Joueur inexistant');
+
+    // Refus: un membre ne peut enregistrer qu'un duel où il est P1 ou P2
+const role = (req.user?.role || 'member').toLowerCase();
+if (role !== 'admin') {
+  const pidRes = await q(`SELECT player_id FROM users WHERE id=$1`, [req.user.uid]);
+  const myPid = pidRes.rows[0]?.player_id || null;
+  if (!myPid) return bad(res, 403, "Votre compte n'est lié à aucun player_id");
+  if (p1 !== myPid && p2 !== myPid) {
+    return bad(res, 403, "Un membre ne peut enregistrer qu’un duel auquel il participe");
+  }
+}
+
+    const id = newId();
+    const when = played_at ? new Date(played_at) : new Date();
+
+    await q(
+      `INSERT INTO duels(id,p1_id,p2_id,score_a,score_b,played_at,created_by)
+       VALUES($1,$2,$3,$4,$5,$6,$7)`,
+      [id, p1, p2, score_a, score_b, when.toISOString(), req.user?.uid || null]
+    );
+
+    const r = await q(`
+      SELECT d.id, d.played_at, d.p1_id, p1.name AS p1_name, d.p2_id, p2.name AS p2_name, d.score_a, d.score_b
+      FROM duels d
+      LEFT JOIN players p1 ON p1.player_id=d.p1_id
+      LEFT JOIN players p2 ON p2.player_id=d.p2_id
+      WHERE d.id=$1
+    `, [id]);
+
+    return ok(res, { duel: r.rows[0] });
+  } catch (e) {
+    return bad(res, 500, e.message || 'duel.create failed');
+  }
+});
+
+// GET /duels/recent?limit=10  -> derniers duels (issues uniquement côté UI)
+app.get('/duels/recent', auth, async (req, res) => {
+  try {
+    let limit = parseInt(req.query.limit || '10', 10);
+    limit = Number.isFinite(limit) ? Math.max(1, Math.min(200, limit)) : 10;
+    const p   = (req.query.p || '').trim();           // optionnel: limite à un joueur (p1_id=p OR p2_id=p)
+    const dFrom = req.query.from ? new Date(req.query.from + 'T00:00:00Z') : null;
+    const dTo   = req.query.to   ? new Date(req.query.to   + 'T23:59:59Z') : null;
+
+    const params = [];
+    let where = `d.deleted_at IS NULL`;
+    if (p)     { params.push(p);   where += ` AND (d.p1_id=$${params.length} OR d.p2_id=$${params.length})`; }
+    if (dFrom) { params.push(dFrom.toISOString()); where += ` AND d.played_at >= $${params.length}`; }
+    if (dTo)   { params.push(dTo.toISOString());   where += ` AND d.played_at <= $${params.length}`; }
+
+    params.push(limit);
+    const r = await q(`
+      SELECT d.id, d.played_at, d.p1_id, p1.name AS p1_name, d.p2_id, p2.name AS p2_name, d.score_a, d.score_b
+      FROM duels d
+      LEFT JOIN players p1 ON p1.player_id=d.p1_id
+      LEFT JOIN players p2 ON p2.player_id=d.p2_id
+      WHERE ${where}
+      ORDER BY d.played_at DESC, d.id DESC
+      LIMIT $${params.length}
+    `, params);
+
+    return ok(res, { duels: r.rows });
+  } catch (e) { return bad(res, 500, e.message || 'duel.recent failed'); }
+});
+
+// GET /duels/compare?p1=ID&p2=ID[&from=YYYY-MM-DD][&to=YYYY-MM-DD]
+// => agrégat W-D-L pour p1 vs p2 (peu importe le sens d’enregistrement)
+app.get('/duels/compare', auth, async (req, res) => {
+  try {
+    const p1 = String(req.query.p1 || '').trim();
+    const p2 = String(req.query.p2 || '').trim();
+    if (!p1 || !p2) return bad(res, 400, 'p1 et p2 requis');
+    if (p1 === p2)   return bad(res, 400, 'Joueurs différents requis');
+
+    const dFrom = req.query.from ? new Date(req.query.from + 'T00:00:00Z') : null;
+    const dTo   = req.query.to   ? new Date(req.query.to   + 'T23:59:59Z') : null;
+
+    const params = [p1, p2];
+    let where = `d.deleted_at IS NULL AND ((d.p1_id=$1 AND d.p2_id=$2) OR (d.p1_id=$2 AND d.p2_id=$1))`;
+    if (dFrom) { params.push(dFrom.toISOString()); where += ` AND d.played_at >= $${params.length}`; }
+    if (dTo)   { params.push(dTo.toISOString());   where += ` AND d.played_at <= $${params.length}`; }
+
+    const r = await q(`
+      SELECT
+        SUM(CASE WHEN (d.p1_id=$1 AND d.score_a > d.score_b) OR (d.p2_id=$1 AND d.score_b > d.score_a) THEN 1 ELSE 0 END) AS wins,
+        SUM(CASE WHEN d.score_a = d.score_b THEN 1 ELSE 0 END) AS draws,
+        SUM(CASE WHEN (d.p1_id=$1 AND d.score_a < d.score_b) OR (d.p2_id=$1 AND d.score_b < d.score_a) THEN 1 ELSE 0 END) AS losses,
+        COUNT(*) AS legs
+      FROM duels d
+      WHERE ${where}
+    `, params);
+
+    const names = await q(`SELECT player_id, name FROM players WHERE player_id = ANY($1)`, [[p1, p2]]);
+    const nameMap = new Map(names.rows.map(r => [String(r.player_id), r.name]));
+
+    return ok(res, {
+      p1: { id: p1, name: nameMap.get(p1) || p1 },
+      p2: { id: p2, name: nameMap.get(p2) || p2 },
+      totals: {
+        wins: Number(r.rows[0].wins || 0),
+        draws: Number(r.rows[0].draws || 0),
+        losses: Number(r.rows[0].losses || 0),
+        legs: Number(r.rows[0].legs || 0)
+      }
+    });
+  } catch (e) {
+    return bad(res, 500, e.message || 'duel.compare failed');
+  }
+});
+
+// DELETE /duels/:id  -> soft-delete (admin)
+app.delete('/duels/:id', auth, adminOnly, async (req, res) => {
+  try {
+    const id = String(req.params.id || '').trim();
+    if (!id) return bad(res, 400, 'id requis');
+    await q(`UPDATE duels SET deleted_at=now() WHERE id=$1 AND deleted_at IS NULL`, [id]);
+    return ok(res, { ok: true });
+  } catch (e) {
+    return bad(res, 500, e.message || 'duel.delete failed');
+  }
+});
+
+app.get('/duels/export.html', auth, async (req, res) => {
+  try{
+    const p   = (req.query.p || '').trim();
+    const dFrom = req.query.from ? new Date(req.query.from + 'T00:00:00Z') : null;
+    const dTo   = req.query.to   ? new Date(req.query.to   + 'T23:59:59Z') : null;
+
+    const params = [];
+    let where = `d.deleted_at IS NULL`;
+    if (p)     { params.push(p); where += ` AND (d.p1_id=$${params.length} OR d.p2_id=$${params.length})`; }
+    if (dFrom) { params.push(dFrom.toISOString()); where += ` AND d.played_at >= $${params.length}`; }
+    if (dTo)   { params.push(dTo.toISOString());   where += ` AND d.played_at <= $${params.length}`; }
+
+    const r = await q(`
+      SELECT d.played_at, d.p1_id, p1.name AS p1_name, d.p2_id, p2.name AS p2_name, d.score_a, d.score_b
+      FROM duels d
+      LEFT JOIN players p1 ON p1.player_id=d.p1_id
+      LEFT JOIN players p2 ON p2.player_id=d.p2_id
+      WHERE ${where}
+      ORDER BY d.played_at DESC, d.id DESC
+      LIMIT 2000
+    `, params);
+
+    const esc = s => String(s||'').replace(/[&<>"']/g,m=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[m]));
+    const rows = r.rows.map(x=>{
+      const res = (x.score_a > x.score_b) ? 'A gagne' : (x.score_a < x.score_b ? 'B gagne' : 'Nul');
+      return `<tr>
+        <td>${esc(new Date(x.played_at).toLocaleString('fr-FR'))}</td>
+        <td>${esc(x.p1_name||x.p1_id)}</td>
+        <td>${esc(res)}</td>
+        <td>${esc(x.p2_name||x.p2_id)}</td>
+      </tr>`;
+    }).join('');
+
+    const html = `<!doctype html><html lang="fr"><head>
+<meta charset="utf-8"><title>Duels — Export</title>
+<style>
+@page{size:A4;margin:12mm;}
+body{font:12px/1.4 -apple-system,Segoe UI,Roboto,Inter,Arial;margin:0;padding:10px;color:#111}
+h1{font-size:18px;margin:0 0 10px}
+table{width:100%;border-collapse:collapse}
+th,td{border:1px solid #444;padding:6px 8px;text-align:center}
+thead th{background:#f5f5f5}
+</style></head><body onload="window.print()">
+<h1>Historique des duels</h1>
+<table>
+<thead><tr><th>Date</th><th>Joueur A</th><th>Résultat</th><th>Joueur B</th></tr></thead>
+<tbody>${rows||''}</tbody>
+</table>
+</body></html>`;
+
+    res.setHeader('Content-Type','text/html; charset=utf-8');
+    return res.send(html);
+  }catch(e){ return bad(res,500,e.message||'duel.export.html failed'); }
+});
+
+// GET /duels/summary?player=PID[&from=YYYY-MM-DD][&to=YYYY-MM-DD]
+app.get('/duels/summary', auth, async (req,res)=>{
+  try{
+    const pid = (req.query.player||'').trim();
+    if(!pid) return bad(res,400,'player requis');
+    const dFrom = req.query.from ? new Date(req.query.from + 'T00:00:00Z') : null;
+    const dTo   = req.query.to   ? new Date(req.query.to   + 'T23:59:59Z') : null;
+
+    const params=[pid];
+    let where = `d.deleted_at IS NULL AND (d.p1_id=$1 OR d.p2_id=$1)`;
+    if (dFrom) { params.push(dFrom.toISOString()); where += ` AND d.played_at >= $${params.length}`; }
+    if (dTo)   { params.push(dTo.toISOString());   where += ` AND d.played_at <= $${params.length}`; }
+
+    const r = await q(`
+      SELECT d.played_at, d.p1_id, p1.name AS p1_name, d.p2_id, p2.name AS p2_name, d.score_a, d.score_b
+      FROM duels d
+      LEFT JOIN players p1 ON p1.player_id=d.p1_id
+      LEFT JOIN players p2 ON p2.player_id=d.p2_id
+      WHERE ${where}
+      ORDER BY d.played_at DESC, d.id DESC
+    `, params);
+
+    let W=0,D=0,L=0;
+    const byOpp = new Map();
+    for(const x of r.rows){
+      const meIsP1 = x.p1_id===pid;
+      const they   = meIsP1 ? x.p2_id : x.p1_id;
+      const theyName = meIsP1 ? (x.p2_name||x.p2_id) : (x.p1_name||x.p1_id);
+      const a = meIsP1 ? x.score_a : x.score_b;
+      const b = meIsP1 ? x.score_b : x.score_a;
+      const win = a>b, draw=a===b, loss=a<b;
+      if(win)W++; if(draw)D++; if(loss)L++;
+      const o = byOpp.get(they) || { id: they, name: theyName, W:0,D:0,L:0, legs:0 };
+      if(win) o.W++; if(draw) o.D++; if(loss) o.L++; o.legs++;
+      byOpp.set(they,o);
+    }
+    const opponents = [...byOpp.values()]
+      .map(o=>({ ...o, diff: o.W - o.L }))
+      .sort((a,b)=> (b.diff - a.diff) || (b.W - a.W) || (b.legs - a.legs));
+
+    const best  = opponents[0] || null;
+    const worst = opponents.slice().reverse()[0] || null;
+
+    return ok(res, { player: pid, totals:{W,D,L,legs:W+D+L}, opponents, best, worst });
+  }catch(e){ return bad(res,500,e.message||'duel.summary failed'); }
+});
+
+// GET /duels/leaderboard?metric=points|elo[&from=YYYY-MM-DD][&to=YYYY-MM-DD][&limit=50]
+app.get('/duels/leaderboard', auth, async (req,res)=>{
+  try{
+    const metric = (req.query.metric||'points').toLowerCase();
+    let limit = parseInt(req.query.limit||'50',10); limit = Number.isFinite(limit) ? Math.max(1, Math.min(200,limit)) : 50;
+    const dFrom = req.query.from ? new Date(req.query.from + 'T00:00:00Z') : null;
+    const dTo   = req.query.to   ? new Date(req.query.to   + 'T23:59:59Z') : null;
+
+    const params=[];
+    let where=`d.deleted_at IS NULL`;
+    if(dFrom){ params.push(dFrom.toISOString()); where+=` AND d.played_at >= $${params.length}`; }
+    if(dTo)  { params.push(dTo.toISOString());   where+=` AND d.played_at <= $${params.length}`; }
+
+    const rows = (await q(`
+      SELECT d.played_at, d.p1_id, d.p2_id, d.score_a, d.score_b
+      FROM duels d
+      WHERE ${where}
+      ORDER BY d.played_at ASC, d.id ASC
+    `, params)).rows;
+
+    const nameRows = (await q(`SELECT player_id,name FROM players`,[])).rows;
+    const NAMES = new Map(nameRows.map(r=>[String(r.player_id), r.name]));
+
+    const stats = new Map(); // pid -> {W,D,L,legs,pts,elo}
+    const get = pid => (stats.get(pid) || (stats.set(pid,{W:0,D:0,L:0,legs:0,pts:0,elo:1000}), stats.get(pid)));
+
+    if(metric==='points'){
+      for(const r of rows){
+        const a = get(r.p1_id), b = get(r.p2_id);
+        a.legs++; b.legs++;
+        if(r.score_a>r.score_b){ a.W++; b.L++; a.pts+=3; }
+        else if(r.score_a<r.score_b){ b.W++; a.L++; b.pts+=3; }
+        else{ a.D++; b.D++; a.pts+=1; b.pts+=1; }
+      }
+      const out = [...stats.entries()].map(([pid,s])=>({
+        player_id:pid, name:NAMES.get(pid)||pid,
+        wins:s.W, draws:s.D, losses:s.L, legs:s.legs, points:s.pts,
+        winrate: s.legs? Math.round(s.W*100/s.legs):0
+      })).sort((x,y)=> y.points - x.points || y.wins - x.wins || y.legs - x.legs).slice(0,limit);
+      return ok(res, { metric:'points', leaderboard: out });
+    }
+
+    // ELO
+    const K = 32;
+    const ELO = new Map(); const elo = pid => (ELO.get(pid) ?? 1000);
+    const setElo = (pid,v)=>ELO.set(pid, v);
+    for(const r of rows){
+      const Ra = elo(r.p1_id), Rb = elo(r.p2_id);
+      const Ea = 1/(1+Math.pow(10,(Rb-Ra)/400));
+      const Eb = 1-Ea;
+      let Sa,Sb;
+      if(r.score_a>r.score_b){ Sa=1; Sb=0; }
+      else if(r.score_a<r.score_b){ Sa=0; Sb=1; }
+      else { Sa=0.5; Sb=0.5; }
+      setElo(r.p1_id, Ra + K*(Sa-Ea));
+      setElo(r.p2_id, Rb + K*(Sb-Eb));
+      const a=get(r.p1_id), b=get(r.p2_id);
+      a.legs++; b.legs++;
+      if(Sa===1){ a.W++; b.L++; } else if(Sa===0){ b.W++; a.L++; } else { a.D++; b.D++; }
+    }
+    const out = [...ELO.entries()].map(([pid,score])=>{
+      const s = stats.get(pid)||{W:0,D:0,L:0,legs:0};
+      return { player_id:pid, name:NAMES.get(pid)||pid, elo:Math.round(score), ...s, winrate: s.legs? Math.round(s.W*100/s.legs):0 };
+    }).sort((x,y)=> y.elo - x.elo).slice(0,limit);
+
+    return ok(res, { metric:'elo', leaderboard: out });
+  }catch(e){ return bad(res,500,e.message||'duel.leaderboard failed'); }
+});
+
+
 
 /* ====== Health ====== */
 app.get('/healthz', (_req,res)=> ok(res,{ ok:true, service:'gouzepe-api', ts:Date.now() }));
@@ -459,9 +797,11 @@ function computeStandings(matches){
   arr.sort((a,b)=>b.PTS-a.PTS||b.DIFF-a.DIFF||b.BP-a.BP||a.id.localeCompare(b.id));
   return arr;
 }
+
 const BONUS_D1_CHAMPION = 1;
 function pointsD1(nPlayers, rank){ if(rank<1||rank>nPlayers) return 0; return 9+(nPlayers-rank); }
 function pointsD2(rank){ const table=[10,8,7,6,5,4,3,2,1,1,1]; return rank>0 && rank<=table.length ? table[rank-1] : 1; }
+
 async function computeSeasonStandings(seasonId){
   const days = await q(`SELECT day,payload FROM matchday WHERE season_id=$1 ORDER BY day ASC`,[seasonId]);
   const roles = await getPlayersRoles();

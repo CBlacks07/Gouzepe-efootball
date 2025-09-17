@@ -3,415 +3,409 @@
 <head>
   <meta charset="utf-8"/>
   <meta name="viewport" content="width=device-width, initial-scale=1"/>
-  <title>Duel — GOUZEPE eFOOTBALL</title>
+  <title>Duel — GOUZEPE eFOOTBALL (Exhibitions)</title>
   <link rel="stylesheet" href="theme.css"/>
 
   <style>
     :root{
-      --gap: 12px;
+      /* Dark palette */
+      --bg:#0b1119;
+      --panel:#0e1624;
+      --card:#111b28;
+      --text:#e5e7eb;
+      --muted:#94a3b8;
+      --border:#1f2937;
+      --topbar-bg:rgba(10,14,22,.65);
+      --overlay:rgba(0,0,0,.4);
+
+      --accent:#3b82f6; --brand:#16a34a; --warn:#f59e0b; --danger:#ef4444;
+      --r:14px; --pad:clamp(12px,2.5vw,22px);
+      --shadow:0 6px 18px rgba(0,0,0,.25);
+      --input-bg:#0c1422; --input-text:var(--text);
+      --chip-win:rgba(22,163,74,.14);
+      --chip-draw:rgba(148,163,184,.14);
+      --chip-lose:rgba(59,130,246,.14);
     }
-    .wrap{max-width:1200px;margin:auto;padding:12px}
-    .grid2{display:grid;grid-template-columns:1fr;gap:var(--gap)}
-    @media(min-width: 960px){ .grid2{grid-template-columns:1fr 1fr} }
+    /* Light palette */
+    :root.light{
+      --bg:#f4f7fb;
+      --panel:#ffffff;
+      --card:#ffffff;
+      --text:#0f172a;
+      --muted:#475569;
+      --border:#e5e7eb;
+      --topbar-bg:rgba(255,255,255,.78);
+      --overlay:rgba(0,0,0,.35);
 
-    .row{display:flex;gap:8px;align-items:center;flex-wrap:wrap}
-    .row > *{min-width:0}
-    .w-100{width:100%}
-    .grow{flex:1}
-    .muted{color:var(--muted)}
-    .tiny{font-size:12px}
-    .hint{font-size:12px;color:var(--muted);margin-top:4px}
+      --input-bg:#ffffff; --input-text:#0f172a;
+      --chip-win:rgba(34,197,94,.16);
+      --chip-draw:rgba(100,116,139,.15);
+      --chip-lose:rgba(59,130,246,.16);
+    }
 
-    .score{display:flex;gap:8px;align-items:center}
-    .score input{width:68px;text-align:center;font-weight:800}
+    html,body{height:100%}
+    body{
+      margin:0;color:var(--text);background:var(--bg);
+      font:400 16px/1.6 system-ui,-apple-system,Segoe UI,Roboto,Inter,Arial;
+    }
+    a{color:inherit;text-decoration:none}
 
-    .tableWrap{overflow:auto}
-    table.tbl{min-width:740px}
+    /* Topbar */
+    .top{
+      position:sticky;top:0;z-index:50;display:flex;gap:10px;align-items:center;
+      padding:10px var(--pad); background:var(--topbar-bg); backdrop-filter:blur(8px);
+      border-bottom:1px solid var(--border)
+    }
+    .brand{display:flex;align-items:center;gap:10px}
+    .logo{width:40px;height:40px;border-radius:10px;border:1px solid var(--border);background:var(--panel)}
+    .title{display:flex;flex-direction:column}
+    .title b{font-size:18px}
+    .title small{color:var(--muted);margin-top:2px}
+    .sp{flex:1}
+    .menu-toggle{display:none;border:1px solid var(--border);background:var(--panel);color:inherit;border-radius:10px;padding:8px 10px}
+    .menu{display:flex;gap:8px;align-items:center}
+    .btn{
+      display:inline-flex;align-items:center;gap:8px;
+      border:1px solid var(--border);background:var(--panel);color:inherit;
+      border-radius:999px;padding:8px 12px;font-weight:600;white-space:nowrap;
+      transition:transform .1s ease, filter .15s ease, background-color .15s ease, border-color .15s ease;
+    }
+    .btn:hover{filter:brightness(1.04)} .btn:active{transform:translateY(1px)}
+    .btn.primary{background:var(--chip-win);border-color:#1e3a2f}
+    .btn.info{background:var(--chip-lose);border-color:#1e3a8a}
+    .btn.danger{background:var(--panel);border-color:#7f1d1d;color:#b91c1c}
+    @media (max-width:900px){
+      .menu-toggle{display:inline-flex}
+      .menu{
+        position:fixed; right:12px; top:64px; display:none; flex-direction:column; gap:10px;
+        width:min(88vw,340px); padding:12px; background:var(--panel); border:1px solid var(--border);
+        border-radius:12px; box-shadow:var(--shadow); z-index:1000
+      }
+      .top.open .menu{display:flex}
+    }
 
-    .pill{display:inline-flex;gap:6px;align-items:center;border:1px solid var(--border);border-radius:999px;padding:4px 10px}
-    .pill.win{background:#064e3b;color:#b7fbdc}
-    .pill.draw{background:#1f2937;color:#e5e7eb}
-    .pill.lose{background:#5b0b0b;color:#fed7d7}
-    .leader{font-weight:800}
+    /* Layout */
+    .wrap{padding:var(--pad);display:grid;gap:12px;grid-template-columns:1fr;max-width:1200px;margin:auto}
+    @media (min-width:1000px){ .wrap{grid-template-columns:1.2fr .8fr} }
+    .card{background:var(--card);border:1px solid var(--border);border-radius:var(--r);box-shadow:var(--shadow);padding:clamp(12px,2vw,18px)}
+    .h3{margin:6px 0 12px;font-size:18px}
+    .row{display:flex;gap:10px;align-items:center;flex-wrap:wrap}
+    .field{display:flex;flex-direction:column;gap:6px;min-width:220px}
+    label{font-size:12px;color:var(--muted);text-transform:uppercase;letter-spacing:.3px}
+    select,input,textarea{
+      border:1px solid var(--border);background:var(--input-bg);color:var(--input-text);
+      border-radius:10px;padding:8px 10px; transition:background-color .15s ease, border-color .15s ease;
+    }
+    input[type="datetime-local"]{min-width:220px}
+    .muted{color:var(--muted)} .tiny{font-size:12px}
 
-    .danger-link{background:transparent;border:1px solid var(--border);border-radius:10px;padding:6px 10px;cursor:pointer}
-    .danger-link:hover{border-color:#7f1d1d;background:#2a0c0c;color:#fecaca}
-    
-    html.light .btn.primary{background:#0b5; color:#fff; border-color:#0a4}
-    html.light .btn{background:#fff; color:#0f172a}
-    html.light .btn.danger{background:#c62828;color:#fff;border-color:#b71c1c}
+    /* Result pills */
+    .res{display:flex;gap:8px;flex-wrap:wrap}
+    .pill{display:inline-flex;align-items:center;gap:6px;border:1px solid var(--border);border-radius:999px;padding:8px 12px;font-weight:700;cursor:pointer;user-select:none;background:var(--panel)}
+    .pill[data-v="A"]{background:var(--chip-win)}
+    .pill[data-v="D"]{background:var(--chip-draw)}
+    .pill[data-v="B"]{background:var(--chip-lose)}
+    .pill.active{outline:2px solid color-mix(in srgb, var(--text) 25%, transparent)}
 
-    .id-select{min-width:220px}
-    .id-compact select{min-width:180px}
-    .score-compact input{width:56px}
+    /* Tables */
+    table{width:100%;border-collapse:collapse}
+    th,td{border:1px solid var(--border);padding:8px 10px;text-align:center}
+    thead th{font-size:12px;color:var(--muted);text-transform:uppercase;background:color-mix(in srgb, var(--panel) 92%, transparent)}
+    .tag{display:inline-block;border:1px dashed var(--border);border-radius:999px;padding:2px 8px;font-weight:700;background:var(--panel)}
+    .win{background:var(--chip-win)} .draw{background:var(--chip-draw)} .lose{background:var(--chip-lose)}
+    .right{display:flex;justify-content:flex-end}
+    .danger-link{border:none;background:transparent;color:#b91c1c;cursor:pointer}
+    @media (prefers-reduced-motion:no-preference){
+      .card, .btn, select, input { transition:background-color .2s ease, color .2s ease, border-color .2s ease, transform .1s ease }
+    }
   </style>
-</head>
-<body>
-<div class="wrap">
 
-  <div class="top">
-    <div class="nav">
-      <div class="logo" aria-hidden="true"></div>
-    </div>
-    <h1 style="margin:0;font-size:18px">⚔️ Gestion des duels</h1>
-    <button id="menuToggle" class="menu-toggle" aria-label="Ouvrir le menu" aria-expanded="false" aria-controls="menu">☰</button>
-    <div id="menu" class="menu top">
+  <!-- Intercepteur logout (Annuler = reste connecté) -->
+  <script>
+  (function hardenLogout(){
+    document.addEventListener('click', function(e){
+      const t = e.target && e.target.closest && e.target.closest('#logoutBtn');
+      if(!t) return;
+      e.preventDefault(); e.stopPropagation(); e.stopImmediatePropagation();
+      const ok = confirm('Voulez-vous vraiment vous déconnecter ?');
+      if(!ok) return;
+      const API = () => (window.API || localStorage.getItem('efoot.api') || (location.protocol+'//'+location.hostname+':3000')).replace(/\/+$/,'');
+      const token = localStorage.getItem('efoot.token') || '';
+      (async () => {
+        try{ await fetch(API()+'/auth/logout',{ method:'POST', headers:{ Authorization:'Bearer '+token }}); }catch(_){}
+        try{
+          const keep=new Set(['efoot.theme','efoot.api']);
+          for(let i=localStorage.length-1;i>=0;i--){ const k=localStorage.key(i); if(!keep.has(k)) localStorage.removeItem(k); }
+          sessionStorage.clear();
+        }catch(_){}
+        location.replace('login.html');
+      })();
+    }, true);
+  })();
+  </script>
+
+  <script defer src="common.js"></script>
+</head>
+<body class="container">
+  <!-- TOP -->
+  <div class="top" id="top">
+    <a class="brand" href="Accueil.html"><div class="logo"></div>
+      <div class="title"><b>GOUZEPE — Duels</b><small>Matchs d’exhibition (hors championnat)</small></div>
+    </a>
+    <div class="sp"></div>
+    <button id="menuToggle" class="menu-toggle" aria-expanded="false" aria-controls="menu">☰ Menu</button>
+    <div id="menu" class="menu top" role="menu">
       <a class="btn" href="Accueil.html">🏠 Accueil</a>
       <a class="btn" href="Classement-general.html">📊 Classements</a>
-      <a class="btn" id="linkMembers" href="Admin-Joueurs.html">👥 Admin-Joueurs</a>
-      <button id="theme" class="btn" title="Basculer thème">☀️</button>
+      <a class="btn" href="Panel-Membre.html">👤 Mon espace</a>
+      <a class="btn" href="Admin-Joueurs.html" id="linkAdmin">👥 Admin-Joueurs</a>
+      <button id="themeBtn" class="btn" title="Thème">☀️/🌙</button>
       <button id="logoutBtn" class="btn danger">Déconnexion</button>
     </div>
   </div>
 
-  <main style="margin-top:12px">
+  <main class="wrap">
+    <!-- Colonne gauche -->
+    <section class="card">
+      <h3 class="h3">Nouveau duel (exhibition)</h3>
 
-    <div class="grid2">
-      <section class="card">
-        <div class="row" style="justify-content:space-between">
-          <h3 style="margin:6px 0">Nouveau duel</h3>
-          <small class="muted">Enregistre un duel amical hors journée du samedi</small>
+      <div class="row">
+        <div class="field">
+          <label for="p1">Joueur A</label>
+          <select id="p1"><option value="">Choisir…</option></select>
         </div>
-        <div class="row id-compact" style="margin-top:8px">
-          <label class="muted">Joueur A</label>
-          <select id="p1" class="id-select grow"></select>
-        </div>
-        <div class="row id-compact" style="margin-top:6px">
-          <label class="muted">Joueur B</label>
-          <select id="p2" class="id-select grow"></select>
-        </div>
-        <div class="row score-compact" style="margin-top:8px">
-          <label class="muted">Score</label>
-          <div class="score">
-            <input id="sa" type="number" inputmode="numeric" min="0" max="99" placeholder="A" />
-            <span class="muted">–</span>
-            <input id="sb" type="number" inputmode="numeric" min="0" max="99" placeholder="B" />
-          </div>
-        </div>
-        <div class="row" style="margin-top:8px">
-          <label class="muted">Date/Heure</label>
-          <input id="dt" type="datetime-local"/>
-          <span class="hint">Par défaut : maintenant</span>
-        </div>
-        <div class="row" style="margin-top:10px;justify-content:flex-end">
-          <button id="save" class="btn primary" type="button">Enregistrer</button>
-        </div>
-        <div id="saveMsg" class="tiny muted" style="margin-top:6px"></div>
-      </section>
-
-      <section class="card">
-        <div class="row" style="justify-content:space-between">
-          <h3 style="margin:6px 0">Face-à-face rapide</h3>
-          <small class="muted">Comparaison sur la base des duels enregistrés</small>
-        </div>
-        <div class="row id-compact" style="margin-top:8px">
-          <label class="muted">Joueur A</label>
-          <select id="cA" class="id-select grow"></select>
-        </div>
-        <div class="row id-compact" style="margin-top:6px">
-          <label class="muted">Joueur B</label>
-          <select id="cB" class="id-select grow"></select>
-        </div>
-        <div class="row" style="margin-top:8px">
-          <label class="muted">Période</label>
-          <input id="from" type="date"/>
-          <span class="muted">→</span>
-          <input id="to" type="date"/>
-          <div class="grow"></div>
-          <button id="compare" class="btn" type="button">Comparer</button>
-        </div>
-        <div id="cmpOut" style="margin-top:10px">
-          <div class="muted tiny">Sélectionne deux joueurs pour voir qui mène.</div>
-        </div>
-      </section>
-    </div>
-
-    <section class="card" style="margin-top:12px">
-      <div class="row" style="justify-content:space-between">
-        <h3 style="margin:6px 0">Derniers duels</h3>
-        <div class="row">
-          <label class="muted">Afficher</label>
-          <select id="limit"><option value="5" selected>5</option><option value="10">10</option><option value="25">25</option><option value="50">50</option></select>
-          <button id="refresh" class="btn" type="button">Rafraîchir</button>
+        <div class="field">
+          <label for="p2">Joueur B</label>
+          <select id="p2"><option value="">Choisir…</option></select>
         </div>
       </div>
-      <div class="tableWrap" style="margin-top:8px">
-        <table class="tbl">
-          <thead>
-            <tr>
-              <th>Date</th>
-              <th>Joueur A</th>
-              <th>Score</th>
-              <th>Joueur B</th>
-              <th>Leader</th>
-              <th class="adminOnly">Actions</th>
-            </tr>
-          </thead>
+
+      <div class="field" style="margin-top:8px">
+        <label>Résultat</label>
+        <div class="res" id="resPick">
+          <button class="pill" data-v="A">🏆 A gagne</button>
+          <button class="pill" data-v="D">🤝 Nul</button>
+          <button class="pill" data-v="B">🏆 B gagne</button>
+        </div>
+        <div class="tiny muted">L’historique retient uniquement W/D/L (pas de score).</div>
+      </div>
+
+      <div class="row" style="margin-top:8px">
+        <div class="field">
+          <label for="dt">Date & heure (facultatif)</label>
+          <input id="dt" type="datetime-local"/>
+        </div>
+        <div class="sp"></div>
+        <div class="right"><button id="save" class="btn primary">Enregistrer le duel</button></div>
+      </div>
+      <div id="saveMsg" class="tiny muted" style="margin-top:6px">—</div>
+    </section>
+
+    <!-- Colonne droite -->
+    <section class="card">
+      <h3 class="h3">Face-à-face rapide</h3>
+      <div class="row">
+        <div class="field">
+          <label for="cA">Joueur A</label>
+          <select id="cA"><option value="">Choisir…</option></select>
+        </div>
+        <div class="field">
+          <label for="cB">Joueur B</label>
+          <select id="cB"><option value="">Choisir…</option></select>
+        </div>
+      </div>
+      <div class="row" style="margin-top:8px">
+        <div class="field">
+          <label for="from">Depuis (optionnel)</label>
+          <input id="from" type="date">
+        </div>
+        <div class="field">
+          <label for="to">Jusqu’au (optionnel)</label>
+          <input id="to" type="date">
+        </div>
+        <div class="sp"></div>
+        <div class="right"><button id="compare" class="btn info">Comparer</button></div>
+      </div>
+      <div id="cmpOut" style="margin-top:10px"></div>
+    </section>
+
+    <!-- Historique -->
+    <section class="card" style="grid-column:1/-1">
+      <div class="row" style="justify-content:space-between">
+        <h3 class="h3">Historique des duels</h3>
+        <div class="row">
+          <label for="period">Période</label>
+          <select id="period">
+            <option value="all" selected>Toujours</option>
+            <option value="today">Aujourd’hui</option>
+            <option value="week">7 jours</option>
+            <option value="month">30 jours</option>
+          </select>
+          <label for="histFrom">De</label><input id="histFrom" type="date">
+          <label for="histTo">À</label><input id="histTo" type="date">
+          <label for="histP">Joueur</label><select id="histP"><option value="">Tous</option></select>
+          <label for="limit">Afficher</label><select id="limit"><option>5</option><option selected>10</option><option>20</option><option>50</option></select>
+          <button id="refresh" class="btn">Rafraîchir</button>
+          <a id="exportCsv" class="btn" href="#">Export CSV</a>
+          <a id="exportPdf" class="btn" href="#" target="_blank" rel="noopener">Imprimer PDF</a>
+        </div>
+      </div>
+      <div class="table-wrap">
+        <table>
+          <thead><tr><th>Date</th><th>Joueur A</th><th>Résultat</th><th>Joueur B</th><th>Leader</th><th class="adminOnly">Actions</th></tr></thead>
           <tbody id="list"></tbody>
         </table>
       </div>
     </section>
   </main>
-</div>
 
-<script>
-/* ===== UTILS, API ET AUTHENTIFICATION ===== */
-const $ = s => document.querySelector(s);
-const DEF_API = () => (location.protocol.startsWith('http')?location.protocol:'http:') + '//' + location.hostname + ':3000';
-const API  = (localStorage.getItem('efoot.api') || DEF_API()).replace(/\/+$/,'');
-const TOK  = localStorage.getItem('efoot.token') || '';
-const ROLE = (localStorage.getItem('efoot.role') || 'member').toLowerCase();
+  <script>
+  const API = () => (window.API || localStorage.getItem('efoot.api') || (location.protocol+'//'+location.hostname+':3000')).replace(/\/+$/,'');
+  const TOK = localStorage.getItem('efoot.token')||'';
+  let MY_ROLE = (localStorage.getItem('efoot.role')||'member').toLowerCase();
+  const hd = (m='GET')=>({method:m,headers:{'Content-Type':'application/json',Authorization:'Bearer '+TOK}});
+  const $ = s => document.querySelector(s);
+  const esc = t => String(t??'').replace(/[&<>"']/g,m=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[m]));
 
-// Auth Guard : Vérifie si l'utilisateur est connecté, sinon le renvoie à la page de connexion.
-(function(){
-  const expAt=+localStorage.getItem('efoot.expAt')||0;
-  if(!TOK || Date.now()>=expAt){ location.href='login.html'; }
-})();
+  // Menu mobile propre (ouvre/ferme + clic extérieur + ESC)
+  (function(){
+    const top=$('#top'), btn=$('#menuToggle'), menu=$('#menu');
+    const open = v => { top.classList.toggle('open',v); btn.setAttribute('aria-expanded',v?'true':'false'); }
+    btn?.addEventListener('click',e=>{e.stopPropagation(); open(!top.classList.contains('open'));});
+    document.addEventListener('click',e=>{ if(e.target===btn||menu.contains(e.target)) return; open(false); }, true);
+    document.addEventListener('keydown',e=>{ if(e.key==='Escape') open(false); });
+  })();
 
-// Gestion du thème (sombre/clair)
-(function(){
-  const k='efoot.theme';
-  const apply=m=>{document.documentElement.classList.toggle('light',m==='light');localStorage.setItem(k,m);$('#theme').textContent=m==='light'?'🌙':'☀️'};
-  apply(localStorage.getItem(k)||'dark');
-  $('#theme').onclick=()=>apply(document.documentElement.classList.contains('light')?'dark':'light');
-})();
+  // Thème (clé unifiée 'efoot.theme')
+  (function(){
+    const key='efoot.theme'; const b=$('#themeBtn');
+    const apply=m=>{document.documentElement.classList.toggle('light',m==='light');localStorage.setItem(key,m);};
+    apply(localStorage.getItem(key)||'dark');
+    b?.addEventListener('click',()=>apply(document.documentElement.classList.contains('light')?'dark':'light'));
+  })();
 
-// Gestion du menu de navigation
-(function(){
-  const menu=$('#menu'), toggle=$('#menuToggle');
-  function open(v){menu.classList.toggle('open',v);toggle.setAttribute('aria-expanded',v?'true':'false')}
-  toggle?.addEventListener('click',(e)=>{e.stopPropagation();open(!menu.classList.contains('open'));});
-  document.addEventListener('click',(e)=>{ if(!menu.classList.contains('open'))return; if(e.target===toggle||menu.contains(e.target))return; open(false); },true);
-  document.addEventListener('keydown',(e)=>{ if(e.key==='Escape') open(false); });
-})();
+  // Linked player (pour restriction membre)
+  let MY_PID = null;
+  (async ()=>{ try{ const r=await fetch(API()+'/auth/me', hd()); if(r.ok){ const d=await r.json(); MY_ROLE=(d.user?.role||MY_ROLE).toLowerCase(); MY_PID=d.user?.player_id||null; } }catch(_){}})();
 
-// Déconnexion
-$('#logoutBtn')?.addEventListener('click',()=>{
-  if(confirm('Voulez-vous vraiment vous déconnecter ?')){
-    ['efoot.token','efoot.role','efoot.expAt'].forEach(k=>localStorage.removeItem(k));
-    location.href='login.html';
+  // Chargement joueurs
+  const NAME_BY_ID = new Map();
+  async function loadPlayers(){
+    const r = await fetch(API()+'/players', hd());
+    const d = await r.json().catch(()=>({players:[]}));
+    const list = (d.players||[]).sort((a,b)=> (a.name||a.player_id).localeCompare(b.name||b.player_id,'fr'));
+    list.forEach(p=> NAME_BY_ID.set(String(p.player_id), p.name||p.player_id));
+    const opts = list.map(p=>`<option value="${esc(p.player_id)}">${esc(p.name||p.player_id)} — ${esc(p.player_id)}</option>`).join('');
+    ['p1','p2','cA','cB','histP'].forEach(id=>{ const sel=$('#'+id); if(sel) sel.innerHTML = (id==='histP' ? '<option value="">Tous</option>' : '<option value="">Choisir…</option>') + opts; });
   }
-});
 
-// Fonctions utilitaires
-function esc(t){return String(t??'').replace(/[&<>"']/g,m=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[m]));}
-async function safeFetch(url,opt={},ms=15000){
-  const c=new AbortController(); const t=setTimeout(()=>c.abort(),ms);
-  try{ return await fetch(url,{signal:c.signal,...opt}); } finally{ clearTimeout(t); }
-}
-function toISO(dtLocalValue){ // Convertit la date locale en format ISO pour l'API
-  if(!dtLocalValue) return null;
-  const d=new Date(dtLocalValue);
-  return Number.isNaN(+d)? null : d.toISOString();
-}
-function isIntLike(v){ // Valide si la valeur est un entier entre 0 et 99
-  if(v===null || v===undefined || v==='') return false;
-  const n=Number(v); return Number.isFinite(n) && Math.floor(n)===n && n>=0 && n<=99;
-}
-
-/* ===== CHARGEMENT DES JOUEURS DANS LES LISTES DÉROULANTES ===== */
-const NAME_BY_ID=new Map(); // Cache pour associer ID et nom du joueur
-async function loadPlayers(){
-  const r=await safeFetch(API+'/players',{headers:{Authorization:'Bearer '+TOK}});
-  const d=await r.json();
-  const opts = (d.players||[])
-    .sort((a,b)=> (a.name||a.player_id).localeCompare(b.name||b.player_id,'fr'))
-    .map(p=>{
-      NAME_BY_ID.set(p.player_id, p.name||p.player_id);
-      return `<option value="${esc(p.player_id)}">${esc(p.name||p.player_id)} — ${esc(p.player_id)}</option>`;
-    }).join('');
-  // Peuple toutes les listes de sélection de joueurs
-  ['p1','p2','cA','cB'].forEach(id=>{ const sel=$( '#'+id ); if(sel) sel.innerHTML = '<option value="">Choisir…</option>'+opts; });
-}
-
-/* ===== SECTION : ENREGISTRER UN NOUVEAU DUEL ===== */
-async function onSave(){
-  const btn = $('#save');
-  const msg = $('#saveMsg');
-  msg.textContent='';
-  btn.disabled=true;
-
-  try{
-    // Récupération et validation des données du formulaire
-    const p1 = $('#p1').value.trim();
-    const p2 = $('#p2').value.trim();
-    const sa = $('#sa').value !== '' ? Number($('#sa').value) : null;
-    const sb = $('#sb').value !== '' ? Number($('#sb').value) : null;
-    const dt = toISO($('#dt').value);
-
-    if(!p1 || !p2) throw new Error('Sélectionne les deux joueurs.');
-    if(p1 === p2)  throw new Error('Choisir deux joueurs différents.');
-    if(!isIntLike(sa) || !isIntLike(sb)) throw new Error('Score incorrect (entiers de 0 à 99).');
-
-    const body = { p1, p2, score_a: sa, score_b: sb };
-    if(dt) body.played_at = dt;
-
-    // Envoi de la requête à l'API
-    const r = await safeFetch(API+'/duels', {
-      method:'POST',
-      headers:{'Content-Type':'application/json', Authorization:'Bearer '+TOK},
-      body: JSON.stringify(body)
+  // Sélection résultat (A/D/B)
+  let RESULT = null;
+  (function(){
+    const box = $('#resPick');
+    box.addEventListener('click',(e)=>{
+      const b = e.target.closest('.pill'); if(!b) return;
+      RESULT = b.dataset.v; // 'A' | 'D' | 'B'
+      box.querySelectorAll('.pill').forEach(x=>x.classList.toggle('active', x===b));
     });
-    const d = await r.json().catch(()=>({}));
-    if(!r.ok) throw new Error(d.error||('HTTP '+r.status));
+  })();
 
-    msg.textContent = '✅ Duel enregistré.';
-    $('#sa').value=''; $('#sb').value=''; // Réinitialise seulement les scores
+  const nowLocal = ()=>{ const d=new Date(); d.setSeconds(0,0); const pad=n=>String(n).padStart(2,'0'); return `${d.getFullYear()}-${pad(d.getMonth()+1)}-${pad(d.getDate())}T${pad(d.getHours())}:${pad(d.getMinutes())}`; };
 
-    // Rafraîchit les listes pour voir le nouveau duel
+  // Enregistrer un duel
+  async function onSave(){
+    const btn=$('#save'), msg=$('#saveMsg'); msg.textContent='…'; btn.disabled=true;
+    try{
+      const p1=$('#p1').value.trim(), p2=$('#p2').value.trim();
+      if(!p1 || !p2) throw new Error('Sélectionne les deux joueurs.');
+      if(p1===p2)    throw new Error('Choisis deux joueurs différents.');
+      if(!RESULT)    throw new Error('Choisis le résultat (A gagne / Nul / B gagne).');
+      if(MY_ROLE!=='admin'){
+        if(!MY_PID) throw new Error("Votre compte n'est lié à aucun player_id");
+        if(p1!==MY_PID && p2!==MY_PID) throw new Error("Vous ne pouvez enregistrer qu’un duel auquel vous participez.");
+      }
+      const dt = $('#dt').value ? new Date($('#dt').value).toISOString() : null;
+      let score_a=0, score_b=0; if(RESULT==='A'){score_a=1;} else if(RESULT==='B'){score_b=1;}
+      const body = { p1, p2, score_a, score_b }; if(dt) body.played_at = dt;
+
+      const r = await fetch(API()+'/duels', { ...hd('POST'), body: JSON.stringify(body) });
+      const d = await r.json().catch(()=>({})); if(!r.ok) throw new Error(d.error||('HTTP '+r.status));
+
+      msg.textContent = '✅ Duel enregistré';
+      RESULT=null; document.querySelectorAll('#resPick .pill').forEach(x=>x.classList.remove('active'));
+      $('#dt').value = nowLocal();
+      await refreshRecent();
+    }catch(e){ msg.textContent='❌ '+(e.message||'Erreur'); }
+    finally{ btn.disabled=false; }
+  }
+
+  // Face-à-face
+  function badge(w,d,l){
+    let cls='draw', lab='Égalité'; if(w>l){cls='win';lab='Leader A';} else if(l>w){cls='lose';lab='Leader B';}
+    return `<span class="tag ${cls}">${lab} • ${w}-${d}-${l}</span>`;
+  }
+  async function onCompare(){
+    const A=$('#cA').value.trim(), B=$('#cB').value.trim(), F=$('#from').value.trim(), T=$('#to').value.trim();
+    const out=$('#cmpOut'); out.innerHTML='';
+    if(!A||!B){ out.innerHTML='<div class="tiny muted">Choisis deux joueurs.</div>'; return; }
+    if(A===B){ out.innerHTML='<div class="tiny muted">Les joueurs doivent être différents.</div>'; return; }
+    const qs=new URLSearchParams({p1:A,p2:B}); if(F)qs.set('from',F); if(T)qs.set('to',T);
+    const r=await fetch(API()+'/duels/compare?'+qs.toString(), hd()); const d=await r.json().catch(()=>({})); if(!r.ok){ out.innerHTML='<div class="tiny muted">Erreur.</div>'; return; }
+    const t=d.totals||{wins:0,draws:0,losses:0,legs:0};
+    const nA=d.p1?.name||NAME_BY_ID.get(A)||A, nB=d.p2?.name||NAME_BY_ID.get(B)||B;
+    out.innerHTML = `<div class="row" style="justify-content:space-between"><div><b>${esc(nA)}</b> vs <b>${esc(nB)}</b> — <span class="muted">${t.legs||0} match(s)</span></div><div>${badge(t.wins,t.draws,t.losses)}</div></div>`;
+  }
+
+  // Historique + filtres + exports
+  function periodToRange(v){
+    const d = new Date(); const pad=n=>String(n).padStart(2,'0');
+    const iso = x => `${x.getFullYear()}-${pad(x.getMonth()+1)}-${pad(x.getDate())}`;
+    if(v==='today'){ const a=new Date(); const b=new Date(); return {from:iso(a), to:iso(b)}; }
+    if(v==='week'){ const a=new Date(); a.setDate(d.getDate()-6); return {from:iso(a), to:iso(d)}; }
+    if(v==='month'){ const a=new Date(); a.setDate(d.getDate()-29); return {from:iso(a), to:iso(d)}; }
+    return {from:$('#histFrom').value||'', to:$('#histTo').value||''};
+  }
+  async function refreshRecent(){
+    const L=parseInt($('#limit').value||'10',10), p=$('#histP').value||'', pr=$('#period').value;
+    const {from,to} = periodToRange(pr);
+    const qs = new URLSearchParams({ limit:String(L) });
+    if (p) qs.set('p', p); if (from) qs.set('from', from); if (to) qs.set('to', to);
+    $('#exportCsv').href = `${API()}/duels/export.csv?${qs.toString()}`;
+    $('#exportPdf').href = `${API()}/duels/export.html?${qs.toString()}`;
+
+    const r=await fetch(API()+'/duels/recent?'+qs.toString(), hd());
+    const d=await r.json().catch(()=>({duels:[]})); const tb=$('#list'); tb.innerHTML='';
+    (d.duels||[]).forEach(row=>{
+      const a=+row.score_a, b=+row.score_b, cls=(a>b)?'win':(a<b?'lose':'draw');
+      const res=(a>b)?'A gagne':(a<b?'B gagne':'Nul');
+      const leader=(a>b)?(row.p1_name||row.p1_id):(a<b?(row.p2_name||row.p2_id):'Égalité');
+      const tr=document.createElement('tr');
+      tr.innerHTML = `<td>${new Date(row.played_at).toLocaleString('fr-FR')}</td>
+        <td>${esc(row.p1_name||row.p1_id)}</td>
+        <td><span class="tag ${cls}">${esc(res)}</span></td>
+        <td>${esc(row.p2_name||row.p2_id)}</td>
+        <td>${esc(leader)}</td>
+        <td class="adminOnly">${MY_ROLE==='admin'
+          ? `<button class="danger-link" data-del="${row.id}">Supprimer</button>` : ''}</td>`;
+      tb.appendChild(tr);
+    });
+  }
+  document.getElementById('list').addEventListener('click', async (e)=>{
+    const id=e.target?.dataset?.del; if(!id) return;
+    if(MY_ROLE!=='admin') return alert('Réservé aux administrateurs.'); if(!confirm('Supprimer ce duel ?')) return;
+    const r=await fetch(API()+'/duels/'+encodeURIComponent(id), {...hd('DELETE')}); if(!r.ok){ const d=await r.json().catch(()=>({})); alert(d.error||('HTTP '+r.status)); return; }
     await refreshRecent();
-    const cA=$('#cA').value, cB=$('#cB').value;
-    if((cA && cB) && ((cA===p1 && cB===p2) || (cA===p2 && cB===p1))){
-      await onCompare(); // Met à jour la comparaison si les mêmes joueurs y sont sélectionnés
-    }
-  }catch(e){
-    msg.textContent = '❌ ' + (e.message||'Erreur inconnue');
-  }finally{
-    btn.disabled=false;
-  }
-}
-
-/* ===== SECTION : FACE-À-FACE RAPIDE ===== */
-function totBadge(w,d,l,gf,ga){
-  let cls='draw', lab='Égalité';
-  if(w>l){ cls='win'; lab='Leader'; }
-  else if(l>w){ cls='lose'; lab='Mené'; }
-  const txt = `${gf}-${ga}`;
-  return `<span class="pill ${cls}"><strong>${lab}</strong> • ${txt}</span>`;
-}
-async function onCompare(){
-  const A=$('#cA').value.trim();
-  const B=$('#cB').value.trim();
-  const F=$('#from').value.trim();
-  const T=$('#to').value.trim();
-  const out=$('#cmpOut');
-  out.innerHTML='';
-
-  if(!A || !B) { out.innerHTML='<div class="muted tiny">Choisis deux joueurs.</div>'; return; }
-  if(A===B)    { out.innerHTML='<div class="muted tiny">Les joueurs doivent être différents.</div>'; return; }
-
-  // Construction de la requête avec les paramètres
-  const params = new URLSearchParams();
-  params.set('p1',A); params.set('p2',B);
-  if(F) params.set('from',F);
-  if(T) params.set('to',T);
-
-  const r = await safeFetch(API+'/duels/compare?'+params.toString(), { headers:{Authorization:'Bearer '+TOK}});
-  const d = await r.json().catch(()=>({}));
-  if(!r.ok){ out.innerHTML = `<div class="muted tiny">Erreur: ${esc(d.error||('HTTP '+r.status))}</div>`; return; }
-
-  const nA = d.p1?.name || NAME_BY_ID.get(A) || A;
-  const nB = d.p2?.name || NAME_BY_ID.get(B) || B;
-  const t  = d.totals || {wins:0,draws:0,losses:0,gf:0,ga:0,legs:0};
-
-  let leader = 'Égalité';
-  if(t.wins > t.losses) leader = nA;
-  else if(t.losses > t.wins) leader = nB;
-
-  // Affichage des résultats de la comparaison
-  out.innerHTML = `
-    <div class="row" style="justify-content:space-between;align-items:center">
-      <div><strong>${esc(nA)}</strong> vs <strong>${esc(nB)}</strong> • ${t.legs||0} manche(s)</div>
-      <div>${totBadge(t.wins,t.draws,t.losses,t.gf,t.ga)}</div>
-    </div>
-    <div class="hint">Leader : <span class="leader">${esc(leader)}</span></div>
-    <div class="tableWrap" style="margin-top:8px">
-      <table class="tbl">
-        <thead><tr><th>Date</th><th>${esc(nA)}</th><th>Score</th><th>${esc(nB)}</th></tr></thead>
-        <tbody>
-          ${(d.duels||[]).map(row=>{
-            let a=row.score_a, b=row.score_b, left=row.p1_name||row.p1_id, right=row.p2_name||row.p2_id;
-            if(row.p1_id !== A){ a=row.score_b; b=row.score_a; left=row.p2_name||row.p2_id; right=row.p1_name||row.p1_id; }
-            const cls = a>b?'win':(a<b?'lose':'draw');
-            return `<tr>
-              <td>${new Date(row.played_at).toLocaleString('fr-FR')}</td>
-              <td>${esc(left)}</td>
-              <td><span class="pill ${cls}">${a} – ${b}</span></td>
-              <td>${esc(right)}</td>
-            </tr>`;
-          }).join('')}
-        </tbody>
-      </table>
-    </div>
-  `;
-}
-
-/* ===== SECTION : DERNIERS DUELS ENREGISTRÉS ===== */
-async function refreshRecent(){
-  const L = parseInt($('#limit').value||'5',10);
-  const r = await safeFetch(API+'/duels/recent?limit='+encodeURIComponent(L), { headers:{Authorization:'Bearer '+TOK}});
-  const d = await r.json().catch(()=>({duels:[]}));
-  const tb = $('#list'); tb.innerHTML='';
-
-  (d.duels||[]).forEach(row=>{
-    const a = `${row.score_a}`, b = `${row.score_b}`;
-    const cls = (+a>+b)?'win':(+a<+b?'lose':'draw');
-    let leader = 'Égalité';
-    if(+a>+b) leader = row.p1_name || row.p1_id;
-    else if(+b>+a) leader = row.p2_name || row.p2_id;
-
-    const tr=document.createElement('tr');
-    tr.innerHTML = `
-      <td>${new Date(row.played_at).toLocaleString('fr-FR')}</td>
-      <td>${esc(row.p1_name||row.p1_id)}</td>
-      <td><span class="pill ${cls}">${a} – ${b}</span></td>
-      <td>${esc(row.p2_name||row.p2_id)}</td>
-      <td>${esc(leader)}</td>
-      <td class="adminOnly">${ROLE==='admin'
-        ? `<button class="danger-link" data-del="${row.id}">Supprimer</button>`
-        : ''}</td>
-    `;
-    tb.appendChild(tr);
-  });
-}
-
-// Gestion de la suppression d'un duel (pour admin)
-$('#list').addEventListener('click', async (e)=>{
-  const id = e.target?.dataset?.del;
-  if(!id) return;
-  if(ROLE!=='admin') return alert('Réservé aux administrateurs.');
-  if(!confirm('Supprimer ce duel ?')) return;
-
-  const r = await safeFetch(API+'/duels/'+encodeURIComponent(id), {
-    method:'DELETE', headers:{Authorization:'Bearer '+TOK}
-  });
-  const d = await r.json().catch(()=>({}));
-  if(!r.ok){ alert(d.error||('HTTP '+r.status)); return; }
-  await refreshRecent(); // Rafraîchit la liste après suppression
-});
-
-/* ===== INITIALISATION DE LA PAGE ===== */
-(function init(){
-  // Assure que seuls des chiffres sont saisis pour les scores
-  ['sa','sb'].forEach(id=>{
-    const el=$('#'+id);
-    el.addEventListener('input',()=>{
-      el.value = el.value.replace(/[^\d]/g,'').slice(0,2);
-    });
   });
 
-  // Met la date et l'heure actuelles par défaut dans le formulaire
-  const now = new Date();
-  now.setSeconds(0,0);
-  const pad = n=> String(n).padStart(2,'0');
-  const v = `${now.getFullYear()}-${pad(now.getMonth()+1)}-${pad(now.getDate())}T${pad(now.getHours())}:${pad(now.getMinutes())}`;
-  $('#dt').value = v;
-
-  // Attache les événements aux boutons
-  $('#save').addEventListener('click', onSave);
-  $('#compare').addEventListener('click', onCompare);
-  $('#refresh').addEventListener('click', refreshRecent);
-  $('#limit').addEventListener('change', refreshRecent);
-
-  // Affiche/masque les éléments réservés à l'administrateur
-  document.querySelectorAll('.adminOnly').forEach(el=>{
-    el.style.display = (ROLE==='admin') ? '' : 'none';
-  });
-
-  // Charge les données initiales
-  loadPlayers();
-  refreshRecent();
-})();
-</script>
+  // Init
+  (async function(){
+    const expAt=+localStorage.getItem('efoot.expAt')||0; if(!TOK || Date.now()>=expAt){ location.href='login.html'; return; }
+    $('#dt').value = (function(){ const d=new Date(); d.setSeconds(0,0); const p=n=>String(n).padStart(2,'0'); return `${d.getFullYear()}-${p(d.getMonth()+1)}-${p(d.getDate())}T${p(d.getHours())}:${p(d.getMinutes())}`; })();
+    await loadPlayers();
+    ['save','compare','refresh'].forEach(id=> document.getElementById(id).addEventListener('click', ({target})=>({save:onSave,compare:onCompare,refresh:refreshRecent}[target.id]())));
+    ['period','histFrom','histTo','histP','limit'].forEach(id=> $('#'+id).addEventListener('change', refreshRecent));
+    await refreshRecent();
+  })();
+  </script>
 </body>
 </html>

@@ -309,6 +309,22 @@ document.getElementById('f').addEventListener('submit', async (e)=>{
   }
 });
 
+  // Valider la session attendue par le front (login.html appelle /auth/me)
+app.get('/auth/me', auth, async (req, res) => {
+  try {
+    const r = await q(
+      `SELECT id, email, role, player_id FROM users WHERE id = $1`,
+      [req.user.uid]
+    );
+    if (!r.rowCount) return bad(res, 404, 'user_not_found');
+    ok(res, { user: r.rows[0] });   // <= le front attend { user: { ... } }
+  } catch (e) {
+    console.error(e);
+    bad(res, 500, 'session_check_error');
+  }
+});
+
+
 /* ===== Config API ===== */
 (function(){
   const dlg=document.getElementById('cfg');

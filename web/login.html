@@ -1,186 +1,321 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="fr">
 <head>
-  <meta charset="utf-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>GOUZEPE — Connexion</title>
-  <style>
-    :root { color-scheme: dark; }
-    body { margin:0; font-family:system-ui,-apple-system,Segoe UI,Roboto,Ubuntu,Cantarell,'Helvetica Neue',Arial; background:#0f172a; color:#e2e8f0; }
-    .wrap { min-height:100vh; display:grid; place-items:center; padding:24px; }
-    .card { width:100%; max-width:440px; background:#111827; border:1px solid #1f2937; border-radius:16px; padding:28px; box-shadow:0 10px 30px rgba(0,0,0,.35); }
-    h1 { margin:0 0 8px; font-size:22px; font-weight:700; }
-    p.sub { margin:0 0 18px; color:#9ca3af; font-size:14px; }
-    label { display:block; font-size:13px; color:#cbd5e1; margin:12px 0 6px; }
-    input[type="email"], input[type="password"] {
-      width:100%; padding:12px 14px; border-radius:12px; border:1px solid #334155; outline:none; background:#0b1220; color:#e2e8f0;
-    }
-    input::placeholder{ color:#64748b; }
-    .row { display:flex; gap:10px; align-items:center; justify-content:space-between; margin-top:14px; }
-    button {
-      display:inline-flex; align-items:center; justify-content:center;
-      width:100%; margin-top:16px; padding:12px 14px; border:0; border-radius:12px;
-      background:#10b981; color:#04131a; font-weight:700; cursor:pointer; transition:transform .06s ease;
-    }
-    button[disabled]{ opacity:.6; cursor:wait; transform:none !important; }
-    button:hover{ transform:translateY(-1px); }
-    .muted { font-size:12px; color:#94a3b8; }
-    .err { margin-top:10px; padding:10px 12px; border-radius:12px; background:#3b0b0b; color:#fecaca; display:none; }
-    .ok  { margin-top:10px; padding:10px 12px; border-radius:12px; background:#0b3b14; color:#bbf7d0; display:none; }
-    .api { font-size:11px; color:#94a3b8; margin-top:10px; word-break:break-all; }
-    .toplogo { display:flex; align-items:center; gap:10px; margin-bottom:12px; }
-    .badge { display:inline-flex; align-items:center; gap:8px; background:#0b1220; border:1px solid #1f2937; color:#9ca3af; padding:6px 10px; border-radius:999px; font-size:12px; }
-    .right { text-align:right; }
-    a { color:#60a5fa; text-decoration:none; }
-    .eye { position:absolute; right:10px; top:50%; transform:translateY(-50%); cursor:pointer; font-size:12px; color:#94a3b8; }
-    .rel { position:relative; }
-  </style>
+<meta charset="utf-8">
+<title>Connexion — GOUZEPE</title>
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta http-equiv="Cache-Control" content="no-store" />
+<link rel="stylesheet" href="theme.css">
+<meta name="color-scheme" content="dark light">
+
+<style>
+  :root{
+    --bg:#0b1220; --panel:#0f1627; --panel-veil:rgba(2,6,23,.55);
+    --text:#e5e7eb; --muted:#94a3b8; --border:#1f2937;
+    --accent:#60a5fa; --accent-veil:rgba(96,165,250,.25);
+    --btn:#14532d; --btn2:#0b1b0f; --btnText:#d1fae5;
+  }
+  :root.light{
+    --bg:#f4f6fb; --panel:#ffffff; --panel-veil:rgba(255,255,255,.75);
+    --text:#0f172a; --muted:#475569; --border:#e5e7eb;
+    --accent:#2563eb; --accent-veil:rgba(37,99,235,.18);
+    --btn:#155e75; --btn2:#e6f4ff; --btnText:#0b1220;
+  }
+  *{box-sizing:border-box}
+  html,body{height:100%}
+  body{
+    margin:0; background:var(--bg); color:var(--text);
+    font-family:system-ui,-apple-system,Segoe UI,Roboto,Ubuntu,"Trebuchet MS",sans-serif;
+    -webkit-font-smoothing:antialiased; text-rendering:optimizeLegibility;
+  }
+  .wrap{
+    min-height:100dvh; min-block-size:100svh;
+    display:grid; place-items:center;
+    padding:max(16px, env(safe-area-inset-top)) max(16px, env(safe-area-inset-right)) max(16px, env(safe-area-inset-bottom)) max(16px, env(safe-area-inset-left));
+    background:
+      radial-gradient(900px 600px at 20% 0%, rgba(96,165,250,.12), transparent 40%),
+      radial-gradient(900px 600px at 80% 100%, rgba(34,197,94,.10), transparent 40%),
+      url('assets/fond.png') center/cover fixed no-repeat;
+  }
+  html.light .wrap{
+    background:
+      radial-gradient(900px 600px at 20% 0%, rgba(96,165,250,.18), transparent 42%),
+      radial-gradient(900px 600px at 80% 100%, rgba(34,197,94,.16), transparent 42%),
+      url('assets/fond.png') center/cover fixed no-repeat;
+  }
+
+  .card{
+    position:relative; margin-inline:auto; width:min(560px,94vw);
+    background:linear-gradient(to bottom right, var(--panel), var(--panel));
+    border:1px solid var(--border); border-radius:18px;
+    box-shadow:0 14px 60px rgba(0,0,0,.45);
+    overflow:hidden;
+    backdrop-filter:saturate(1.2) blur(6px);
+  }
+  .head{padding:20px 18px; border-bottom:1px solid var(--border)}
+  .head.center{display:grid; place-items:center}
+  .logo{height:68px; width:auto; display:block; border-radius:14px}
+
+  .body{padding:18px 18px 10px}
+  h2{margin:0 0 12px; font-size:18px; font-weight:700; text-align:center}
+  label{display:block; margin:10px 0 6px; color:var(--muted); font-weight:600}
+  input{
+    width:100%; padding:14px; border:1px solid var(--border); border-radius:12px;
+    background:rgba(11,16,32,.85); color:var(--text); font-size:16px;
+    outline:none; transition:border-color .15s ease, box-shadow .15s ease, background .15s;
+  }
+  html.light input{background:#fff}
+  input::placeholder{color:color-mix(in oklab, var(--muted) 75%, transparent)}
+  input:focus-visible{
+    border-color:var(--accent);
+    box-shadow:0 0 0 3px var(--accent-veil);
+    background:rgba(11,16,32,.92);
+  }
+
+  .field{position:relative}
+  .field .toggle{
+    position:absolute; right:8px; top:50%; transform:translateY(-50%);
+    border:1px solid var(--border); background:transparent; border-radius:10px;
+    padding:6px 8px; cursor:pointer;
+  }
+
+  .btn{
+    border:1px solid var(--border); background:linear-gradient(to bottom, var(--btn2), var(--btn));
+    color:var(--btnText); border-radius:12px; padding:12px 16px; cursor:pointer;
+    font-weight:700; letter-spacing:.2px; transition:transform .08s ease, filter .12s ease;
+  }
+  .btn:hover{filter:brightness(1.05)}
+  .btn:active{transform:translateY(1px)}
+  .iconbtn{
+    border:1px solid var(--border); background:transparent; border-radius:12px;
+    padding:10px 12px; cursor:pointer; color:var(--text);
+  }
+  .iconbtn.float{position:absolute; top:10px; right:10px}
+
+  .error{color:#ef4444; min-height:20px; margin-top:8px}
+  .muted{color:var(--muted)}
+
+  .footer{
+    padding:14px 18px 18px;
+    display:flex; gap:12px; align-items:center; justify-content:space-between;
+  }
+
+  @media (max-width: 520px){
+    .footer{flex-direction:column; align-items:stretch}
+    .btn{width:100%}
+  }
+  .gear{position:fixed; right:16px; bottom:16px; z-index:30}
+
+  dialog{border:none; border-radius:14px; max-width:520px; width:min(92vw,520px); padding:0; background:var(--panel); color:var(--text)}
+  dialog::backdrop{background:rgba(0,0,0,.35)}
+  .dlg-h{padding:14px 16px; border-bottom:1px solid var(--border); font-weight:700}
+  .dlg-b{padding:14px 16px; display:grid; gap:10px}
+  .dlg-f{padding:14px 16px; border-top:1px solid var(--border); display:flex; gap:10px; justify-content:flex-end}
+
+  /* petite ligne de statut */
+  #boot{min-height:20px; margin-top:6px; font-size:14px; color:var(--muted)}
+</style>
 </head>
 <body>
-  <div class="wrap">
-    <div class="card">
-      <div class="toplogo">
-        <span class="badge">GOUZEPE eFOOTBALL</span>
-        <div style="flex:1"></div>
-        <span class="muted" id="envBadge">…</span>
-      </div>
-      <h1>Connexion</h1>
-      <p class="sub">Accédez à votre espace membre.</p>
-
-      <form id="loginForm">
-        <label for="email">Adresse e-mail</label>
-        <input id="email" type="email" inputmode="email" autocomplete="username" placeholder="ex: nom@exemple.com" required />
-
-        <label for="password">Mot de passe</label>
-        <div class="rel">
-          <input id="password" type="password" autocomplete="current-password" placeholder="Votre mot de passe" required />
-          <span class="eye" id="togglePwd">afficher</span>
-        </div>
-
-        <div class="row">
-          <span class="muted">Besoin d’un compte ? Demandez à un admin.</span>
-          <a class="muted right" href="#" id="forceApiLink" title="Changer l’URL API">config API</a>
-        </div>
-
-        <button id="submitBtn" type="submit">Se connecter</button>
-      </form>
-
-      <div class="err" id="errBox"></div>
-      <div class="ok" id="okBox"></div>
-      <div class="api" id="apiInfo"></div>
+<div class="wrap">
+  <div class="card">
+    <div class="head center">
+      <img class="logo" src="assets/fond.png" alt="GOUZEPE">
     </div>
+    <button id="theme" class="iconbtn float" title="Basculer thème">🌙</button>
+
+    <form id="f" class="body" autocomplete="on">
+      <h2>Connexion</h2>
+
+      <label>Email</label>
+      <input id="email" type="email" placeholder="admin@gz.local" required>
+
+      <label>Mot de passe</label>
+      <div class="field">
+        <input id="pwd" type="password" placeholder="••••••••" required>
+        <button type="button" id="togglePwd" class="toggle" title="Afficher / masquer">👁️</button>
+      </div>
+
+      <div id="err" class="error"></div>
+      <div id="boot" class="muted">—</div>
+
+      <div class="footer">
+        <span class="muted">Session : 24h</span>
+        <button id="submit" class="btn" type="submit">Se connecter</button>
+      </div>
+    </form>
   </div>
 
-  <script>
-  (function(){
-    /* === Détection API (Render & local) === */
-    const PROD_API='https://gouzepe-api.onrender.com';
-    const isPrivateNet=(h)=>/^(localhost|127\\.0\\.0\\.1|10\\.\\d+\\.\\d+\\.\\d+|192\\.168\\.\\d+\\.\\d+|172\\.(1[6-9]|2\\d|3[01])\\.\\d+\\.\\d+)$/.test(h||'');
-    function DEF_API(){
-      const host=location.hostname||'';
-      if(isPrivateNet(host)) return (location.protocol.startsWith('http')?location.protocol:'http:')+'//'+host+':3000';
-      if(host.endsWith('.onrender.com')){
-        if(host.includes('-app.')) return 'https://'+host.replace('-app.','-api.');
-        if(host.includes('app.'))  return 'https://'+host.replace('app.','api.');
+  <button id="cfgBtn" class="iconbtn gear" title="Configurer l'API">⚙️</button>
+  <dialog id="cfg">
+    <div class="dlg-h">Configuration de l’API</div>
+    <div class="dlg-b">
+      <label>Adresse (ex: https://gouzepe-api.onrender.com)</label>
+      <input id="apiUrl">
+      <div id="cfgMsg" class="muted">—</div>
+    </div>
+    <div class="dlg-f">
+      <button class="iconbtn" id="cfgTest">Tester</button>
+      <button class="iconbtn" id="cfgSave">Enregistrer</button>
+      <button class="iconbtn" id="cfgClose">Fermer</button>
+    </div>
+  </dialog>
+</div>
+
+<script>
+/* ===== Thème ===== */
+(function(){
+  const k='efoot.theme';
+  const apply=m=>{document.documentElement.classList.toggle('light',m==='light'); localStorage.setItem(k,m); document.getElementById('theme').textContent=m==='light'?'🌙':'☀️'}
+  apply(localStorage.getItem(k)||'dark');
+  document.getElementById('theme').onclick=()=>apply(document.documentElement.classList.contains('light')?'dark':'light');
+})();
+
+/* ===== Helpers ===== */
+const PROD_API = 'https://gouzepe-api.onrender.com';
+const isPrivateNet = (h)=>/^(localhost|127\.0\.0\.1|10\.\d+\.\d+\.\d+|192\.168\.\d+\.\d+|172\.(1[6-9]|2\d|3[01])\.\d+\.\d+)$/.test(h);
+const DEF_API = ()=>{
+  const host = location.hostname || '';
+  if (isPrivateNet(host)) {
+    return (location.protocol.startsWith('http') ? location.protocol : 'http:') + '//' + host + ':3000';
+  }
+  if(host.endsWith('.onrender.com')){
+    if(host.includes('-app.')) return 'https://'+host.replace('-app.','-api.');
+    if(host.includes('app.'))  return 'https://'+host.replace('app.','api.');
+  }
+  return PROD_API;
+};
+function getAPI(){ return (localStorage.getItem('efoot.api')||DEF_API()).replace(/\/+$/,''); }
+function setAPI(v){ localStorage.setItem('efoot.api', v.replace(/\/+$/,'')); }
+
+function showErr(msg){ document.getElementById('err').textContent=msg||''; }
+function showBoot(msg){ document.getElementById('boot').textContent=msg||''; }
+function setBusy(v){
+  const b=document.getElementById('submit');
+  b.disabled=!!v; b.textContent=v?'Connexion…':'Se connecter';
+}
+
+async function safeFetch(url, opt={}, ms=8000){
+  const ctrl = new AbortController();
+  const t = setTimeout(()=>ctrl.abort(), ms);
+  try{ return await fetch(url, {signal:ctrl.signal, ...opt}); }
+  finally{ clearTimeout(t); }
+}
+
+/* Attente du /health (Render “cold start”) */
+async function waitForHealth(base, maxMs=90000){
+  const start=Date.now();
+  let delay=900; const mult=1.5, maxDelay=5000;
+  while(Date.now()-start < maxMs){
+    try{
+      const r=await safeFetch(base+'/health',{cache:'no-store'},Math.min(4000,delay));
+      if(r && r.ok){
+        const d=await r.json().catch(()=>({}));
+        if(d && (d.ok===true || d.service)){ return true; }
       }
-      return PROD_API;
-    }
-    function getAPI(){ return (localStorage.getItem('efoot.api')||DEF_API()).replace(/\\/+$/,''); }
-    function setAPI(v){ localStorage.setItem('efoot.api', String(v||'').trim()); }
+    }catch(_){}
+    const waited = Math.round((Date.now()-start)/1000);
+    showBoot(`Le serveur démarre… (${waited}s)`);
+    await new Promise(res=>setTimeout(res, delay));
+    delay = Math.min(maxDelay, Math.round(delay*mult));
+  }
+  return false;
+}
 
-    /* === Health warm-up (Render cold start) === */
-    async function waitHealth(api, maxMs=45000){
-      const start=Date.now();
-      let attempt=0;
-      while(Date.now()-start < maxMs){
-        attempt++;
-        try{
-          const r=await fetch(api+'/health',{cache:'no-store'});
-          if(r.ok){ const j=await r.json().catch(()=>({})); return j; }
-        }catch(e){ /* ignore and retry */ }
-        await new Promise(res=>setTimeout(res, Math.min(500*attempt, 2500)));
-      }
-      throw new Error('API indisponible (health timeout)');
-    }
+/* Redirection après login suivant le rôle */
+function goAfterLogin(role){
+  const r=(role||'member').toLowerCase();
+  location.replace(r==='admin' ? 'Accueil.html' : 'Panel-Membre.html');
+}
 
-    /* === Utilitaires UI === */
-    const $ = (id)=>document.getElementById(id);
-    function showErr(msg){ const b=$('errBox'); b.textContent=msg||''; b.style.display=msg?'block':'none'; $('okBox').style.display='none'; }
-    function showOk(msg){ const b=$('okBox'); b.textContent=msg||''; b.style.display=msg?'block':'none'; $('errBox').style.display='none'; }
+/* Session déjà présente → on teste health et on file direct */
+(async function bootstrapIfAlreadyLogged(){
+  const token = localStorage.getItem('efoot.token');
+  const expAt = +localStorage.getItem('efoot.expAt') || 0;
+  if(!token || Date.now()>=expAt) return;
+  setBusy(true); showErr(''); showBoot('Préparation…');
 
-    /* === Affiche env + API courante === */
-    function refreshApiInfo(){
-      const api=getAPI();
-      $('apiInfo').textContent='API: '+api;
-      const host=new URL(api).hostname;
-      $('envBadge').textContent = isPrivateNet(host) ? 'LOCAL' : (host.includes('onrender.com') ? 'RENDER' : 'PROD');
-      window.API=api; // expose global au besoin
-    }
-    refreshApiInfo();
+  const ok = await waitForHealth(getAPI(), 90000);
+  if(!ok){ setBusy(false); showBoot(''); return; }
 
-    /* === Toggle mot de passe === */
-    $('togglePwd').addEventListener('click', ()=>{
-      const p=$('password');
-      const s=$('togglePwd');
-      const is=p.type==='password';
-      p.type=is?'text':'password';
-      s.textContent=is?'masquer':'afficher';
-    });
+  const role = localStorage.getItem('efoot.role') || 'member';
+  showBoot(''); goAfterLogin(role);
+})();
 
-    /* === Config API (manuel) === */
-    $('forceApiLink').addEventListener('click', (e)=>{
-      e.preventDefault();
-      const current=getAPI();
-      const v=prompt('URL API (http…):', current);
-      if(v && /^https?:\\/\\//i.test(v)){ setAPI(v); refreshApiInfo(); }
-    });
+/* Afficher/masquer le mot de passe */
+(function(){
+  const btn=document.getElementById('togglePwd');
+  btn?.addEventListener('click', ()=>{
+    const i=document.getElementById('pwd');
+    if(!i) return;
+    const t=i.getAttribute('type')==='password'?'text':'password';
+    i.setAttribute('type', t);
+    btn.textContent=(t==='password')?'👁️':'🙈';
+  });
+})();
 
-    /* === Soumission login === */
-    $('loginForm').addEventListener('submit', async (e)=>{
-      e.preventDefault();
-      const btn=$('submitBtn');
-      btn.disabled=true; showErr(''); showOk('');
+/* Soumission : login + stockage + warm-up + redirection */
+document.getElementById('f').addEventListener('submit', async (e)=>{
+  e.preventDefault();
+  showErr(''); showBoot(''); setBusy(true);
 
-      const api=getAPI();
-      try{
-        await waitHealth(api, 45000);
-      }catch(err){
-        btn.disabled=false;
-        return showErr('API indisponible. Réessaie dans quelques secondes.');
-      }
+  let email=(document.getElementById('email').value||'').trim();
+  const password=document.getElementById('pwd').value||'';
+  if(email && !email.includes('@')) email = email+'@gz.local';
 
-      const email=$('email').value.trim();
-      const password=$('password').value;
-      try{
-        const r=await fetch(api+'/auth/login',{
-          method:'POST',
-          headers:{ 'Content-Type':'application/json' },
-          body:JSON.stringify({ email, password })
-        });
-        const j=await r.json().catch(()=>({}));
-        if(!r.ok){
-          btn.disabled=false;
-          return showErr(j.error || 'Identifiants invalides.');
-        }
-        // Stockage session
-        const token=j.token;
-        const user=j.user||{};
-        const hours=j.expHours||24;
-        const expAt=Date.now()+hours*60*60*1000;
-        localStorage.setItem('efoot.token', token);
-        localStorage.setItem('efoot.role', user.role||'member');
-        localStorage.setItem('efoot.userEmail', user.email||'');
-        localStorage.setItem('efoot.userId', String(user.id||''));
-        localStorage.setItem('efoot.expAt', String(expAt));
+  try{
+    const r=await safeFetch(getAPI()+'/auth/login', {
+      method:'POST',
+      headers:{'Content-Type':'application/json'},
+      body:JSON.stringify({email,password})
+    }, 12000);
 
-        showOk('Connexion réussie, redirection…');
-        setTimeout(()=>{ location.href='Accueil.html'; }, 500);
-      }catch(err){
-        btn.disabled=false;
-        showErr('Erreur réseau : '+(err.message||'inconnue'));
-      }
-    });
-  })();
-  </script>
+    const d=await r.json().catch(()=>({}));
+    if(!r || !r.ok){ throw new Error((d&&d.error)||'Identifiants invalides'); }
+
+    const token=d.token;
+    const role=(d.user&&d.user.role)||'member';
+    const expHours = Number(d.expHours||24);
+    localStorage.setItem('efoot.token', token);
+    localStorage.setItem('efoot.role', role.toLowerCase());
+    localStorage.setItem('efoot.expAt', String(Date.now()+expHours*60*60*1000));
+
+    showBoot('Connexion réussie. Le serveur se réveille…');
+    const ok = await waitForHealth(getAPI(), 90000);
+    if(!ok){ showErr("Le serveur est lent à démarrer (Render). Réessaie."); setBusy(false); showBoot(''); return; }
+
+    showBoot('');
+    goAfterLogin(role);
+
+  }catch(err){
+    console.error(err);
+    showErr(err.message||'Erreur réseau');
+    setBusy(false); showBoot('');
+  }
+});
+
+/* ===== Config API ===== */
+(function(){
+  const dlg=document.getElementById('cfg');
+  const btn=document.getElementById('cfgBtn');
+  const input=document.getElementById('apiUrl');
+  const msg=document.getElementById('cfgMsg');
+
+  btn.onclick=()=>{ input.value=getAPI(); msg.textContent='—'; dlg.showModal(); };
+  document.getElementById('cfgClose').onclick=()=>dlg.close();
+  document.getElementById('cfgSave').onclick=()=>{ setAPI(input.value.trim()); msg.textContent='Sauvé.'; };
+  document.getElementById('cfgTest').onclick=async()=>{
+    msg.textContent='Test…';
+    try{
+      const u=(input.value||'').trim().replace(/\/+$/,'')||DEF_API();
+      const r=await safeFetch(u+'/health',{cache:'no-store'},6000);
+      if(!r || !r.ok) throw 0;
+      msg.textContent='OK ✅';
+    }catch(_){ msg.textContent="Échec ❌ — vérifie l'URL (CORS/SSL)"; }
+  };
+})();
+</script>
+
+<footer style="text-align:center; color:var(--muted); margin:12px 0">Copyright © -GOUZEPE GAMING CLUB 2025</footer>
 </body>
 </html>

@@ -140,7 +140,7 @@
       <div id="boot" class="muted">—</div>
 
       <div class="footer">
-        <span class="muted">Session : 24h</span>
+        <span class="muted">Session : 1h</span>
         <button id="submit" class="btn" type="submit">Se connecter</button>
       </div>
     </form>
@@ -150,7 +150,7 @@
   <dialog id="cfg">
     <div class="dlg-h">Configuration de l’API</div>
     <div class="dlg-b">
-      <label>Adresse (ex: https://gouzepe-app.onrender.com)</label>
+      <label>Adresse (ex: https://gouzepe-api.onrender.com)</label>
       <input id="apiUrl">
       <div id="cfgMsg" class="muted">—</div>
     </div>
@@ -172,7 +172,7 @@
 })();
 
 /* ===== Helpers ===== */
-const PROD_API = 'https://gouzepe-app.onrender.com';
+const PROD_API = 'https://gouzepe-api.onrender.com';
 const isPrivateNet = (h)=>/^(localhost|127\.0\.0\.1|10\.\d+\.\d+\.\d+|192\.168\.\d+\.\d+|172\.(1[6-9]|2\d|3[01])\.\d+\.\d+)$/.test(h);
 const DEF_API = ()=>{
   const host = location.hostname || '';
@@ -266,7 +266,7 @@ function goAfterLogin(role){
   });
 })();
 
-/* Soumission + handoff multi-appareil, AVEC attente serveur prêt avant redirection */
+/* Soumission simple avec attente serveur prêt avant redirection */
 document.getElementById('f').addEventListener('submit', async (e)=>{
   e.preventDefault();
   showErr(''); showBoot(''); setBusy(true);
@@ -275,91 +275,38 @@ document.getElementById('f').addEventListener('submit', async (e)=>{
   const password=document.getElementById('pwd').value||'';
   if(email && !email.includes('@')) email = email+'@gz.local';
 
-  // bouton de “force” si handoff bloque trop
-  let forceBtn;
-  function showForce(){
-    if(forceBtn) return;
-    forceBtn = document.createElement('button');
-    forceBtn.type = 'button';
-    forceBtn.className = 'btn';
-    forceBtn.style.marginTop = '10px';
-    forceBtn.textContent = "C'est moi — connecter ici";
-    forceBtn.onclick = doLogin; // on relance la tentative directe
-    document.querySelector('.footer')?.appendChild(forceBtn);
+  try{
+    const r=await safeFetch(getAPI()+'/auth/login', {
+      method:'POST',
+      headers:{'Content-Type':'application/json'},
+      body:JSON.stringify({email,password})
+    }, 12000);
+
+    const d=await r.json().catch(()=>({}));
+    if(!r || !r.ok){ throw new Error((d&&d.error)||'Identifiants invalides'); }
+
+    const token=d.token;
+    const role=(d.user&&d.user.role)||'member';
+    const expHours = Number(d.expHours||1);
+    localStorage.setItem('efoot.token', token);
+    localStorage.setItem('efoot.role', role.toLowerCase());
+    localStorage.setItem('efoot.expAt', String(Date.now()+expHours*60*1000));
+
+    // <— NOUVEAU : on attend que l’API soit prête avant de quitter la page
+    showBoot('Connexion réussie. Le serveur se réveille…');
+    const ok = await waitForHealth(getAPI(), 90000);
+    if(!ok){ showErr("Le serveur est lent à démarrer (Render). Patiente et réessaie."); setBusy(false); showBoot(''); return; }
+
+    // on valide le token et on part
+    const vr = await validateSession();
+    if(vr){ showBoot(''); goAfterLogin(vr); }
+    else { showErr("Impossible de valider la session pour l’instant."); setBusy(false); showBoot(''); }
+
+  }catch(err){
+    console.error(err);
+    showErr(err.message||'Erreur réseau');
+    setBusy(false); showBoot('');
   }
-
-  const doLogin = async ()=>{
-    try{
-      const r=await safeFetch(getAPI()+'/auth/login', {
-        method:'POST',
-        headers:{'Content-Type':'application/json'},
-        body:JSON.stringify({email,password})
-      }, 12000);
-
-      if(r && r.status===409){
-        const d=await r.json().catch(()=>({}));
-        showErr("Une autre session est active. Validation requise sur l'autre appareil…");
-        setTimeout(showForce, 6000);
-        if(d && d.request_id && d.nonce){
-          const poll = async ()=>{
-            try{
-              const rr=await safeFetch(getAPI()+`/auth/handoff/status?request_id=${encodeURIComponent(d.request_id)}&nonce=${encodeURIComponent(d.nonce)}`,{},8000);
-              const dd=await rr.json();
-              if(dd.status==='approved' && dd.token){
-                const role=(dd.user&&dd.user.role)||'member';
-                localStorage.setItem('efoot.token', dd.token);
-                localStorage.setItem('efoot.role', role.toLowerCase());
-                localStorage.setItem('efoot.expAt', String(Date.now()+Number(dd.expHours||24)*3600*1000));
-                // attendre serveur prêt puis /auth/me
-                showBoot('Connexion approuvée. Préparation du serveur…');
-                const ok = await waitForHealth(getAPI(), 90000);
-                if(ok){
-                  const vr = await validateSession();
-                  if(vr){ showBoot(''); goAfterLogin(vr); return; }
-                }
-                showErr("Le serveur est lent à démarrer. Réessaie dans quelques secondes.");
-                setBusy(false); showBoot(''); return;
-              }
-              if(dd.status==='denied'){ showErr('Connexion refusée depuis l’autre appareil.'); setBusy(false); return; }
-              if(dd.status==='expired'){ showErr('Demande expirée. Recommencez.'); setBusy(false); return; }
-              setTimeout(poll, 1800);
-            }catch(_){ setTimeout(poll, 2200); }
-          };
-          poll();
-        }else{
-          setBusy(false);
-        }
-        return;
-      }
-
-      const d=await r.json().catch(()=>({}));
-      if(!r || !r.ok){ throw new Error((d&&d.error)||'Identifiants invalides'); }
-
-      const token=d.token;
-      const role=(d.user&&d.user.role)||'member';
-      const expHours = Number(d.expHours||24);
-      localStorage.setItem('efoot.token', token);
-      localStorage.setItem('efoot.role', role.toLowerCase());
-      localStorage.setItem('efoot.expAt', String(Date.now()+expHours*3600*1000));
-
-      // <— NOUVEAU : on attend que l’API soit prête avant de quitter la page
-      showBoot('Connexion réussie. Le serveur se réveille…');
-      const ok = await waitForHealth(getAPI(), 90000);
-      if(!ok){ showErr("Le serveur est lent à démarrer (Render). Patiente et réessaie."); setBusy(false); showBoot(''); return; }
-
-      // on valide le token et on part
-      const vr = await validateSession();
-      if(vr){ showBoot(''); goAfterLogin(vr); }
-      else { showErr("Impossible de valider la session pour l’instant."); setBusy(false); showBoot(''); }
-
-    }catch(err){
-      console.error(err);
-      showErr(err.message||'Erreur réseau');
-      setBusy(false); showBoot('');
-    }
-  };
-
-  doLogin();
 });
 
 /* ===== Config API ===== */

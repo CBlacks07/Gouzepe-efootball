@@ -4,17 +4,26 @@
   <meta charset="utf-8"/>
   <meta name="viewport" content="width=device-width, initial-scale=1"/>
   <title>Panel Membre — GOUZEPE</title>
+
+  <!-- Styles globaux -->
   <link rel="stylesheet" href="theme.css"/>
 
+  <!-- Styles spécifiques (léger) -->
   <style>
-    :root{ --font-ui: system-ui,-apple-system,Segoe UI,Roboto,Inter,Ubuntu,"Trebuchet MS",sans-serif; --lh:1.45; --tracking:.01em; }
+    :root{
+      --font-ui: system-ui,-apple-system,Segoe UI,Roboto,Inter,Ubuntu,"Trebuchet MS",sans-serif;
+      --lh:1.45; --tracking:.01em;
+    }
     html,body{font-family:var(--font-ui); line-height:var(--lh); letter-spacing:var(--tracking)}
     .wrap{max-width:1200px;margin:auto;padding:12px}
     .status{margin:8px 0;color:var(--muted)}
 
     /* Sections rétractables */
     .section{ margin-top:12px }
-    .section-head{ display:flex;align-items:center;justify-content:space-between;gap:10px;flex-wrap:wrap; border-bottom:1px solid var(--border); padding-bottom:8px; margin-bottom:10px; }
+    .section-head{
+      display:flex;align-items:center;justify-content:space-between;gap:10px;flex-wrap:wrap;
+      border-bottom:1px solid var(--border); padding-bottom:8px; margin-bottom:10px;
+    }
     .toggle-card{ display:inline-flex; align-items:center; gap:6px }
     .section-body[hidden]{ display:none !important }
 
@@ -38,13 +47,15 @@
     .avatar{width:56px;height:56px;border-radius:12px;object-fit:cover;border:1px solid var(--border)}
     .cmp-card h4{margin:0 0 6px}
     .stat-row{display:grid;grid-template-columns:1fr auto;gap:10px;align-items:center}
+    .chip{border:1px solid var(--border);border-radius:999px;padding:6px 10px;background:transparent;cursor:pointer}
+    .chip[aria-pressed="true"]{background:rgba(37,99,235,.18);border-color:#2563eb}
     .form5{display:flex;gap:6px}
     .form5 .dot{width:18px;height:18px;border-radius:6px;border:1px solid var(--border);display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:800}
     .form5 .W{background:#064e3b;color:#b7fbdc}
     .form5 .D{background:#1f2937;color:#e5e7eb}
     .form5 .L{background:#5b0b0b;color:#fed7d7}
 
-    /* Modales */
+    /* Modale Face-à-face (déjà en place, peaufinée) */
     dialog{border:none;border-radius:14px;max-width:980px;width:min(96vw,980px);padding:0;background:var(--panel);color:var(--text)}
     dialog::backdrop{background:rgba(0,0,0,.4);backdrop-filter:blur(1.5px)}
     .h2h-h{display:flex;align-items:center;gap:12px;padding:14px 16px;border-bottom:1px solid var(--border);font-weight:700}
@@ -68,14 +79,14 @@
   <div class="top">
     <div class="nav">
       <div class="logo" aria-hidden="true"></div>
-      <h1 style="margin:0;font-size:20px">👤 Panel Membre</h1>
     </div>
+    <h1 style="margin:0;font-size:20px">👤 Panel Membre</h1>
     <button id="menuToggle" class="menu-toggle" aria-label="Ouvrir le menu" aria-expanded="false" aria-controls="menu">☰</button>
     <div id="menu" class="menu top">
       <a class="btn" href="Accueil.html">🏠 Accueil</a>
       <a class="btn" href="Duel.html">⚔️ Duel</a>
       <a class="btn" href="Classement-general.html">📊 Classements</a>
-      <a class="btn" id="linkMembers" href="Admin-Joueurs.html" style="display:none">👥 Admin-Joueurs</a>
+      <a class="btn" id="linkMembers" href="Admin-Joueurs.html">👥 Admin-Joueurs</a>
       <button id="theme" class="btn" title="Basculer thème">☀️</button>
       <button id="logoutBtn" class="btn danger">Déconnexion</button>
     </div>
@@ -241,6 +252,7 @@
             <tbody></tbody>
           </table>
         </div>
+        <!-- cartes mobiles -->
         <div id="seasonCards" style="margin-top:10px"></div>
       </div>
     </section>
@@ -269,8 +281,8 @@
     <div id="pmStats" class="muted">—</div>
     <div class="tableWrap">
       <table class="tbl">
-        <thead><tr><th>Rang</th><th>Points</th><th>Moyenne</th><th>Part.</th><th>D1</th><th>D2</th></tr></thead>
-        <tbody id="pmMatches"><tr><td colspan="6" class="muted">Données issues du classement de la saison.</td></tr></tbody>
+        <thead><tr><th>Date</th><th>Division</th><th>Manche</th><th>Score</th></tr></thead>
+        <tbody id="pmMatches"></tbody>
       </table>
     </div>
   </div>
@@ -292,6 +304,14 @@
           <option value="current">Saison en cours</option>
           <option value="previous">Saison précédente</option>
         </select>
+        <select id="h2hDay" title="Journée">
+          <option value="">Toutes journées</option>
+        </select>
+        <span class="muted" style="margin-left:6px">Filtrer :</span>
+        <button id="h2hD1" class="chip" type="button" aria-pressed="false">D1</button>
+        <button id="h2hD2" class="chip" type="button" aria-pressed="false">D2</button>
+        <button id="h2hAller"  class="chip" type="button" aria-pressed="false">Aller</button>
+        <button id="h2hRetour" class="chip" type="button" aria-pressed="false">Retour</button>
       </div>
 
       <div class="h2h-hero">
@@ -321,20 +341,20 @@
 <footer style="text-align:center;margin:14px 0;color:var(--muted)">Copyright © -GOUZEPE GAMING CLUB 2025</footer>
 
 <script>
-/* ===== Util ===== */
-const $  = s => document.querySelector(s);
-const $$ = s => document.querySelectorAll(s);
+/* ===== Utilitaires ===== */
+const $  = (s)=>document.querySelector(s);
+const $$ = (s)=>document.querySelectorAll(s);
 const DEF_API = ()=> (location.protocol.startsWith('http') ? location.protocol : 'http:') + '//' + location.hostname + ':3000';
 const API = (localStorage.getItem('efoot.api')||DEF_API()).replace(/\/+$/,'');
 const TOKEN = localStorage.getItem('efoot.token');
 
-/* Auth guard */
+/* ===== Auth guard ===== */
 (function(){
   const expAt=+localStorage.getItem('efoot.expAt')||0;
   if(!TOKEN || Date.now()>=expAt){ location.href='login.html'; }
 })();
 
-/* Thème */
+/* ===== Thème ===== */
 (function(){
   const k='efoot.theme';
   const apply=m=>{document.documentElement.classList.toggle('light',m==='light');localStorage.setItem(k,m);$('#theme').textContent=m==='light'?'🌙':'☀️'};
@@ -342,7 +362,7 @@ const TOKEN = localStorage.getItem('efoot.token');
   $('#theme').onclick=()=>apply(document.documentElement.classList.contains('light')?'dark':'light');
 })();
 
-/* Menu mobile */
+/* ===== Menu mobile ===== */
 (function(){
   const menu=$('#menu'), toggle=$('#menuToggle');
   function open(v){menu.classList.toggle('open',v);toggle.setAttribute('aria-expanded',v?'true':'false')}
@@ -351,33 +371,24 @@ const TOKEN = localStorage.getItem('efoot.token');
   document.addEventListener('keydown',(e)=>{ if(e.key==='Escape') open(false); });
 })();
 
-/* Déconnexion (confirmation, sans bug si Annuler) */
+/* ===== Déconnexion (avec confirmation) ===== */
 $('#logoutBtn').onclick=()=>{
-  if(!confirm('Voulez-vous vraiment vous déconnecter ?')) return;
-  ['efoot.token','efoot.role','efoot.expAt'].forEach(k=>localStorage.removeItem(k));
-  location.href='login.html';
+  if(confirm('Voulez-vous vraiment vous déconnecter ?')){
+    ['efoot.token','efoot.role','efoot.expAt'].forEach(k=>localStorage.removeItem(k));
+    location.href='login.html';
+  }
 };
 
-/* Safe fetch */
-async function safe(url,opt={},ms=12000){
+/* ===== lib fetch protégée ===== */
+async function safeFetch(url,opt={},ms=12000){
   const c=new AbortController(); const t=setTimeout(()=>c.abort(),ms);
   try{ return await fetch(url,{signal:c.signal,...opt}); } finally{ clearTimeout(t); }
 }
 
-/* ===== Chargement identités / rôle admin ===== */
-(async function loadIdentity(){
-  try{
-    const r = await safe(API+'/auth/me',{headers:{Authorization:'Bearer '+TOKEN}});
-    if(r.ok){
-      const me = await r.json();
-      if((me.user?.role||'member').toLowerCase()==='admin') $('#linkMembers').style.display='';
-    }
-  }catch(_){}
-})();
-
+/* ===== Identité + KPIs + confrontations ===== */
 (async function initMe(){
   try{
-    const rp = await safe(API+'/me/player', { headers:{Authorization:'Bearer '+TOKEN} }, 8000);
+    const rp = await safeFetch(API+'/me/player', { headers:{Authorization:'Bearer '+TOKEN} }, 8000);
     const dp = await rp.json();
     $('#playerName').textContent = dp.player?.name || '—';
     $('#playerId').textContent   = dp.player?.player_id || '—';
@@ -386,7 +397,7 @@ async function safe(url,opt={},ms=12000){
 
   async function refresh(){
     const season = $('#seasonSel').value;
-    const rs = await safe(API+'/me/stats?season='+season, { headers:{Authorization:'Bearer '+TOKEN} });
+    const rs = await safeFetch(API+'/me/stats?season='+season, { headers:{Authorization:'Bearer '+TOKEN} });
     const ds = await rs.json();
     $('#k_played').textContent = ds.played_legs ?? 0;
     $('#k_bm').textContent     = ds.goals_for ?? 0;
@@ -395,39 +406,33 @@ async function safe(url,opt={},ms=12000){
     $('#k_pts').textContent    = ds.season_points ?? '—';
     $('#k_avg').textContent    = (ds.season_average ?? '—');
 
-    // Confrontations récentes (avec limite fonctionnelle)
-    const season2 = $('#seasonConfSel').value || season;
-    const rm = await safe(API+'/me/matches?season='+season2, { headers:{Authorization:'Bearer '+TOKEN} });
+    const rm = await safeFetch(API+'/me/matches?season='+season, { headers:{Authorization:'Bearer '+TOKEN} });
     const dm = await rm.json();
     const tb = $('#confTbody'); tb.innerHTML='';
-    const limit = Number($('#confLimit').value||15);
-
-    const rows=[];
-    (dm.matches||[]).sort((a,b)=> new Date(b.date)-new Date(a.date)).forEach(x=>{
-      if(x.aller){
-        const r = x.aller.gf>x.aller.ga?'win':x.aller.gf<x.aller.ga?'lose':'draw';
-        rows.push({d:x.date,div:x.division,opp:(x.opponent_name||x.opponent),leg:'Aller',sc:`${x.aller.gf}-${x.aller.ga}`,badge:r, pid:x.opponent});
-      }
-      if(x.retour){
-        const r = x.retour.gf>x.retour.ga?'win':x.retour.gf<x.retour.ga?'lose':'draw';
-        rows.push({d:x.date,div:x.division,opp:(x.opponent_name||x.opponent),leg:'Retour',sc:`${x.retour.gf}-${x.retour.ga}`,badge:r, pid:x.opponent});
-      }
-    });
-
-    rows.slice(0, limit).forEach(r=>{
-      const tr=document.createElement('tr');
-      tr.innerHTML = `<td>${new Date(r.d).toLocaleDateString('fr-FR')}</td>
-                      <td>${r.div}</td>
-                      <td>${r.opp}</td>
-                      <td>${r.leg}</td>
-                      <td><span class="score-pill ${r.badge}">${r.sc}</span></td>
-                      <td><button class="btn" data-view="${r.pid}">Face-à-face</button></td>`;
-      tb.appendChild(tr);
-    });
+    (dm.matches||[]).sort((a,b)=> new Date(b.date)-new Date(a.date))
+      .slice(0, Number($('#confLimit').value||15))
+      .forEach(x=>{
+        const add = (leg,sc,badge) => `<tr>
+            <td>${new Date(x.date).toLocaleDateString('fr-FR')}</td>
+            <td>${x.division}</td>
+            <td>${(x.opponent_name||x.opponent)}</td>
+            <td>${leg}</td>
+            <td><span class="score-pill ${badge}">${sc}</span></td>
+            <td><button class="btn" data-view="${x.opponent}">Face-à-face</button></td>
+          </tr>`;
+        if(x.aller){
+          const r = x.aller.gf>x.aller.ga?'win':x.aller.gf<x.aller.ga?'lose':'draw';
+          tb.insertAdjacentHTML('beforeend', add('Aller', `${x.aller.gf}-${x.aller.ga}`, r));
+        }
+        if(x.retour){
+          const r = x.retour.gf>x.retour.ga?'win':x.retour.gf<x.retour.ga?'lose':'draw';
+          tb.insertAdjacentHTML('beforeend', add('Retour', `${x.retour.gf}-${x.retour.ga}`, r));
+        }
+      });
   }
   $('#seasonSel').onchange = refresh;
+  $('#confLimit').onchange = refresh;
   $('#seasonConfSel').onchange = refresh;
-  $('#confLimit').onchange = refresh;      // ⟵ limite désormais EFFECTIVE
   $('#confTbody').addEventListener('click',(e)=>{
     const pid=e.target?.dataset?.view; if(!pid) return; openH2H(pid);
   });
@@ -460,7 +465,7 @@ async function safe(url,opt={},ms=12000){
   };
 })();
 
-/* ===== Recherche / aperçus (routes existantes) ===== */
+/* ===== Recherche / aperçus ===== */
 $('#pSearchBtn').onclick = searchPlayers;
 async function searchPlayers(){
   const q = $('#pSearch').value.trim();
@@ -489,39 +494,41 @@ async function searchPlayers(){
 async function openPlayerPreview(pid){
   const modal = $('#pModal'), seasonSel = $('#pmSeason');
   async function fill(){
-    // profil
     const pr = await fetch(API+`/players/${pid}`, { headers:{Authorization:'Bearer '+TOKEN} });
     const pd = await pr.json();
     $('#pmName').textContent = pd.player?.name || '—';
     $('#pmId').textContent   = pd.player?.player_id || pid;
     $('#pmAvatar').src = pd.player?.profile_pic_url ? (API+pd.player.profile_pic_url) : 'assets/fond.png';
 
-    // stats depuis le classement de la saison
     const ss=seasonSel.value;
-    const st = await fetch(API+`/season/standings?season=${ss}`, { headers:{Authorization:'Bearer '+TOKEN} });
-    const sd = await st.json();
-    const list = sd.standings||[];
-    const idx = list.findIndex(x=>x.id===pid);
-    const rec = idx>=0 ? list[idx] : {};
-    $('#pmStats').textContent = (idx>=0)
-      ? `Rang ${idx+1} • Points ${rec.total ?? '—'} • Moyenne ${(rec.moyenne??0).toFixed ? (rec.moyenne||0).toFixed(2) : (rec.moyenne??'—')} • Participations ${rec.participations??0} • D1 ${rec.won_d1??0} • D2 ${rec.won_d2??0}`
-      : 'Aucune donnée dans le classement pour cette saison.';
-    const tb=$('#pmMatches');
-    tb.innerHTML = `<tr><td>${idx>=0?idx+1:'—'}</td><td>${rec.total??'—'}</td><td>${(rec.moyenne??'—')}</td><td>${rec.participations??'—'}</td><td>${rec.won_d1??'—'}</td><td>${rec.won_d2??'—'}</td></tr>`;
+    const sr = await fetch(API+`/players/${pid}/summary?season=${ss}`, { headers:{Authorization:'Bearer '+TOKEN} });
+    const sd = await sr.json();
+    $('#pmStats').textContent =
+      `Rang ${sd.rank ?? '—'} • Points ${sd.points ?? '—'} • Moyenne ${sd.moyenne ?? '—'} • `+
+      `Manches ${sd.legs ?? 0} • BM ${sd.goals_for ?? 0} • BC ${sd.goals_against ?? 0}` +
+      (sd.best?.date ? ` • Best ${sd.best.gf}-${sd.best.ga} (${sd.best.leg}, ${sd.best.division})` : '');
+
+    const mr = await fetch(API+`/players/${pid}/matches?season=${ss}`, { headers:{Authorization:'Bearer '+TOKEN} });
+    const md = await mr.json(); const tb=$('#pmMatches'); tb.innerHTML='';
+    (md.matches||[]).sort((a,b)=> new Date(b.date)-new Date(a.date)).forEach(x=>{
+      const add = (leg,gf,ga)=>{ const tr=document.createElement('tr'); tr.innerHTML=`<td>${new Date(x.date).toLocaleDateString('fr-FR')}</td><td>${x.division}</td><td>${leg}</td><td>${gf}-${ga}</td>`; tb.appendChild(tr); };
+      if(x.aller)  add('Aller',  x.aller.gf,  x.aller.ga);
+      if(x.retour) add('Retour', x.retour.gf, x.retour.ga);
+    });
   }
   seasonSel.onchange = fill;
   $('#pmH2hBtn').onclick = ()=> openH2H(pid);
   await fill(); modal.showModal();
 }
 
-/* ===== Face-à-face (modale) — /faceoff/:oppId ===== */
+/* ===== Face-à-face (modale) ===== */
+function _pressed(el){ return el.getAttribute('aria-pressed')==='true'; }
+function _toggle(el){ el.setAttribute('aria-pressed', _pressed(el)?'false':'true'); }
 async function openH2H(oppId){
   const modal = $('#h2hModal');
   async function load(){
-    const season = $('#h2hSeason').value || 'current';
-    const r = await fetch(API+`/faceoff/${encodeURIComponent(oppId)}?season=${encodeURIComponent(season)}`, { headers:{Authorization:'Bearer '+TOKEN} });
-    const d = await r.json(); if(!r.ok) return alert(d.error||'Erreur');
-
+    const r = await fetch(API+`/faceoff/${encodeURIComponent(oppId)}?season=${encodeURIComponent($('#h2hSeason').value||'current')}`, { headers:{Authorization:'Bearer '+TOKEN} });
+    const d = await r.json(); if(!r.ok) throw new Error(d.error||('HTTP '+r.status));
     const t = d.totals || {legs:0,wins:0,draws:0,losses:0,gf:0,ga:0};
     $('#h2hTitle').textContent = `Face-à-face : ${(d.me?.name||'Moi')} vs ${(d.opponent?.name||'Adversaire')}`;
     $('#h2hMePic').src = d.me?.profile_pic_url ? (API+d.me.profile_pic_url) : 'assets/fond.png';
@@ -539,11 +546,17 @@ async function openH2H(oppId){
       tb.appendChild(tr);
     });
   }
-  if(!modal._bound){ $('#h2hSeason').addEventListener('change', load); modal._bound=true; }
+  if(!modal._bound){
+    $('#h2hSeason').addEventListener('change', load);
+    ['h2hD1','h2hD2','h2hAller','h2hRetour'].forEach(id=>{
+      document.getElementById(id).addEventListener('click',(e)=>{ _toggle(e.currentTarget); /* filtres visuels (option à brancher si besoin) */ });
+    });
+    modal._bound=true;
+  }
   await load(); modal.showModal();
 }
 
-/* ===== Comparateur — basé sur /season/standings (routes dispo) ===== */
+/* ===== Comparateur ===== */
 const NAME_BY_ID = new Map();
 const PIC_BY_ID  = new Map();
 async function loadPlayersList(){
@@ -559,11 +572,60 @@ function fillSelectOptions(sel){
   sel.innerHTML = '<option value="">Choisir…</option>' + [...NAME_BY_ID.keys()]
     .map(id=>`<option value="${id}">${NAME_BY_ID.get(id)} — ${id}</option>`).join('');
 }
-function buildCmpCard(pid, rec, rank){
+function last5Form(legs){
+  const arr = legs.map(L=>{
+    const gf=L.aller?.gf??null, ga=L.aller?.ga??null;
+    const gf2=L.retour?.gf??null, ga2=L.retour?.ga??null;
+    const out=[];
+    if(gf!=null && ga!=null) out.push(gf>ga?'W':(gf<ga?'L':'D'));
+    if(gf2!=null && ga2!=null) out.push(gf2>ga2?'W':(gf2<ga2?'L':'D'));
+    return out;
+  }).flat();
+  return arr.slice(-5);
+}
+function formDotsHTML(form){
+  if(!form.length) return '<span class="muted">—</span>';
+  return '<div class="form5">'+ form.map(c=>`<span class="dot ${c}">${c}</span>`).join('') + '</div>';
+}
+async function getSummary(pid, season){
+  // 1) résumé
+  const rs = await fetch(API+`/players/${pid}/summary?season=${season}`, { headers:{Authorization:'Bearer '+TOKEN} });
+  const sum = await rs.json();
+
+  // 2) matches (pour calcul de forme)
+  const rm = await fetch(API+`/players/${pid}/matches?season=${season}`, { headers:{Authorization:'Bearer '+TOKEN} });
+  const mat = await rm.json();
+
+  // 3) fallback : si l'API n'a pas (encore) won_d1/won_d2, va les chercher dans le standings
+  if (typeof sum.won_d1 !== 'number' || typeof sum.won_d2 !== 'number') {
+    try{
+      const r2 = await fetch(API+`/season/standings?season=${season}`, { headers:{Authorization:'Bearer '+TOKEN} });
+      const d2 = await r2.json();
+      const rec = (d2.standings||[]).find(x=>x.id===pid);
+      if(rec){
+        sum.won_d1 = rec.won_d1 ?? 0;
+        sum.won_d2 = rec.won_d2 ?? 0;
+        if(typeof sum.points!=='number')   sum.points   = rec.total ?? sum.points;
+        if(typeof sum.moyenne!=='number')  sum.moyenne  = rec.moyenne ?? sum.moyenne;
+        if(typeof sum.rank!=='number')     sum.rank     = (d2.standings||[]).findIndex(x=>x.id===pid)+1 || sum.rank;
+      }
+    }catch(_) {}
+  }
+
+  return { sum, matches: mat.matches||[] };
+}
+function buildCmpCard(pid, data){
   const name = NAME_BY_ID.get(pid)||pid;
   const pic  = PIC_BY_ID.get(pid)||'assets/fond.png';
-  const div = document.createElement('div'); div.className='card cmp-card';
-  div.innerHTML = `
+  const s = data.sum||{};
+  const form = formDotsHTML( last5Form(data.matches||[]) );
+const wonD1 = (typeof s.won_d1 === 'number') ? s.won_d1 : '—';
+const wonD2 = (typeof s.won_d2 === 'number') ? s.won_d2 : '—';
+
+
+  const block = document.createElement('div');
+  block.className='card cmp-card';
+  block.innerHTML = `
     <div style="display:flex;gap:10px;align-items:center">
       <img src="${pic}" class="avatar">
       <div>
@@ -572,14 +634,15 @@ function buildCmpCard(pid, rec, rank){
       </div>
     </div>
     <div style="height:8px"></div>
-    <div class="stat-row"><span class="muted">Rang</span><b>${rank ?? '—'}</b></div>
-    <div class="stat-row"><span class="muted">Points</span><b>${rec.total ?? '—'}</b></div>
-    <div class="stat-row"><span class="muted">Moyenne</span><b>${(rec.moyenne??'—')}</b></div>
-    <div class="stat-row"><span class="muted">Participations</span><b>${rec.participations ?? 0}</b></div>
-    <div class="stat-row"><span class="muted">Titres D1 / D2</span><b>${rec.won_d1 ?? 0} / ${rec.won_d2 ?? 0}</b></div>
-    <div class="stat-row"><span class="muted">Équipes diff.</span><b>${rec.teams_used ?? 0}</b></div>
+    <div class="stat-row"><span class="muted">Rang</span><b>${s.rank ?? '—'}</b></div>
+    <div class="stat-row"><span class="muted">Points</span><b>${s.points ?? '—'}</b></div>
+    <div class="stat-row"><span class="muted">Moyenne</span><b>${(s.moyenne ?? '—')}</b></div>
+    <div class="stat-row"><span class="muted">Manches</span><b>${s.legs ?? 0}</b></div>
+    <div class="stat-row"><span class="muted">BM / BC</span><b>${s.goals_for ?? 0} / ${s.goals_against ?? 0}</b></div>
+    <div class="stat-row"><span class="muted">Titres D1 / D2</span><b>${wonD1} / ${wonD2}</b></div>
+    <div class="stat-row"><span class="muted">Forme (5)</span>${form}</div>
   `;
-  return div;
+  return block;
 }
 (async function initComparator(){
   await loadPlayersList();
@@ -596,17 +659,13 @@ function buildCmpCard(pid, rec, rank){
     if(!A || !B || A===B) return alert('Choisir deux joueurs différents.');
     $('#cmpOut').innerHTML = '<div class="muted">Chargement…</div>';
     try{
-      const st = await fetch(API+`/season/standings?season=${season}`, { headers:{Authorization:'Bearer '+TOKEN} });
-      const sd = await st.json();
-      const list = sd.standings||[];
-      const iA=list.findIndex(x=>x.id===A), iB=list.findIndex(x=>x.id===B);
-      const recA=iA>=0?list[iA]:{}, recB=iB>=0?list[iB]:{};
-      const host = $('#cmpOut'); host.innerHTML=''; host.appendChild(buildCmpCard(A,recA,iA>=0?iA+1:'—')); host.appendChild(buildCmpCard(B,recB,iB>=0?iB+1:'—'));
+      const [da, db] = await Promise.all([getSummary(A,season), getSummary(B,season)]);
+      const host = $('#cmpOut'); host.innerHTML=''; host.appendChild(buildCmpCard(A,da)); host.appendChild(buildCmpCard(B,db));
     }catch(e){ console.error(e); $('#cmpOut').innerHTML='<div class="muted">Erreur de chargement</div>'; }
   };
 })();
 
-/* ===== Classement ===== */
+/* ===== Classement (bas de page) ===== */
 let seasonData=[];
 async function loadSeason(){
   try{
@@ -616,7 +675,7 @@ async function loadSeason(){
     renderSeason();
   }catch(e){ console.error(e); seasonData=[]; renderSeason(); }
 }
-function escapeHtml(t){return String(t||'').replace(/[&<>"']/g,m=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;','\'':'&#39;'}[m])||'');}
+function escapeHtml(t){return String(t||'').replace(/[&<>"']/g,m=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;','\'':'&#39;'}[m]));}
 function renderSeason(){
   const q = ($('#search')?.value||'').toLowerCase();
   const data = (seasonData||[]).filter(x=>(x.name||'').toLowerCase().includes(q) || (x.id||'').toLowerCase().includes(q));
@@ -658,7 +717,7 @@ $('#seasonReload')?.addEventListener('click', loadSeason);
 $('#search')?.addEventListener('input', renderSeason);
 loadSeason();
 
-/* Toggle sections */
+/* ===== Toggle sections ===== */
 function bindToggles(){
   $$('.toggle-card').forEach(btn=>{
     const id = btn.getAttribute('aria-controls');
@@ -674,7 +733,7 @@ function bindToggles(){
 }
 bindToggles();
 
-/* Ping présence (membres) */
+/* ===== Ping présence (membres) ===== */
 (function(){
   const role=(localStorage.getItem('efoot.role')||'member').toLowerCase();
   if(!TOKEN || role==='admin') return;
@@ -682,5 +741,41 @@ bindToggles();
   ping(); setInterval(ping, 15000);
 })();
 </script>
+
+<!-- === GOUZEPE additive patch (non-destructif) === -->
+<script>
+(function(){
+  try{
+    const isPrivateNet=(h)=>/^(localhost|127\.0\.0\.1|10\.\d+\.\d+\.\d+|192\.168\.\d+\.\d+|172\.(1[6-9]|2\d|3[01])\.\d+\.\d+)$/.test(h||'');
+    const DEF_API=()=>{
+      const host=location.hostname||'';
+      if(isPrivateNet(host)) return (location.protocol.startsWith('http')?location.protocol:'http:')+'//'+host+':3000';
+      if(host.endsWith('.onrender.com')){
+        if(host.includes('-app.')) return 'https://'+host.replace('-app.','-api.');
+        if(host.includes('app.'))  return 'https://'+host.replace('app.','api.');
+      }
+      return 'https://gouzepe-api.onrender.com';
+    };
+    if(!window.API){ window.API = (localStorage.getItem('efoot.api')||DEF_API()).replace(/\/+$/,''); }
+    // Auth guard
+    (function(){
+      const here=(location.pathname.split('/').pop()||'').toLowerCase();
+      if(here==='login.html') return;
+      const tok=localStorage.getItem('efoot.token')||'';
+      const exp=+localStorage.getItem('efoot.expAt')||0;
+      if(!tok || Date.now()>=exp){ location.href='login.html'; return; }
+      const role=(localStorage.getItem('efoot.role')||'member').toLowerCase();
+      const isAdminPage = /^admin-/.test(here) || here==='admin-joueurs.html' || here==='admin-utilisateurs.html';
+      if(isAdminPage && role!=='admin'){ location.href='Accueil.html'; }
+    })();
+    // .adminOnly helper
+    document.querySelectorAll('.adminOnly').forEach(el=>{
+      const r=(localStorage.getItem('efoot.role')||'member').toLowerCase();
+      el.style.display = r==='admin' ? '' : 'none';
+    });
+  }catch(e){ console.warn('additive patch error', e); }
+})();
+</script>
+
 </body>
 </html>

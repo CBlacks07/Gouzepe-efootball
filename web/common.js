@@ -171,3 +171,46 @@
     await fullLogout();
   });
 })();
+
+/* === GOUZEPE hotfix: API + Authorization global === */
+(function(){
+  try {
+    // 1) Base API (force le mapping app→api et conserve ton override localStorage.efoot.api)
+    const isPrivateNet = h => /^(localhost|127\.0\.0\.1|10\.\d+\.\d+\.\d+|192\.168\.\d+\.\d+|172\.(1[6-9]|2\d|3[01])\.\d+\.\d+)$/.test(h||'');
+    const DEF_API = () => {
+      const host = location.hostname||'';
+      if (isPrivateNet(host)) return (location.protocol.startsWith('http')?location.protocol:'http:')+'//'+host+':3000';
+      if (host.endsWith('.onrender.com')){
+        if (host.includes('-app.')) return 'https://'+host.replace('-app.','-api.');
+        if (host.includes('app.'))  return 'https://'+host.replace('app.','api.');
+      }
+      return 'https://gouzepe-api.onrender.com';
+    };
+    window.API = (localStorage.getItem('efoot.api') || DEF_API()).replace(/\/+$/,'');
+
+    // 2) Auth header automatique
+    const authHeader = () => {
+      const t = localStorage.getItem('efoot.token');
+      return t ? { Authorization: 'Bearer ' + t } : {};
+    };
+
+    // 3) Wrapper fetch → ajoute API + Authorization + logs d’erreur
+    const _fetch = window.fetch.bind(window);
+    window.apiFetch = (path, opt={}) => {
+      const url = (path.startsWith('http') ? path : (window.API + (path.startsWith('/')?path:'/'+path)));
+      const headers = Object.assign({}, authHeader(), opt.headers||{});
+      return _fetch(url, Object.assign({ headers }, opt)).then(async (res) => {
+        if (!res.ok) {
+          let msg = '';
+          try { msg = (await res.clone().json()).error || ''; } catch(_){}
+          console.warn('[API]', res.status, url, msg);
+        }
+        return res;
+      });
+    };
+
+    // 4) Petit check console au chargement
+    window.apiFetch('/health').then(r=>r.json()).then(j=>console.log('[HEALTH]', j));
+  } catch(e){ console.warn('GOUZEPE hotfix common.js error', e); }
+})();
+

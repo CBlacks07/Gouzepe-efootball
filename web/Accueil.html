@@ -23,8 +23,6 @@
     html.light body{
       background:linear-gradient(180deg,#fff,#f4f7fb);color:#0f172a
     }
-
-    /* ===== BACKDROP SLIDER (fonds/) ===== */
     #bgSlider{
       position:fixed; inset:0; z-index:0; pointer-events:none; opacity:.20; transition:opacity .5s ease;
       background-position:center; background-size:cover; background-repeat:no-repeat;
@@ -36,8 +34,6 @@
       background: radial-gradient(60% 40% at 10% 0%, rgba(59,130,246,.14), transparent 60%),
                   radial-gradient(60% 45% at 90% 100%, rgba(34,197,94,.14), transparent 60%);
     }
-
-    /* ===== TOP ===== */
     .top{
       position:sticky;top:0;z-index:40;display:flex;align-items:center;gap:12px;
       padding:10px var(--pad);background:rgba(10,14,22,.65);backdrop-filter:blur(8px);border-bottom:1px solid var(--border)
@@ -66,8 +62,6 @@
       .nav{display:none}
       .top.nav-open .nav{display:flex}
     }
-
-    /* ===== LAYOUT ===== */
     main{display:block; position:relative; z-index:2}
     section{padding:clamp(14px,2.8vw,28px) var(--pad);border-top:1px solid rgba(255,255,255,.04)}
     .hero{padding-block:clamp(18px,4vw,36px);background:linear-gradient(180deg,rgba(15,23,34,0),rgba(15,23,34,.35))}
@@ -80,71 +74,27 @@
     .list{display:flex;flex-direction:column;gap:10px;margin:0;padding:0;list-style:none}
     .item{display:flex;align-items:center;justify-content:space-between;gap:12px;padding:10px 12px;border:1px solid var(--border);border-radius:12px;background:transparent}
     .item strong{letter-spacing:.3px}.meta{color:var(--muted);font-size:14px}
-
-    /* ===== JOURNÉE ===== */
-    .daybar{display:flex;flex-wrap:wrap;gap:10px;align-items:center;margin-bottom:12px}
-    .daybar input[type="date"],.daybar select{padding:8px 10px;border-radius:999px;border:1px solid var(--border);background:transparent;color:inherit}
-    .grid-two{display:flex;flex-wrap:wrap;gap:12px}
-    .division{flex:1 1 520px;min-width:320px}
-    .division h3{margin:0 0 8px;font-size:16px;opacity:.9}
-    .table-wrap{overflow-x:auto}
-    table{width:100%;border-collapse:separate;border-spacing:0 8px}
-    th,td{padding:8px 10px;vertical-align:middle}
-    thead th{font-size:12px;color:var(--muted);font-weight:600;text-transform:uppercase;letter-spacing:.4px}
-    tbody tr{background:transparent;border:1px solid var(--border);border-radius:12px}
-    td:first-child,th:first-child{padding-left:12px} td:last-child,th:last-child{padding-right:12px}
-
-    /* Scores compacts & sous entête */
-    .compactScores th.mid{text-align:center}
-    .scoresCell{padding:0 6px!important;text-align:center}
-    .scoresCell .score{display:inline-flex;align-items:center;justify-content:center;gap:6px;margin:2px 0}
-    .scoresCell .score input{width:36px;height:36px;text-align:center;border-radius:10px;border:1px solid var(--border);background:transparent;color:inherit;padding:0}
-    .dash{display:inline-block;min-width:10px;text-align:center;opacity:.6}
-    input[list],input[type="number"],input[type="text"],textarea{padding:8px 10px;border-radius:10px;border:1px solid var(--border);background:transparent;color:inherit}
-    .bad{outline:1px solid #ef4444}
-    .muted{color:var(--muted)}
-
-    /* Modal */
-    dialog{border:1px solid var(--border);border-radius:14px;background:var(--card);color:inherit;max-width:720px;width:calc(100% - 24px);box-shadow:var(--shadow)}
-    dialog::backdrop{background:rgba(0,0,0,.4)}
-
-    /* Impression "ancienne": on imprime via fenêtre dédiée */
-    .print-only{display:none}
-
-    @media (max-width:480px){.brand-title h1{font-size:16px}.btn{padding:8px 10px}}
-    
-
-    /* === Mobile Menu Sheet (style Duel) === */
-#mobileMenu{
-  position:fixed; inset:0; z-index:60; display:flex; align-items:flex-start; justify-content:center;
-  padding:18px; background:rgba(0,0,0,.55); backdrop-filter:blur(2px);
-}
-#mobileMenu[hidden]{ display:none }
-.mm-panel{
-  width:min(92vw,420px); margin-top:68px; background:var(--panel); color:var(--text);
-  border:1px solid var(--border); border-radius:16px; box-shadow:var(--shadow); padding:16px 14px;
-}
-.mm-title{font-weight:800;text-align:center;margin:4px 0 12px}
-.mm-list{display:grid;gap:12px}
-.mm-btn{
-  display:flex;align-items:center;justify-content:center;gap:10px;
-  padding:12px 14px;border-radius:14px;border:1px solid var(--border);
-  background:rgba(255,255,255,.02);color:inherit;text-decoration:none;font-weight:700;
-}
-.mm-theme{display:flex;justify-content:center;margin:8px 0}
-.mm-logout{display:flex;justify-content:center}
-.mm-logout .btn{background:rgba(239,68,68,.1);border-color:#7f1d1d;color:#f87171}
-@media (min-width:901px){ #mobileMenu{ display:none !important } }
-
+    /* Mobile sheet menu */
+    #mobileMenu{position:fixed; inset:0; z-index:60; display:flex; align-items:flex-start; justify-content:center;
+      padding:18px; background:rgba(0,0,0,.55); backdrop-filter:blur(2px);}
+    #mobileMenu[hidden]{ display:none }
+    .mm-panel{width:min(92vw,420px); margin-top:68px; background:var(--panel); color:var(--text);
+      border:1px solid var(--border); border-radius:16px; box-shadow:var(--shadow); padding:16px 14px;}
+    .mm-title{font-weight:800;text-align:center;margin:4px 0 12px}
+    .mm-list{display:grid;gap:12px}
+    .mm-btn{display:flex;align-items:center;justify-content:center;gap:10px;padding:12px 14px;border-radius:14px;border:1px solid var(--border);
+      background:rgba(255,255,255,.02);color:inherit;text-decoration:none;font-weight:700;}
+    .mm-theme{display:flex;justify-content:center;margin:8px 0}
+    .mm-logout{display:flex;justify-content:center}
+    .mm-logout .btn{background:rgba(239,68,68,.1);border-color:#7f1d1d;color:#f87171}
+    @media (min-width:901px){ #mobileMenu{ display:none !important } }
   </style>
   <script defer src="common.js"></script>
 </head>
 <body>
-  <!-- Backdrops -->
   <div id="bgSlider" aria-hidden="true"></div>
   <div class="overlayGrad" aria-hidden="true"></div>
 
-  <!-- ===== TOP ===== -->
   <header class="top" id="topbar">
     <a class="brand" href="./Accueil.html" aria-label="Accueil GOUZEPE">
       <img id="clubLogo" class="logo" src="assets/fond.png" alt="Logo">
@@ -168,33 +118,29 @@
 
     <div class="spacer"></div>
     <div id="season-badge" class="badge badge-top"><span class="dot"></span><span id="season-top">Saison</span></div>
-
     <button id="themeBtn" class="btn ghost" title="Thème clair/sombre">☀️/🌙</button>
 
-    <!-- Menu mobile style "Duel" -->
-<div id="mobileMenu" hidden>
-  <div class="mm-panel" role="dialog" aria-modal="true" aria-labelledby="mmTitle">
-    <div id="mmTitle" class="mm-title">Menu</div>
-    <div class="mm-list">
-      <a class="mm-btn" href="./Classement-general.html">📊 Classements</a>
-      <a class="mm-btn" href="./Panel-Membre.html">👤 Mon espace</a>
-      <a class="mm-btn adminOnly" id="mmAdminPlayers" href="./Admin-Joueurs.html" style="display:none">👥 Admin-Joueurs</a>
+    <!-- Mobile sheet -->
+    <div id="mobileMenu" hidden>
+      <div class="mm-panel" role="dialog" aria-modal="true" aria-labelledby="mmTitle">
+        <div id="mmTitle" class="mm-title">Menu</div>
+        <div class="mm-list">
+          <a class="mm-btn" href="./Classement-general.html">📊 Classements</a>
+          <a class="mm-btn" href="./Panel-Membre.html">👤 Mon espace</a>
+          <a class="mm-btn adminOnly" id="mmAdminPlayers" href="./Admin-Joueurs.html" style="display:none">👥 Admin-Joueurs</a>
+        </div>
+        <div class="mm-theme"><button id="mmTheme" class="btn">☀️ / 🌙</button></div>
+        <div class="mm-logout"><button id="mmLogout" class="btn">Déconnexion</button></div>
+      </div>
     </div>
-    <div class="mm-theme"><button id="mmTheme" class="btn">☀️ / 🌙</button></div>
-    <div class="mm-logout"><button id="mmLogout" class="btn">Déconnexion</button></div>
-  </div>
-</div>
-
   </header>
 
-  <!-- ===== MAIN ===== -->
   <main>
     <section class="hero">
       <h2 class="heading">Bienvenue au club 👋</h2>
       <p class="sub">
-        Ici, on vit <b>eFootball</b> à fond&nbsp;: saisons intenses, matchs aller/retour, barrages, duels d’exhibition,
-        classements en temps réel et gestion stricte des rôles. Tape tes scores, compare, imprime tes feuilles de
-        journée et fais briller ton blason. Prêt à monter en D1&nbsp;?
+        Ici, on vit <b>eFootball</b> à fond : saisons intenses, duels, classements en temps réel et gestion stricte des rôles.
+        Tape tes scores, compare, imprime tes feuilles de journée et fais briller ton blason.
       </p>
       <div class="actions">
         <a class="btn primary" href="./Duel.html">Lancer un duel</a>
@@ -205,591 +151,121 @@
 
     <section><div class="card">
       <strong style="font-size:18px">À la une</strong>
-      <ul class="list" id="news"></ul>
+      <ul class="list" id="news"><li class="item"><div><strong>Chargement…</strong><div class="meta">Connexion au serveur</div></div></li></ul>
     </div></section>
 
     <section><div class="card">
-      <strong style="font-size:18px">Prochaine journée</strong>
-      <ul class="list" id="next-fixtures"></ul>
+      <strong style="font-size:18px">Activité récente</strong>
+      <ul class="list" id="recent"><li class="item"><div><strong>—</strong><div class="meta">Aucun duel récent</div></div></li></ul>
     </div></section>
-
-    <!-- ===== GESTION JOURNÉE ===== -->
-    <section><div class="card">
-      <div class="daybar">
-        <strong style="font-size:18px">Gestion de journée</strong>
-        <input id="dayPicker" type="date" />
-        <select id="dayStatus"><option value="auto" selected>Auto</option><option value="draft">Brouillon</option><option value="confirmed">Confirmée</option></select>
-        <span class="tiny muted" id="dayInfo"></span>
-        <span class="spacer"></span>
-        <button id="addD1" class="btn ghost adminOnly" style="display:none">+ Match D1</button>
-        <button id="addD2" class="btn ghost adminOnly" style="display:none">+ Match D2</button>
-        <button id="clearD1" class="btn warn adminOnly" style="display:none">Effacer D1</button>
-        <button id="clearD2" class="btn warn adminOnly" style="display:none">Effacer D2</button>
-        <button id="printBtn" class="btn ghost">Imprimer (PDF)</button>
-        <button id="saveEdit" class="btn info adminOnly" style="display:none">Sauver brouillon</button>
-        <button id="save" class="btn primary adminOnly" style="display:none">Publier</button>
-      </div>
-
-      <datalist id="players"></datalist>
-
-      <div class="grid-two">
-        <div class="division">
-          <h3>Division 1 — Confrontations (Aller/Retour)</h3>
-          <div class="table-wrap"><table id="d1_matches" class="compactScores">
-            <thead><tr>
-              <th>JOUEUR 1 (ID)</th>
-              <th class="mid">ALLER<br><span class="muted" style="font-weight:400">RETOUR</span></th>
-              <th>JOUEUR 2 (ID)</th>
-              <th></th>
-            </tr></thead>
-            <tbody></tbody>
-          </table></div>
-
-          <h4 style="margin:14px 0 6px">Classement D1</h4>
-          <div class="table-wrap"><table id="d1_tab">
-            <thead><tr><th>Joueur</th><th>J</th><th>V</th><th>N</th><th>D</th><th>BM</th><th>BC</th><th>Diff</th><th>PTS</th></tr></thead>
-            <tbody></tbody>
-          </table></div>
-        </div>
-
-        <div class="division">
-          <h3>Division 2 — Confrontations (Aller/Retour)</h3>
-          <div class="table-wrap"><table id="d2_matches" class="compactScores">
-            <thead><tr>
-              <th>JOUEUR 1 (ID)</th>
-              <th class="mid">ALLER<br><span class="muted" style="font-weight:400">RETOUR</span></th>
-              <th>JOUEUR 2 (ID)</th>
-              <th></th>
-            </tr></thead>
-            <tbody></tbody>
-          </table></div>
-
-          <h4 style="margin:14px 0 6px">Classement D2</h4>
-          <div class="table-wrap"><table id="d2_tab">
-            <thead><tr><th>Joueur</th><th>J</th><th>V</th><th>N</th><th>D</th><th>BM</th><th>BC</th><th>Diff</th><th>PTS</th></tr></thead>
-            <tbody></tbody>
-          </table></div>
-        </div>
-      </div>
-
-      <div class="division" style="margin-top:12px">
-        <h3>Barrage D2 ↔ D1 (Best of 3) — Les INVITÉS sont exclus</h3>
-        <div class="row" style="display:flex;gap:10px;align-items:center;margin:8px 0">
-          <label>Affiche</label>
-          <input id="barrage_ids" list="players" placeholder="ID_D1 – ID_D2" />
-          <button id="b_auto" class="btn ghost adminOnly" style="display:none">↺ Proposer</button>
-        </div>
-        <div class="grid-two" style="gap:10px">
-          <div><div class="muted">Match 1</div><div class="score"><input id="b1_a" inputmode="numeric" maxlength="2"><span class="dash">–</span><input id="b1_b" inputmode="numeric" maxlength="2"></div></div>
-          <div><div class="muted">Match 2</div><div class="score"><input id="b2_a" inputmode="numeric" maxlength="2"><span class="dash">–</span><input id="b2_b" inputmode="numeric" maxlength="2"></div></div>
-          <div><div class="muted">Match 3</div><div class="score"><input id="b3_a" inputmode="numeric" maxlength="2"><span class="dash">–</span><input id="b3_b" inputmode="numeric" maxlength="2"></div></div>
-        </div>
-        <div id="b_label" class="muted" style="margin-top:8px">—</div>
-        <div class="row" style="margin-top:10px">
-          <label>Notes / commentaires</label>
-          <textarea id="notes" style="width:100%;min-height:90px"></textarea>
-        </div>
-      </div>
-    </div></section>
-
-    <!-- zone d'impression dédiée (générée dans une nouvelle fenêtre) -->
-    <section class="print-only"></section>
   </main>
 
   <footer style="text-align:center;padding:20px;font-family:system-ui,-apple-system,Segoe UI,Roboto,Inter,Arial,sans-serif">
     Copyright © GOUZEPE GAMING CLUB 2025
   </footer>
 
-  <!-- ===== MODALE CONFIRMATION CHAMPIONS ===== -->
-  <dialog id="confirm">
-    <div style="padding:16px;border-bottom:1px solid var(--border);font-weight:700">Confirmer la journée</div>
-    <div style="padding:16px">
-      <div class="muted" id="c_date">—</div>
-      <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-top:10px">
-        <div>
-          <div><b>Champion D1 :</b> <span id="c_d1">—</span></div>
-          <div class="row" style="margin-top:6px;display:flex;gap:8px;align-items:center">
-            <label style="min-width:92px">Équipe D1 :</label>
-            <input id="t_d1" placeholder="ex: BARCELONE" maxlength="12" />
-          </div>
-        </div>
-        <div>
-          <div><b>Champion D2 :</b> <span id="c_d2">—</span></div>
-          <div class="row" style="margin-top:6px;display:flex;gap:8px;align-items:center">
-            <label style="min-width:92px">Équipe D2 :</label>
-            <input id="t_d2" placeholder="ex: JUVENTUS" maxlength="12" />
-          </div>
-        </div>
-      </div>
-      <div style="margin-top:10px"><b>Barrage :</b> <span id="c_bar">—</span></div>
-      <div id="c_err" style="color:#ef4444;margin-top:6px"></div>
-    </div>
-    <div style="padding:14px;border-top:1px solid var(--border);display:flex;gap:10px;justify-content:flex-end">
-      <button class="btn" id="c_print">Imprimer (PDF)</button>
-      <button class="btn" id="c_cancel">Annuler</button>
-      <button class="btn primary" id="c_ok">Valider & Enregistrer</button>
-    </div>
-  </dialog>
-
   <script>
-  /* ============ BASE / RÔLES / NAV ============ */
-  const API = () => (window.API || localStorage.getItem('efoot.api') || (location.protocol+'//'+location.hostname+':3000')).replace(/\/+$/,'');
-  let TOKEN = localStorage.getItem('efoot.token') || '';
-  let ROLE = (localStorage.getItem('efoot.role')||'member').toLowerCase();
-  const hd = (m='GET',tok=TOKEN)=>({method:m,headers:{'Content-Type':'application/json','Authorization':'Bearer '+tok}});
+  /* Helpers API */
+  const isPrivate=(h)=>/^(localhost|127\.0\.0\.1|10\.\d+\.\d+\.\d+|192\.168\.\d+\.\d+|172\.(1[6-9]|2\d|3[01])\.\d+\.\d+)$/.test(h||'');
+  function DEF_API(){
+    const host=location.hostname||''; 
+    if(isPrivate(host)) return (location.protocol.startsWith('http')?location.protocol:'http:')+'//'+host+':3000';
+    if(host.endsWith('.onrender.com')){
+      if(host.includes('-app.')) return 'https://'+host.replace('-app.','-api.');
+      if(host.includes('app.'))  return 'https://'+host.replace('app.','api.');
+    }
+    return 'https://gouzepe-api.onrender.com';
+  }
+  const API = (localStorage.getItem('efoot.api')||DEF_API()).replace(/\/+$/,'');
+  const TOKEN = localStorage.getItem('efoot.token')||'';
+  const ROLE  = (localStorage.getItem('efoot.role')||'member').toLowerCase();
+  function hd(){ return { headers: Object.assign({ 'Content-Type':'application/json' }, TOKEN? { Authorization: 'Bearer '+TOKEN } : {}) }; }
+  async function waitHealth(maxMs=45000){
+    const start=Date.now(); let tries=0;
+    while(Date.now()-start<maxMs){
+      tries++;
+      try{ const r=await fetch(API+'/health',{cache:'no-store'}); if(r.ok) return true; }catch(_){}
+      await new Promise(res=>setTimeout(res, Math.min(2500, 300*tries)));
+    }
+    return false;
+  }
 
-  const $ = s => document.querySelector(s);
-  const el = (t,cls,html)=>{const e=document.createElement(t); if(cls)e.className=cls; if(html!=null)e.innerHTML=html; return e;};
+  /* UI */
+  (function theme(){
+    const btn=document.getElementById('themeBtn'); const apply=m=>{document.documentElement.classList.toggle('light',m==='light');localStorage.setItem('efoot.theme',m);btn.textContent=(m==='light')?'🌙':'☀️'};
+    apply(localStorage.getItem('efoot.theme')||'dark'); btn.addEventListener('click',()=>apply(document.documentElement.classList.contains('light')?'dark':'light'));
+    document.getElementById('mmTheme').onclick=()=>btn.click();
+  })();
+  (function mobileMenu(){
+    const sheet=document.getElementById('mobileMenu'); const toggle=document.getElementById('menuToggle');
+    const open=()=>{sheet.hidden=false;document.body.style.overflow='hidden';}; const close=()=>{sheet.hidden=true;document.body.style.overflow='';};
+    toggle?.addEventListener('click',e=>{e.preventDefault();open();});
+    sheet.addEventListener('click',e=>{ if(e.target===sheet) close(); });
+    document.addEventListener('keydown',e=>{ if(e.key==='Escape' && !sheet.hidden) close(); });
+    document.getElementById('mmAdminPlayers').style.display = ROLE==='admin' ? '' : 'none';
+    document.getElementById('mmLogout').onclick=()=>document.getElementById('logoutBtn').click();
+  })();
+  document.getElementById('logoutBtn').onclick=async ()=>{
+    try{ await fetch(API+'/auth/logout',{method:'POST', headers:{Authorization:'Bearer '+TOKEN}});}catch(_){}
+    const keep=new Set(['efoot.theme','efoot.api']); for(let i=localStorage.length-1;i>=0;i--){ const k=localStorage.key(i); if(!keep.has(k)) localStorage.removeItem(k); }
+    sessionStorage.clear(); location.href='login.html';
+  };
 
-  // logo fallback
-  (function(){ const img=$('#clubLogo'); if(!img) return; img.addEventListener('error',()=>{ img.style.display='none'; }); })();
-
-  // thème harmonisé (clé 'efoot.theme')
-  (function(){ const btn=$('#themeBtn'); if(!btn) return; const apply=m=>{document.documentElement.classList.toggle('light',m==='light');localStorage.setItem('efoot.theme',m);btn.textContent=(m==='light')?'🌙':'☀️'}; apply(localStorage.getItem('efoot.theme')||'dark'); btn.addEventListener('click',()=>apply(document.documentElement.classList.contains('light')?'dark':'light')); })();
-
-  // nav responsive
-/* --- Menu mobile type « feuille » (comme Duel) --- */
-(function mobileMenu(){
-  const sheet = document.getElementById('mobileMenu');
-  const toggleBtn = document.getElementById('menuToggle');
-  const open = ()=>{ sheet.hidden=false; document.body.style.overflow='hidden'; };
-  const close= ()=>{ sheet.hidden=true;  document.body.style.overflow=''; };
-
-  toggleBtn?.addEventListener('click', (e)=>{ e.preventDefault(); open(); });
-  sheet.addEventListener('click', (e)=>{ if(e.target===sheet) close(); });
-  document.addEventListener('keydown', (e)=>{ if(e.key==='Escape' && !sheet.hidden) close(); });
-
-  // Rôle admin -> affiche liens admin dans le menu mobile
-  const isAdmin = (localStorage.getItem('efoot.role')||'member').toLowerCase()==='admin';
-  document.getElementById('mmAdminPlayers').style.display = isAdmin ? '' : 'none';
-
-  // Synchronise avec les contrôles existants
-  document.getElementById('mmTheme').onclick  = ()=> document.getElementById('themeBtn').click();
-  document.getElementById('mmLogout').onclick = ()=> document.getElementById('logoutBtn').click();
-})();
-
-  // déconnexion confirmée
-  $('#logoutBtn').addEventListener('click', async ()=>{
-    if(!confirm('Se déconnecter ?')) return;
-    try{ await fetch(API()+'/auth/logout', hd('POST')); }catch(_){}
-    const keep=new Set(['efoot.theme','efoot.api']);
-    for(let i=localStorage.length-1;i>=0;i--){ const k=localStorage.key(i); if(!keep.has(k)) localStorage.removeItem(k); }
-    sessionStorage.clear();
-    location.href = './login.html';
-  });
-
-  async function loadSession(){
+  /* Data: À la une = Top classement ; Activité = duels récents */
+  async function loadTop(){
+    const box=document.getElementById('news'); box.innerHTML='';
     try{
-      const r=await fetch(API()+'/auth/me',hd());
-      if(r.ok){ const {user}=await r.json(); ROLE=(user.role||'member').toLowerCase(); localStorage.setItem('efoot.role',ROLE); $('#userDisplay').textContent=user.email||''; }
-      document.querySelectorAll('.adminNav,.adminOnly').forEach(x=> x.style.display = (ROLE==='admin')?'':'none');
-    }catch(_){}
+      const r=await fetch(API+'/leaderboard',hd()); const d=await r.json();
+      const top=(d.leaderboard||[]).slice(0,5);
+      if(!top.length){ box.innerHTML='<li class="item"><div><strong>Pas encore de classement</strong><div class="meta">Enregistre des duels pour remplir le tableau</div></div></li>'; return; }
+      const li=document.createElement('li'); li.className='item';
+      li.innerHTML = '<div><strong>Top joueurs</strong><div class="meta">'+ top.map((x,i)=> `${i+1}. ${x.name||x.player_id} (${x.points} pts)` ).join(' • ') +'</div></div><a class="btn ghost" href="./Classement-general.html">Détails</a>';
+      box.appendChild(li);
+    }catch(e){
+      box.innerHTML='<li class="item"><div><strong>Serveur indisponible</strong><div class="meta">Réessaie plus tard</div></div></li>';
+    }
   }
-
-  /* ============ SAISON / JOUEURS / NEWS ============ */
-  let PLAYERS_ROLE = new Map();
-  async function loadSeason(){
-    try{ const r=await fetch(API()+'/season/current',hd()); if(!r.ok) return null; const s=await r.json();
-      $('#season-text').textContent = s.name || ('S#'+s.id);
-      $('#season-top').textContent = $('#season-text').textContent;
-      return s;
-    }catch(_){return null;}
-  }
-  async function loadPlayers(){
+  async function loadRecent(){
+    const box=document.getElementById('recent'); box.innerHTML='';
     try{
-      const r=await fetch(API()+'/players',hd()); const d=await r.json();
-      const dl=$('#players'); dl.innerHTML='';
-      PLAYERS_ROLE = new Map((d.players||[]).map(p=>[String(p.player_id),(p.role||'MEMBRE').toUpperCase()]));
-      (d.players||[]).forEach(p=>{ const o=document.createElement('option'); o.value=p.player_id; o.label=`${p.player_id} — ${p.name}`; dl.appendChild(o); });
-    }catch(_){}
-  }
-  async function loadHeadline(){
-    const news=$('#news'); news.innerHTML='';
-    try{
-      const st=await (await fetch(API()+'/standings',hd())).json();
-      const pls=await (await fetch(API()+'/players',hd())).json();
-      const byId=new Map((pls.players||[]).map(p=>[p.player_id,p]));
-      const top=(st.standings||[]).slice(0,3);
-      if(top.length){
-        const li=el('li','item');
-        li.innerHTML='<div><strong>Top saison</strong><div class="meta">'+top.map((r,i)=>{const p=byId.get(r.id)||{};return (i+1)+'. '+(p.name||('Joueur #'+r.id))+' ('+(r.total||r.points||0)+' pts)'}).join(' • ')+'</div></div><a class="btn ghost" href="./Classement-general.html">Détails</a>';
-        news.appendChild(li);
-      }
-    }catch(_){}
-    try{
-      const on=await (await fetch(API()+'/presence/online',hd())).json();
-      const li=el('li','item'); li.innerHTML='<div><strong>Joueurs connectés</strong><div class="meta">'+((on.online||[]).length)+' en ligne</div></div>';
-      news.appendChild(li);
-    }catch(_){}
-  }
-  async function loadNextFixtures(){
-    const box=$('#next-fixtures'); box.innerHTML='';
-    try{
-      const s=await loadSeason(); const sid=s?.id; if(!sid) return;
-      const r=await (await fetch(API()+`/seasons/${sid}/matchdays`,hd())).json();
-      const days=(r.days||[]).sort(); const today=new Date().toISOString().slice(0,10);
-      const next=days.find(d=>d>=today)||days[days.length-1];
-      const li=el('li','item'); li.innerHTML= next?'<div><strong>Journée '+next+'</strong><div class="meta">D1 & D2</div></div><a class="btn ghost" href="./Duel.html">Ouvrir les duels</a>':'<div><strong>Aucune journée planifiée</strong><div class="meta">Crée une nouvelle journée depuis l’admin</div></div>'; box.appendChild(li);
-    }catch(_){}
-  }
-
-  /* ============ JOURNÉE: STATE / OUTILS ============ */
-  const S = { d1:[], d2:[], barr:{}, champions:{ d1:{}, d2:{} } };
-  function toInt(v){ v=(v??'').toString().trim(); return v===''?null:parseInt(v,10) }
-  function addAgg(agg,A,B,ga,gb){ if(ga==null||gb==null)return; if(!agg[A])agg[A]={J:0,V:0,N:0,D:0,BP:0,BC:0}; if(!agg[B])agg[B]={J:0,V:0,N:0,D:0,BP:0,BC:0}; agg[A].J++;agg[B].J++; agg[A].BP+=ga; agg[A].BC+=gb; agg[B].BP+=gb; agg[B].BC+=ga; if(ga>gb){agg[A].V++;agg[B].D++} else if(ga<gb){agg[B].V++;agg[A].D++} else {agg[A].N++;agg[B].N++} }
-  function standings(div){
-    const agg={};
-    (S[div]||[]).forEach(m=>{ if(!m.p1||!m.p2) return; if(m.a1!=null&&m.a2!=null) addAgg(agg,m.p1,m.p2,m.a1,m.a2); if(m.r1!=null&&m.r2!=null) addAgg(agg,m.p2,m.p1,m.r2,m.r1); });
-    return Object.entries(agg).map(([id,x])=>({ id, ...x, PTS:x.V*3+x.N, DIFF:x.BP-x.BC, role: PLAYERS_ROLE.get(String(id)) || 'MEMBRE' }))
-      .filter(r=>r.role!=='INVITE')
-      .sort((a,b)=> b.PTS-a.PTS || b.DIFF-a.DIFF || b.BP-a.BP || String(a.id).localeCompare(String(b.id)));
-  }
-  function renderTable(div){
-    const tb=$(`#${div}_tab tbody`); tb.innerHTML='';
-    standings(div).forEach((r,i)=>{
-      const trophySvg = i===0 ? '<svg class="trophy" viewBox="0 0 24 24" fill="currentColor" style="color:#fbbf24;width:16px;height:16px;vertical-align:-2px;margin-right:6px"><path d="M19 5h2a1 1 0 0 1 1 1c0 3.866-3.134 7-7 7h-1v2h3a1 1 0 1 1 0 2h-3v2h2a1 1 0 1 1 0 2H8a1 1 0 1 1 0-2h2v-2H7a1 1 0 1 1 0-2h3v-2H9C5.134 13 2 9.866 2 6a1 1 0 0 1 1-1h2V3a1 1 0 0 1 1-1h10a1 1 0 0 1 1 1v2zm-2 0V4H7v1a1 1 0 0 1-1 1H4.057A5.002 5.002 0 0 0 9 10h6a5.002 5.002 0 0 0 5-5h-1.943A1 1 0 0 1 17 5z"/></svg>' : '';
-      tb.insertAdjacentHTML('beforeend',`<tr><td>${i===0?trophySvg:''}${r.id}</td><td>${r.J}</td><td>${r.V}</td><td>${r.N}</td><td>${r.D}</td><td>${r.BP}</td><td>${r.BC}</td><td>${r.DIFF}</td><td>${r.PTS}</td></tr>`);
-    });
-  }
-  function calculateAndRender(){ renderTable('d1'); renderTable('d2'); autoFillBarrage(true); }
-
-  function row(div, m={}){
-    const tr=document.createElement('tr');
-    tr.innerHTML = `
-      <td><input list="players" class="p1" placeholder="ID" value="${m.p1||''}"></td>
-      <td class="scoresCell">
-        <div class="score"><input class="a1" inputmode="numeric" maxlength="2" value="${m.a1??''}"><span class="dash">–</span><input class="a2" inputmode="numeric" maxlength="2" value="${m.a2??''}"></div>
-        <div class="score"><input class="r1" inputmode="numeric" maxlength="2" value="${m.r1??''}"><span class="dash">–</span><input class="r2" inputmode="numeric" maxlength="2" value="${m.r2??''}"></div>
-      </td>
-      <td><input list="players" class="p2" placeholder="ID" value="${m.p2||''}"></td>
-      <td><button type="button" class="btn warn del adminOnly" style="width:32px;height:32px;padding:0">🗑️</button></td>`;
-    document.querySelector(`#${div}_matches tbody`).appendChild(tr);
-  }
-  function rebuild(div){ const box=$(`#${div}_matches tbody`); box.innerHTML=''; (S[div]||[]).forEach(m=>row(div,m)); calculateAndRender(); setEditingEnabled(ROLE==='admin'); }
-
-  function readFromDOM(div){
-    const rows=[...document.querySelectorAll(`#${div}_matches tbody tr`)];
-    const out=rows.map(tr=>{
-      const g=(sel)=>tr.querySelector(sel);
-      const o={ p1:(g('.p1')?.value||'').trim(), p2:(g('.p2')?.value||'').trim(),
-                a1:toInt(g('.a1')?.value), a2:toInt(g('.a2')?.value),
-                r1:toInt(g('.r1')?.value), r2:toInt(g('.r2')?.value), el:tr };
-      return o;
-    });
-    out.forEach(m=>{ const bad=m.p1&&m.p2&&m.p1===m.p2; m.el.classList.toggle('bad',bad); if(bad){ m.a1=m.a2=m.r1=m.r2=null; } });
-    S[div]=out.map(({el,...rest})=>rest);
-  }
-
-  // events saisie
-  let lastEditTs = 0;
-  document.addEventListener('input',e=>{
-    if(ROLE!=='admin')return;
-    const t=e.target; const div=t.closest('#d1_matches')?'d1':t.closest('#d2_matches')?'d2':null; if(!div)return;
-    readFromDOM(div); calculateAndRender(); validateCross(); lastEditTs=Date.now(); localSaveDraft();
-  }, true);
-  document.addEventListener('click',e=>{
-    if(ROLE!=='admin')return;
-    const del=e.target.closest('.del'); if(del){ if(!confirm('Supprimer cette ligne de match ?')) return; const div=del.closest('#d1_matches')?'d1':'d2'; del.closest('tr').remove(); readFromDOM(div); calculateAndRender(); validateCross(); lastEditTs=Date.now(); localSaveDraft(); }
-  }, true);
-
-  $('#addD1').onclick=()=>{ if(ROLE!=='admin')return; S.d1.push({}); rebuild('d1'); lastEditTs=Date.now(); localSaveDraft(); };
-  $('#addD2').onclick=()=>{ if(ROLE!=='admin')return; S.d2.push({}); rebuild('d2'); lastEditTs=Date.now(); localSaveDraft(); };
-  $('#clearD1').onclick=()=>{ if(ROLE!=='admin')return; if(!confirm('Effacer tous les scores D1 ?'))return; document.querySelectorAll('#d1_matches .scoresCell input').forEach(i=>i.value=''); readFromDOM('d1'); calculateAndRender(); lastEditTs=Date.now(); localSaveDraft(); };
-  $('#clearD2').onclick=()=>{ if(ROLE!=='admin')return; if(!confirm('Effacer tous les scores D2 ?'))return; document.querySelectorAll('#d2_matches .scoresCell input').forEach(i=>i.value=''); readFromDOM('d2'); calculateAndRender(); lastEditTs=Date.now(); localSaveDraft(); };
-
-  /* ===== Barrage ===== */
-  function toIntPair(a,b){ const A=toInt($(a).value), B=toInt($(b).value); return (A!=null&&B!=null)?{A,B}:null }
-  function computeBarrageLabel(){
-    const ids=($('#barrage_ids').value||''); const parts=ids.split(/[-–]/).map(s=>s.trim()); const id1=parts[0], id2=parts[1];
-    const m1=toIntPair('#b1_a','#b1_b'), m2=toIntPair('#b2_a','#b2_b'), m3=toIntPair('#b3_a','#b3_b');
-    let w1=0,w2=0; const add=m=>{ if(!m)return; if(m.A>m.B)w1++; else if(m.A<m.B)w2++; };
-    add(m1); add(m2); add(m3);
-    let label='—'; if(id1&&id2){ if(w1>=2) label=`${id1} se maintient en D1 · ${id2} reste en D2`; else if(w2>=2) label=`${id2} monte en D1 · ${id1} est relégué en D2`; else label=`Affiche : ${id1} – ${id2}`; }
-    S.barr={ ids:ids.trim(), m1:m1||{}, m2:m2||{}, m3:m3||{}, label, notes:$('#notes').value||'' }; $('#b_label').textContent=label;
-  }
-  ['#barrage_ids','#b1_a','#b1_b','#b2_a','#b2_b','#b3_a','#b3_b','#notes'].forEach(sel=>$(sel).addEventListener('input',()=>{ if(ROLE!=='admin') return; computeBarrageLabel(); lastEditTs=Date.now(); localSaveDraft(); }));
-
-  function autoFillBarrage(force){
-    const fld=$('#barrage_ids'); if(!force && (fld.value||'').trim()) return;
-    const d2=standings('d2'), d1=standings('d1');
-    const d2second=d2[1]?.id, d1avant=d1.length>=2?d1[d1.length-2].id:null;
-    if(d1avant&&d2second) fld.value=`${d1avant} – ${d2second}`;
-    computeBarrageLabel();
-  }
-
-  /* ===== Validations & restrictions ===== */
-  function hasAnyCompleteMatch(){
-    const all=[...(S.d1||[]),...(S.d2||[])];
-    return all.some(m=> m.p1&&m.p2 && [m.a1,m.a2,m.r1,m.r2].every(v=>v!=null) );
-  }
-  function hasIncompleteLines(){
-    const bad=[];
-    ['d1','d2'].forEach(div=>{
-      (S[div]||[]).forEach((m,i)=>{
-        const anyScore=[m.a1,m.a2,m.r1,m.r2].some(v=>v!=null);
-        const playersOK=!!(m.p1&&m.p2);
-        const scoresOK=[m.a1,m.a2,m.r1,m.r2].every(v=>v!=null);
-        if(anyScore && (!playersOK || !scoresOK)) bad.push(div.toUpperCase()+' #'+(i+1));
+      const r=await fetch(API+'/duels/recent?limit=10',hd()); const d=await r.json();
+      const arr=d.duels||[];
+      if(!arr.length){ box.innerHTML='<li class="item"><div><strong>Aucun duel récent</strong><div class="meta">Commence par créer un duel</div></div><a class="btn" href="./Duel.html">Nouveau duel</a></li>'; return; }
+      arr.forEach(x=>{
+        const li=document.createElement('li'); li.className='item';
+        const date = x.played_at ? new Date(x.played_at).toLocaleString('fr-FR') : '—';
+        li.innerHTML = `<div><strong>${x.p1_name||x.p1_id} vs ${x.p2_name||x.p2_id}</strong><div class="meta">${date}</div></div><div class="meta">${x.score_a} – ${x.score_b}</div>`;
+        box.appendChild(li);
       });
-    });
-    return bad;
-  }
-  function validateCross(){
-    const d1IDs=new Set(), d2IDs=new Set();
-    S.d1.forEach(m=>{ if(m.p1) d1IDs.add(m.p1); if(m.p2) d1IDs.add(m.p2); });
-    S.d2.forEach(m=>{ if(m.p1) d2IDs.add(m.p1); if(m.p2) d2IDs.add(m.p2); });
-    const conflicts=[...d1IDs].filter(x=>d2IDs.has(x));
-    $('#dayInfo').textContent = conflicts.length ? ('Conflits D1/D2: '+conflicts.join(', ')) : '';
-    return conflicts;
-  }
-
-  /* ===== Draft / Confirm / Sync ===== */
-  function payload(){ return { d1:S.d1, d2:S.d2, barrage:S.barr||{}, champions:S.champions||{} }; }
-
-  async function saveDraftAPI(date, body){ await fetch(API()+`/matchdays/draft/${encodeURIComponent(date)}`, { ...hd('PUT'), body: JSON.stringify({ date, ...body }) }); }
-  async function publishAPI(date, body, tok=TOKEN){ const r=await fetch(API()+'/matchdays/confirm', { ...hd('POST',tok), body: JSON.stringify({ date, ...body }) }); if(!r.ok) throw new Error((await r.json().catch(()=>({}))).error||'Publish failed'); }
-
-  async function fetchDay(date){
-    try{ const r=await fetch(API()+`/matchdays/${encodeURIComponent(date)}`,hd()); if(r.ok){ const p=await r.json(); return { source:'confirmed', payload:p }; } }catch(_){}
-    try{ const r=await fetch(API()+`/matchdays/draft/${encodeURIComponent(date)}`,hd()); if(r.ok){ const d=await r.json(); return { source:'draft', payload:d.payload||{} }; } }catch(_){}
-    return { source:'none', payload:{} };
-  }
-
-  const LSKEY = d => `efoot.draft.${d}`;
-  function localSaveDraft(){
-    const d=$('#dayPicker').value; if(!d) return;
-    localStorage.setItem(LSKEY(d), JSON.stringify({ ts: Date.now(), payload: payload() }));
-  }
-  function localLoadDraft(d){
-    try{ const v=JSON.parse(localStorage.getItem(LSKEY(d))||'null'); return v; }catch(_){ return null; }
-  }
-
-  // brouillon (admin)
-  $('#saveEdit').onclick=async()=>{
-    if(ROLE!=='admin') return;
-    const d=$('#dayPicker').value; if(!d){alert('Choisis une date.');return;}
-    const bad=hasIncompleteLines(); if(bad.length){ alert('Complète les lignes : '+bad.join(', ')); return; }
-    if(!hasAnyCompleteMatch()){ alert("Impossible d'enregistrer : aucune confrontation complète (aller/retour) renseignée."); return; }
-    if(!confirm('Sauver ce brouillon ?')) return;
-    await saveDraftAPI(d, payload());
-    alert('Brouillon sauvegardé.');
-  };
-
-  // modale confirmation
-  function openConfirmModal(){
-    const d=$('#dayPicker').value; if(!d){alert('Choisis une date.');return;}
-    const bad=hasIncompleteLines(); if(bad.length){ alert('Complète les lignes : '+bad.join(', ')); return; }
-    if(!hasAnyCompleteMatch()){ alert("Impossible d'enregistrer : aucune confrontation complète (aller/retour) renseignée."); return; }
-    const conflicts=validateCross(); if(conflicts.length){ alert('Conflits D1/D2: '+conflicts.join(', ')); return; }
-
-    const st1=standings('d1'), st2=standings('d2');
-    $('#c_d1').textContent = st1[0]?.id || '—';
-    $('#c_d2').textContent = st2[0]?.id || '—';
-    $('#c_bar').textContent = S.barr.label || '—';
-    $('#c_date').textContent = 'Journée : '+d;
-    $('#confirm').showModal();
-  }
-  $('#save').onclick=openConfirmModal;
-  $('#c_cancel').onclick=()=>$('#confirm').close();
-
-  $('#c_ok').onclick=async()=>{
-    const d=$('#dayPicker').value; S.champions = { d1:{ id:$('#c_d1').textContent, team:($('#t_d1').value||'').toUpperCase().slice(0,6) }, d2:{ id:$('#c_d2').textContent, team:($('#t_d2').value||'').toUpperCase().slice(0,6) } };
-    try{
-      await publishAPI(d, payload());
-      localStorage.removeItem(LSKEY(d));
-      $('#dayStatus').value='confirmed';
-      $('#dayInfo').textContent='Journée confirmée • '+d;
-      alert('Journée publiée.');
-      $('#confirm').close();
-    }catch(e){ alert(e.message||'Erreur'); }
-  };
-
-  /* ===== Impression style "Classement général" ===== */
-  function roleOf(id){ return (PLAYERS_ROLE.get(String(id))||'MEMBRE').toUpperCase(); }
-  function escapeHtml(t){return String(t||'').replace(/[&<>"']/g,m=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[m]));}
-  function computeStandingsDay(rows){
-    const agg={};
-    function add(A,B,ga,gb){
-      if(ga==null||gb==null) return;
-      if(!agg[A]) agg[A]={J:0,V:0,N:0,D:0,BP:0,BC:0};
-      if(!agg[B]) agg[B]={J:0,V:0,N:0,D:0,BP:0,BC:0};
-      agg[A].J++; agg[B].J++; agg[A].BP+=ga; agg[A].BC+=gb; agg[B].BP+=gb; agg[B].BC+=ga;
-      if(ga>gb){ agg[A].V++; agg[B].D++; } else if(ga<gb){ agg[B].V++; agg[A].D++; } else { agg[A].N++; agg[B].N++; }
-    }
-    (rows||[]).forEach(m=>{
-      if(!m.p1||!m.p2) return;
-      if(m.a1!=null&&m.a2!=null) add(m.p1,m.p2,m.a1,m.a2);
-      if(m.r1!=null&&m.r2!=null) add(m.p2,m.p1,m.r2,m.r1);
-    });
-    const arr = Object.entries(agg).map(([id,x])=>({id,...x,PTS:x.V*3+x.N,DIFF:x.BP-x.BC,role:roleOf(id)}));
-    arr.sort((a,b)=> b.PTS-a.PTS || b.DIFF-a.DIFF || b.BP-a.BP || String(a.id).localeCompare(String(b.id)));
-    return arr;
-  }
-  function splitAndRankDaily(st){
-    const main = st.filter(x=>x.role!=='INVITE');
-    const inv  = st.filter(x=>x.role==='INVITE');
-    main.forEach((r,idx)=> r.RANK = idx+1);
-    inv.forEach(r=> r.RANK='—');
-    return {main,inv};
-  }
-  async function logoDataURL(){
-    const tryFetch = async (path)=>{
-      try{
-        const r=await fetch(path,{cache:'no-store'}); if(!r.ok) return null;
-        const b=await r.blob();
-        return await new Promise(res=>{ const fr=new FileReader(); fr.onload=()=>res(fr.result); fr.readAsDataURL(b); });
-      }catch(_){ return null; }
-    };
-    return (await tryFetch('assets/logo.png')) || (await tryFetch('assets/fond.png'));
-  }
-  async function printDayA4(){
-    const date = document.getElementById('dayPicker')?.value || '';
-    if(!date){ alert('Choisis une date.'); return; }
-    // récupère depuis serveur (confirmé sinon brouillon)
-    let payload=null;
-    try{ const r=await fetch(API()+`/matchdays/${encodeURIComponent(date)}`,hd()); if(r.ok) payload=await r.json(); }catch(_){}
-    if(!payload){
-      try{ const r=await fetch(API()+`/matchdays/draft/${encodeURIComponent(date)}`,hd()); if(r.ok){ const d=await r.json(); payload=d.payload||{}; } }catch(_){}
-    }
-    if(!payload){ alert(`Rien à imprimer pour ${date}.`); return; }
-
-    // standings D1/D2
-    const st1 = computeStandingsDay(payload.d1||[]), st2=computeStandingsDay(payload.d2||[]);
-    const {main:main1,inv:inv1}=splitAndRankDaily(st1);
-    const {main:main2,inv:inv2}=splitAndRankDaily(st2);
-
-    // helpers
-    const esc=escapeHtml;
-    const mg=o=> (o && o.A!=null && o.B!=null) ? (o.A+' - '+o.B) : '';
-    const tblMatches=(rows)=>{ let h='<table class="tbl"><thead><tr><th>Joueur 1</th><th>Aller</th><th>Retour</th><th>Joueur 2</th></tr></thead><tbody>';
-      (rows||[]).forEach(m=>{ h+=`<tr><td>${esc(m.p1||'')}</td><td>${esc(m.a1??'')}&nbsp;-&nbsp;${esc(m.a2??'')}</td><td>${esc(m.r1??'')}&nbsp;-&nbsp;${esc(m.r2??'')}</td><td>${esc(m.p2||'')}</td></tr>`; });
-      return h+'</tbody></table>'; };
-    const row= r => `<tr><td>${esc(r.RANK||'')}</td><td>${esc(r.id)}</td><td>${r.J}</td><td>${r.V}</td><td>${r.N}</td><td>${r.D}</td><td>${r.BP}</td><td>${r.BC}</td><td>${r.DIFF}</td><td>${r.PTS}</td></tr>`;
-    const tblStand=(title,main,inv)=>{ let h=`<h2>${esc(title)}</h2><table class="tbl"><thead><tr><th>#</th><th>Joueur</th><th>J</th><th>V</th><th>N</th><th>D</th><th>BM</th><th>BC</th><th>Diff</th><th>PTS</th></tr></thead><tbody>`;
-      main.forEach(r=>h+=row(r)); if(inv.length){ h+=`<tr class="sepRow"><td colspan="10">Invités</td></tr>`; inv.forEach(r=>h+=row(r)); }
-      return h+'</tbody></table>'; };
-
-    const c1=payload?.champions?.d1||{}, c2=payload?.champions?.d2||{}, barr=payload?.barrage||payload?.champions?.barrage||{};
-    const team1=(c1.team||'').toUpperCase()||'—', team2=(c2.team||'').toUpperCase()||'—';
-    const logo=await logoDataURL();
-
-    const css='@page{size:A4;margin:12mm;}body{font:12px/1.35 "Segoe UI",Roboto,system-ui,Arial,sans-serif;color:#111;margin:0} h1{font-size:18px;margin:0 0 8px;display:flex;align-items:center;gap:10px} h1 img{height:28px} h2{font-size:15px;margin:12px 0 6px} .tbl{width:100%;border-collapse:collapse} .tbl th,.tbl td{border:1px solid #d1d5db;padding:6px 8px;text-align:center} .tbl thead th{background:#f3f4f6} .verdict{margin-top:8px;font-weight:700} .sepRow td{background:#f7f7f7;font-style:italic} .champ{color:#ef4444;font-weight:900;margin:10px 0 14px}';
-
-    let html='<!doctype html><html lang="fr"><head><meta charset="utf-8"><title>Journée '+esc(date)+'</title><style>'+css+'</style></head><body onload="window.print()">';
-    html+= `<h1>${logo?`<img src="${logo}" alt="logo">`:''}GOUZEPE GAMING CLUB — Journée du ${new Date(date).toLocaleDateString('fr-FR')}</h1>`;
-    html+= '<h2>SCORES D1</h2>'+tblMatches(payload.d1||[])+`<div class="champ">🏆 ${esc(c1.id||'—')} — CHAMPION avec ${esc(team1)}</div>`+tblStand('CLASSEMENT D1',main1,inv1);
-    html+= '<h2>SCORES D2</h2>'+tblMatches(payload.d2||[])+`<div class="champ">🏆 ${esc(c2.id||'—')} — CHAMPION avec ${esc(team2)}</div>`+tblStand('CLASSEMENT D2',main2,inv2);
-    html+= '<h2>BARRAGES</h2><table class="tbl"><thead><tr><th>Affiche</th><th>Aller</th><th>Retour</th><th>Match 3</th></tr></thead><tbody>';
-    html+= `<tr><td>${esc(barr?.ids||'—')}</td><td>${esc(mg(barr?.m1||{}))}</td><td>${esc(mg(barr?.m2||{}))}</td><td>${esc(mg(barr?.m3||{}))}</td></tr></tbody></table>`;
-    html+= `<div class="verdict">*** ${esc(barr?.label||'—')}</div>`;
-    if(barr?.notes){ html+='<div style="margin-top:8px"><i>Notes :</i> '+esc(barr.notes).replace(/\r?\n/g,'<br>')+'</div>'; }
-    html+='</body></html>';
-
-    const w=window.open('','_blank'); w.document.open(); w.document.write(html); w.document.close(); w.focus();
-  }
-  document.getElementById('c_print').onclick = printDayA4;
-  document.getElementById('printBtn').onclick = printDayA4;
-
-  /* ===== Prochaine journée : samedi suivant ===== */
-  function nextSaturdayAfter(iso){ const d=new Date(iso+'T00:00:00Z'); let add=(6-d.getUTCDay()+7)%7; if(add===0) add=7; d.setUTCDate(d.getUTCDate()+add); return d.toISOString().slice(0,10); }
-  function nextSaturdayFromToday(){ const d=new Date(); const add=(6-d.getUTCDay()+7)%7||7; d.setUTCDate(d.getUTCDate()+add); return d.toISOString().slice(0,10); }
-  async function prefillDateToNextSaturday(){
-    try{
-      const s=await loadSeason(); const sid=s?.id;
-      if(!sid){ $('#dayPicker').value = nextSaturdayFromToday(); return; }
-      const r=await (await fetch(API()+`/seasons/${sid}/matchdays`,hd())).json();
-      const days=(r.days||[]).sort(); const last=days[days.length-1];
-      $('#dayPicker').value = last ? nextSaturdayAfter(last) : nextSaturdayFromToday();
-    }catch(_){ $('#dayPicker').value = nextSaturdayFromToday(); }
-  }
-
-  /* ===== ÉDITION selon rôle ===== */
-  function setEditingEnabled(enabled){
-    document.querySelectorAll('#d1_matches input, #d2_matches input, #barrage_ids, #b1_a,#b1_b,#b2_a,#b2_b,#b3_a,#b3_b,#notes')
-      .forEach(i=> i.disabled = !enabled);
-    document.querySelectorAll('.adminNav,.adminOnly').forEach(x=>x.style.display = enabled? '' : 'none');
-  }
-
-  /* ===== Sync 15s: auto-save & auto-refresh ===== */
-  async function syncCycle(){
-    const d=$('#dayPicker').value; if(!d) return;
-    const recentlyEditing = (Date.now() - lastEditTs) < 5000;
-    if(ROLE==='admin' && recentlyEditing){
-      try{ await saveDraftAPI(d, payload()); }catch(_){}
-    }
-    if(!recentlyEditing){
-      try{
-        const { source, payload:pp } = await fetchDay(d);
-        if(source){
-          const current = JSON.stringify(payload());
-          const incoming = JSON.stringify(pp||{});
-          if(incoming && incoming !== current){
-            S.d1 = (pp?.d1)||[]; S.d2=(pp?.d2)||[]; S.barr=(pp?.barrage)||{};
-            rebuild('d1'); rebuild('d2'); computeBarrageLabel(); validateCross();
-            localSaveDraft();
-          }
-        }
-      }catch(_){}
+    }catch(e){
+      box.innerHTML='<li class="item"><div><strong>Impossible de charger</strong><div class="meta">Vérifie la connexion</div></div></li>';
     }
   }
-  setInterval(syncCycle, 15000);
 
-  // change de date -> charge serveur ou local si dispo
-  $('#dayPicker').addEventListener('change', async e=>{
-    const d=e.target.value; if(!d) return;
-    const local = localLoadDraft(d);
-    if(local){ S.d1=local.payload.d1||[]; S.d2=local.payload.d2||[]; S.barr=local.payload.barrage||{}; rebuild('d1'); rebuild('d2'); computeBarrageLabel(); validateCross(); }
-    else{
-      const { source, payload:pp } = await fetchDay(d);
-      S.d1=(pp?.d1)||[]; S.d2=(pp?.d2)||[]; S.barr=(pp?.barrage)||{};
-      rebuild('d1'); rebuild('d2'); computeBarrageLabel(); validateCross();
-      localSaveDraft();
-      $('#dayInfo').textContent = source==='confirmed' ? ('Journée confirmée • '+d) : (source==='draft'?'Brouillon chargé':'Nouveau brouillon');
-    }
-  });
-
-  /* ===== Diaporama images fonds/ ===== */
+  /* Fonds diaporama (conserve ta logique) */
   (function bgSlider(){
-    // Mets ici les noms réels si besoin. Le code teste l’existence et ne garde que celles qui chargent.
     const candidates = [
       'fonds/image1.jpg','fonds/image2.jpg','fonds/image3.jpg','fonds/image4.jpg',
-      'fonds/image5.jpg','fonds/image6.jpg', 'fonds/image7.jpg','fonds/image8.jpg',
+      'fonds/image5.jpg','fonds/image6.jpg','fonds/image7.jpg','fonds/image8.jpg',
       'fonds/image9.jpg','fonds/image10.jpg','fonds/image11.jpg','fonds/image12.jpg',
     ];
-    const ok=[];
-    let idx=0, timer=null;
-    const host=document.getElementById('bgSlider');
-    const preload = (src)=> new Promise(res=>{
-      const im=new Image(); im.onload=()=>res(src); im.onerror=()=>res(null); im.src=src+'?v='+(Date.now()%1e6);
-    });
+    const ok=[]; let idx=0, timer=null; const host=document.getElementById('bgSlider');
+    const preload = (src)=> new Promise(res=>{ const im=new Image(); im.onload=()=>res(src); im.onerror=()=>res(null); im.src=src+'?v='+(Date.now()%1e6); });
     (async ()=>{
       for(const p of candidates){ const r=await preload(p); if(r) ok.push(r); }
       if(!ok.length){ host.style.display='none'; return; }
       const show=(i)=>{ host.style.backgroundImage = `url('${ok[i]}')`; };
       show(0);
       timer=setInterval(()=>{ idx=(idx+1)%ok.length; show(idx); }, 7000);
-      document.addEventListener('visibilitychange',()=>{ if(document.hidden){ clearInterval(timer); } else { timer=setInterval(()=>{ idx=(idx+1)%ok.length; show(idx); }, 7000); }});
+      document.addEventListener('visibilitychange',()=>{ if(document.hidden){ clearInterval(timer); } });
     })();
   })();
 
-  /* ===== Boot ===== */
-  (async function(){
-    await loadSession();
-    await loadPlayers();
-    await loadHeadline();
-    await loadNextFixtures();
-    await prefillDateToNextSaturday();
-
-    const d=$('#dayPicker').value;
-    const local = localLoadDraft(d);
-    if(local){ S.d1=local.payload.d1||[]; S.d2=local.payload.d2||[]; S.barr=local.payload.barrage||{}; }
-    else{
-      const fetched = await fetchDay(d);
-      S.d1=fetched.payload.d1||[]; S.d2=fetched.payload.d2||[]; S.barr=fetched.payload.barrage||{};
-    }
-    rebuild('d1'); rebuild('d2'); computeBarrageLabel(); validateCross();
-
-    setEditingEnabled(ROLE==='admin');
+  (async function boot(){
+    const ok = await waitHealth(45000);
+    if(!ok) console.warn('API health timeout');
+    await loadTop();
+    await loadRecent();
   })();
   </script>
 </body>

@@ -123,3 +123,51 @@
   if (logoutBtn) logoutBtn.addEventListener('click', logout);
 })();
 
+
+
+(async function bindLogout(){
+  const btn = document.getElementById('logoutBtn');
+  if(!btn) return;
+
+  // utilitaires
+  const isPrivateNet = (h)=>/^(localhost|127\.0\.0\.1|10\.\d+\.\d+\.\d+|192\.168\.\d+\.\d+|172\.(1[6-9]|2\d|3[01])\.\d+\.\d+)$/.test(h);
+  const DEF_API = ()=>{
+    const host = location.hostname || '';
+    if (isPrivateNet(host)) {
+      return (location.protocol.startsWith('http') ? location.protocol : 'http:') + '//' + host + ':3000';
+    }
+    return 'https://gouzepe-efootball.onrender.com';
+  };
+  const API = (localStorage.getItem('efoot.api')||DEF_API()).replace(/\/+$/,'');
+
+  async function clearCaches(){
+    try{
+      // Préserver quelques clés utiles
+      const preserve = new Set(['efoot.theme','efoot.api']);
+      for(let i=localStorage.length-1; i>=0; i--){
+        const k = localStorage.key(i);
+        if(!preserve.has(k)) localStorage.removeItem(k);
+      }
+      try{ sessionStorage.clear(); }catch(_){}
+      if('caches' in window){
+        const keys = await caches.keys();
+        for(const k of keys) await caches.delete(k);
+      }
+    }catch(_){}
+  }
+
+  async function fullLogout(){
+    const token = localStorage.getItem('efoot.token');
+    try{
+      await fetch(API+'/auth/logout',{ method:'POST', headers:{ Authorization:'Bearer '+token } });
+    }catch(_){}
+    await clearCaches();
+    // petite latence pour flush
+    setTimeout(()=> location.replace('login.html'), 180);
+  }
+
+  btn.addEventListener('click', async ()=>{
+    if(!confirm('Voulez-vous vraiment vous déconnecter ?')) return;
+    await fullLogout();
+  });
+})();

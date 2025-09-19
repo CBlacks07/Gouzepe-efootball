@@ -45,9 +45,6 @@ CREATE TABLE IF NOT EXISTS season_totals (
 INSERT INTO season_totals(tag) VALUES('current')
 ON CONFLICT(tag) DO NOTHING;
 
--- Le fichier 02_champion_result.sql définit une table 'champion_result'.
--- Cette table n'est pas utilisée dans server.js mais peut être ajoutée si la fonctionnalité est développée.
--- Voici sa définition, compatible avec le reste du schéma :
 CREATE TABLE IF NOT EXISTS champion_result (
   day           DATE NOT NULL,
   division      TEXT NOT NULL CHECK (division IN ('D1','D2')),
@@ -57,7 +54,8 @@ CREATE TABLE IF NOT EXISTS champion_result (
 
   PRIMARY KEY (day, division),
   FOREIGN KEY (champion_id) REFERENCES players(player_id) ON UPDATE CASCADE ON DELETE SET NULL,
-  CHECK (team_code IS NULL OR char_length(team_code) <= 6)
+  CHECK (team_code IS NULL OR char_length(team_code) >= 4)
 );
 
 CREATE INDEX IF NOT EXISTS idx_champion_name ON champion_result(champion_name);
+

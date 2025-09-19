@@ -6,15 +6,17 @@
 <title>GOUZEPE eFOOTBALL — Admin Utilisateurs</title>
 <meta name="viewport" content="width=device-width, initial-scale=1" />
 <link rel="stylesheet" href="theme.css">
-<meta name="color-scheme" content="dark light">
 <link rel="stylesheet" href="common.css">
+<meta name="color-scheme" content="dark light">
+<script src="common.js"></script>
+
 
 <style>
   :root{
     --bg:#0b1220;--panel:#0f1627;--card:#0c1426;--text:#e5e7eb;--muted:#94a3b8;--border:#1f2937;
-    --ok:#14532d;--okbg:#0b1610;--warn:#7c2d12;--warnbg:#1a120b;--danger:#7f1d1d
+    --accent:#2563eb; --ok:#14532d;--okbg:#0b1610;--warn:#7c2d12;--warnbg:#1a120b;--danger:#7f1d1d;
   }
-  :root.light{--bg:#f4f6fb;--panel:#ffffff;--card:#ffffff;--text:#0f172a;--muted:#475569;--border:#e5e7eb}
+  :root.light{--bg:#f4f6fb;--panel:#ffffff;--card:#ffffff;--text:#0f172a;--muted:#475569;--border:#e2e8f0;--accent:#2563eb}
 
   *{box-sizing:border-box}
   html,body{height:100%}
@@ -39,7 +41,7 @@
   .top{position:sticky;top:0;z-index:50;display:flex;align-items:center;justify-content:space-between;gap:12px;padding:8px 6px;background:rgba(12,18,32,.55);backdrop-filter:blur(6px);border-radius:14px}
   html.light .top{background:rgba(255,255,255,.7)}
   .nav{display:flex;gap:10px;align-items:center;flex-wrap:wrap}
-  .logo{width:90px;height:90px;border-radius:14px;background:url('assets/fond.png') center/cover no-repeat;pointer-events:none}
+  .logo{width:72px;height:72px;border-radius:14px;background:url('assets/fond.png') center/cover no-repeat;pointer-events:none}
   .menu-toggle{display:none}
   .menu{display:flex;gap:10px;align-items:center;flex-wrap:wrap}
   @media (max-width: 840px){
@@ -54,20 +56,35 @@
     .menu.open{display:flex}
   }
 
-  .btn{border:1px solid var(--border);border-radius:12px;padding:10px 14px;background:#10192c;color:var(--text);cursor:pointer}
-  html.light .btn{background:#fff}
+  /* ===== Boutons boost (sombre & clair) ===== */
+  .btn{
+    display:inline-flex;align-items:center;justify-content:center;gap:8px;
+    padding:10px 14px;border-radius:12px;border:1.6px solid var(--border);
+    background:#10192c;color:var(--text);cursor:pointer;font-weight:700;letter-spacing:.2px;
+    box-shadow:0 6px 16px rgba(0,0,0,.28); transition:.18s;
+  }
+  .btn:hover{transform:translateY(-1px);box-shadow:0 10px 24px rgba(0,0,0,.30)}
+  .btn:active{transform:translateY(0);box-shadow:0 4px 12px rgba(0,0,0,.22)}
+  .btn:focus-visible{outline:3px solid rgba(37,99,235,.55);outline-offset:2px}
+  html.light .btn{background:#fff;color:#0f172a;border-color:#cbd5e1;box-shadow:0 6px 16px rgba(2,6,23,.10)}
+  html.light .btn:hover{background:#f8fafc;box-shadow:0 10px 24px rgba(2,6,23,.12)}
   .btn.primary{background:var(--okbg);border-color:var(--ok);color:#d1fae5}
-  .btn.warn{background:var(--warnbg);border-color:var(--warn);color:#fde68a}
+  html.light .btn.primary{background:#16a34a;border-color:#15803d;color:#fff}
   .btn.danger{background:#2a0c0c;border-color:var(--danger);color:#fecaca}
-  .row{display:flex;gap:10px;flex-wrap:wrap}
-  .card{background:var(--panel);border:1px solid var(--border);border-radius:16px;padding:14px}
+  html.light .btn.danger{background:#dc2626;border-color:#b91c1c;color:#fff}
+
+  .row{display:flex;gap:12px;flex-wrap:wrap}
+  .card{background:var(--panel);border:1px solid var(--border);border-radius:16px;padding:14px;box-shadow:0 8px 24px rgba(0,0,0,.24)}
+  html.light .card{box-shadow:0 8px 24px rgba(2,6,23,.08)}
   .muted{color:var(--muted)}
-  select,input{border:1px solid var(--border);border-radius:12px;padding:10px 12px;background:#0b1020;color:var(--text)}
-  html.light select,html.light input{background:#fff}
+  select,input{border:1.5px solid var(--border);border-radius:12px;padding:10px 12px;background:#0b1020;color:var(--text)}
+  html.light select,html.light input{background:#fff;border-color:#cbd5e1}
 
   table{width:100%;border-collapse:collapse;border:1px solid var(--border);border-radius:12px;overflow:hidden;background:var(--card)}
   th,td{padding:10px;border-bottom:1px solid var(--border);text-align:left}
   th{color:var(--muted)}
+  html.light th{background:#f1f5f9;border-bottom:1px solid #e2e8f0}
+  html.light td{border-bottom:1px solid #eef2f7}
 
   dialog{border:none;border-radius:14px;max-width:520px;width:min(92vw,520px);padding:0;background:var(--panel);color:var(--text)}
   dialog::backdrop{background:rgba(0,0,0,.4);backdrop-filter:blur(1.5px)}
@@ -76,7 +93,7 @@
   #status{transition:opacity .25s}
 </style>
 </head>
-<body>
+<body class="container">
 <div class="wrap">
 
   <div class="top">
@@ -161,14 +178,42 @@
 
 </div>
 
-<script src="common.js"></script>
 <script>
+/* ===== Bootstrap minimal si common.js absent ===== */
+(function boot(){
+  window.$ = (s)=>document.querySelector(s);
+  const DEF_API = ()=> `${location.protocol.startsWith('http')?location.protocol:'http:'}//${location.hostname}:3000`;
+  window.API   = window.API   || (localStorage.getItem('efoot.api')||DEF_API()).replace(/\/+$/,'');
+  window.token = window.token || localStorage.getItem('efoot.token');
+  window.role  = window.role  || (localStorage.getItem('efoot.role')||'member').toLowerCase();
+  if(!window.token){ location.href='login.html'; }
+})();
 
-// ===== Preamble via common.js =====
-if (typeof App !== 'undefined') { App.requireAdmin(); }
+/* ===== Thème + menu + déconnexion (fallback robuste) ===== */
+(function themeAndMenu(){
+  // thème
+  const k='efoot.theme';
+  const btn = document.getElementById('theme');
+  const apply=m=>{document.documentElement.classList.toggle('light',m==='light');localStorage.setItem(k,m);if(btn) btn.textContent=m==='light'?'🌙':'☀️'};
+  apply(localStorage.getItem(k)||'dark');
+  btn?.addEventListener('click',()=>apply(document.documentElement.classList.contains('light')?'dark':'light'));
 
-// Local helpers (page-specific)
-const $ = (s)=>document.querySelector(s);
+  // menu mobile
+  const menu=document.getElementById('menu'), toggle=document.getElementById('menuToggle');
+  function open(v){menu.classList.toggle('open',v);toggle?.setAttribute('aria-expanded',v?'true':'false')}
+  toggle?.addEventListener('click',(e)=>{e.stopPropagation();open(!menu.classList.contains('open'))});
+  document.addEventListener('click',(e)=>{ if(menu.classList.contains('open') && e.target!==toggle && !menu.contains(e.target)) open(false); },true);
+
+  // logout (confirm)
+  document.getElementById('logoutBtn')?.addEventListener('click',()=>{
+    if(confirm('Voulez-vous vraiment vous déconnecter ?')){
+      ['efoot.token','efoot.role','efoot.expAt'].forEach(k=>localStorage.removeItem(k));
+      location.href='login.html';
+    }
+  });
+})();
+
+/* ===== Helpers locaux ===== */
 const EMAIL_DOMAIN = localStorage.getItem('efoot.emailDomain') || 'gz.local';
 function toast(m){ const s=$('#status'); if(!s){ console.log(m); return; } s.textContent=m; s.style.opacity=1; setTimeout(()=>s.style.opacity=.75,1200); }
 function normEmail(x){ x=(x||'').trim(); if(!x) return x; if(x.includes('@')) return x.toLowerCase(); return (x+'@'+EMAIL_DOMAIN).toLowerCase(); }
@@ -178,11 +223,12 @@ function escapeHtml(t){ return String(t??'').replace(/[&<>"']/g, m => ({'&':'&am
 /* ===== CRUD Users ===== */
 let USERS=[];
 async function loadUsers(){
-  const r=await fetch(`${API}/admin/users`,{headers:{'Authorization':`Bearer ${token}`}});
-  if(!r.ok){ toast('Chargement échoué'); return; }
-  const d=await r.json();
-  USERS = d.users||[];
-  renderUsers();
+  try{
+    const r=await fetch(`${API}/admin/users`,{headers:{'Authorization':`Bearer ${token}`}});
+    const d=await r.json();
+    USERS = d.users||[];
+    renderUsers();
+  }catch(_){ toast('Chargement échoué'); }
 }
 function renderUsers(){
   const q=($('#search').value||'').toLowerCase();
@@ -207,7 +253,7 @@ document.getElementById('refresh').addEventListener('click', loadUsers);
 document.getElementById('search').addEventListener('input', renderUsers);
 
 /* add */
-$('#addBtn').onclick=async ()=>{
+document.getElementById('addBtn').onclick=async ()=>{
   const email = normEmail($('#emailNew').value);
   const password = ($('#pwdNew').value||'').trim();
   const role = $('#roleNew').value;
@@ -222,13 +268,12 @@ $('#addBtn').onclick=async ()=>{
     const d=await r.json().catch(()=>({}));
     if(!r.ok) throw new Error(d.error||`Erreur ${r.status}`);
     $('#emailNew').value=''; $('#pwdNew').value='';
-    toast('Utilisateur ajouté');
-    await loadUsers();
+    toast('Utilisateur ajouté'); await loadUsers();
   }catch(e){ toast(e.message||'Erreur'); }
   finally{ btn.disabled=false; btn.textContent='Ajouter'; }
 };
 
-/* edit open/submit */
+/* edit open */
 document.addEventListener('click', e=>{
   const id = e.target?.dataset?.edit;
   if(id){
@@ -243,14 +288,14 @@ document.addEventListener('click', e=>{
   }
 });
 
-$('#editForm').addEventListener('submit', async (e)=>{
+/* edit submit */
+document.getElementById('editForm').addEventListener('submit', async (e)=>{
   e.preventDefault();
   const id = $('#editId').value;
   const email = normEmail($('#editEmail').value);
   const role  = $('#editRole').value;
   const pwd   = $('#editPwd').value.trim();
-  const body = { email, role };
-  if(pwd) body.password = pwd;
+  const body = { email, role }; if(pwd) body.password = pwd;
   try{
     const r=await fetch(`${API}/admin/users/${encodeURIComponent(id)}`,{
       method:'PUT',
@@ -259,12 +304,8 @@ $('#editForm').addEventListener('submit', async (e)=>{
     });
     const d=await r.json().catch(()=>({}));
     if(!r.ok) throw new Error(d.error||'Échec modification');
-    $('#editDlg').close();
-    toast('Utilisateur modifié');
-    await loadUsers();
-  }catch(err){
-    $('#editErr').textContent = err.message||'Erreur';
-  }
+    $('#editDlg').close(); toast('Utilisateur modifié'); await loadUsers();
+  }catch(err){ $('#editErr').textContent = err.message||'Erreur'; }
 });
 
 /* delete */
@@ -274,37 +315,33 @@ document.addEventListener('click', async e=>{
   if(!confirm('Supprimer cet utilisateur ?')) return;
   try{
     const r=await fetch(`${API}/admin/users/${encodeURIComponent(id)}`,{
-      method:'DELETE',
-      headers:{'Authorization':`Bearer ${token}`}
+      method:'DELETE', headers:{'Authorization':`Bearer ${token}`}
     });
     if(!r.ok){
       const d=await r.json().catch(()=>({}));
       throw new Error(d.error||'Échec suppression');
     }
-    toast('Utilisateur supprimé');
-    await loadUsers();
-  }catch(err){
-    toast(err.message||'Erreur');
-  }
+    toast('Utilisateur supprimé'); await loadUsers();
+  }catch(err){ toast(err.message||'Erreur'); }
 });
 
 /* sockets (auto-refresh) */
 (function setupSocket(){
-  const s=document.createElement('script'); s.src=`${API}/socket.io/socket.io.js`;
-  s.onload=()=>{
-    try{
+  try{
+    const s=document.createElement('script'); s.src=`${API}/socket.io/socket.io.js`;
+    s.onload=()=>{
       const u=new URL(API); const ws=`${u.protocol}//${u.hostname}:${u.port||'3000'}`;
       const socket=window.io(ws,{transports:['websocket','polling']});
       socket.on('users:changed', ()=>loadUsers());
-    }catch(_){}
-  };
-  document.head.appendChild(s);
+    };
+    document.head.appendChild(s);
+  }catch(_){}
 })();
 
 /* init */
 (async function init(){ await loadUsers(); })();
 </script>
-<footer style="text-align: center; font-family:'Gill Sans', 'Gill Sans MT', Calibri, 'Trebuchet MS', sans-serif;">Copyright © -GOUZEPE GAMING CLUB 2025</footer>
 
+<footer style="text-align:center;font-family:'Gill Sans','Gill Sans MT',Calibri,'Trebuchet MS',sans-serif;">Copyright © -GOUZEPE GAMING CLUB 2025</footer>
 </body>
 </html>

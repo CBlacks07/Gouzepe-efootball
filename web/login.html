@@ -7,23 +7,20 @@
 <meta http-equiv="Cache-Control" content="no-store" />
 <link rel="stylesheet" href="theme.css">
 <meta name="color-scheme" content="dark light">
-<link rel="stylesheet" href="common.css">
-
 
 <style>
-  /* === Thème & couleurs === */
   :root{
     --bg:#0b1220; --panel:#0f1627; --panel-veil:rgba(2,6,23,.55);
     --text:#e5e7eb; --muted:#94a3b8; --border:#1f2937;
     --accent:#60a5fa; --accent-veil:rgba(96,165,250,.25);
+    --btn:#14532d; --btn2:#0b1b0f; --btnText:#d1fae5;
   }
   :root.light{
     --bg:#f4f6fb; --panel:#ffffff; --panel-veil:rgba(255,255,255,.75);
     --text:#0f172a; --muted:#475569; --border:#e5e7eb;
     --accent:#2563eb; --accent-veil:rgba(37,99,235,.18);
+    --btn:#155e75; --btn2:#e6f4ff; --btnText:#0b1220;
   }
-
-  /* === Layout de base === */
   *{box-sizing:border-box}
   html,body{height:100%}
   body{
@@ -47,7 +44,6 @@
       url('assets/fond.png') center/cover fixed no-repeat;
   }
 
-  /* === Carte === */
   .card{
     position:relative; margin-inline:auto; width:min(560px,94vw);
     background:linear-gradient(to bottom right, var(--panel), var(--panel));
@@ -58,17 +54,13 @@
   }
   .head{padding:20px 18px; border-bottom:1px solid var(--border)}
   .head.center{display:grid; place-items:center}
-  .logo{
-    height:68px; width:auto; display:block;
-    border-radius:14px; box-shadow:0 0 0 1px rgba(255,255,255,.08) inset;
-  }
-  .body{padding:18px 18px 10px}
+  .logo{height:68px; width:auto; display:block; border-radius:14px}
 
-  /* === Typo & éléments === */
+  .body{padding:18px 18px 10px}
   h2{margin:0 0 12px; font-size:18px; font-weight:700; text-align:center}
   label{display:block; margin:10px 0 6px; color:var(--muted); font-weight:600}
   input{
-    width:100%; padding:14px 14px; border:1px solid var(--border); border-radius:12px;
+    width:100%; padding:14px; border:1px solid var(--border); border-radius:12px;
     background:rgba(11,16,32,.85); color:var(--text); font-size:16px;
     outline:none; transition:border-color .15s ease, box-shadow .15s ease, background .15s;
   }
@@ -88,14 +80,15 @@
   }
 
   .btn{
-    border:1px solid var(--border); background:linear-gradient(to bottom, #0b1b0f, #0e2014);
-    color:#d1fae5; border-radius:12px; padding:12px 16px; cursor:pointer;
-    font-weight:700; letter-spacing:.2px; transition:transform .08s ease;
+    border:1px solid var(--border); background:linear-gradient(to bottom, var(--btn2), var(--btn));
+    color:var(--btnText); border-radius:12px; padding:12px 16px; cursor:pointer;
+    font-weight:700; letter-spacing:.2px; transition:transform .08s ease, filter .12s ease;
   }
+  .btn:hover{filter:brightness(1.05)}
   .btn:active{transform:translateY(1px)}
   .iconbtn{
     border:1px solid var(--border); background:transparent; border-radius:12px;
-    padding:10px 12px; cursor:pointer;
+    padding:10px 12px; cursor:pointer; color:var(--text);
   }
   .iconbtn.float{position:absolute; top:10px; right:10px}
 
@@ -111,15 +104,16 @@
     .footer{flex-direction:column; align-items:stretch}
     .btn{width:100%}
   }
-  @media (prefers-reduced-motion:reduce){
-    .btn, input{transition:none}
-  }
   .gear{position:fixed; right:16px; bottom:16px; z-index:30}
+
   dialog{border:none; border-radius:14px; max-width:520px; width:min(92vw,520px); padding:0; background:var(--panel); color:var(--text)}
   dialog::backdrop{background:rgba(0,0,0,.35)}
   .dlg-h{padding:14px 16px; border-bottom:1px solid var(--border); font-weight:700}
   .dlg-b{padding:14px 16px; display:grid; gap:10px}
   .dlg-f{padding:14px 16px; border-top:1px solid var(--border); display:flex; gap:10px; justify-content:flex-end}
+
+  /* petite ligne de statut */
+  #boot{min-height:20px; margin-top:6px; font-size:14px; color:var(--muted)}
 </style>
 </head>
 <body>
@@ -143,9 +137,10 @@
       </div>
 
       <div id="err" class="error"></div>
+      <div id="boot" class="muted">—</div>
 
       <div class="footer">
-        <span class="muted">Session : 24h (déconnexion ensuite)</span>
+        <span class="muted">Session : 1h</span>
         <button id="submit" class="btn" type="submit">Se connecter</button>
       </div>
     </form>
@@ -155,7 +150,7 @@
   <dialog id="cfg">
     <div class="dlg-h">Configuration de l’API</div>
     <div class="dlg-b">
-      <label>Adresse (ex: http://192.168.1.117:3000)</label>
+      <label>Adresse (ex: https://gouzepe-api.onrender.com)</label>
       <input id="apiUrl">
       <div id="cfgMsg" class="muted">—</div>
     </div>
@@ -168,7 +163,7 @@
 </div>
 
 <script>
-/* ===== thème ===== */
+/* ===== Thème ===== */
 (function(){
   const k='efoot.theme';
   const apply=m=>{document.documentElement.classList.toggle('light',m==='light'); localStorage.setItem(k,m); document.getElementById('theme').textContent=m==='light'?'🌙':'☀️'}
@@ -176,51 +171,93 @@
   document.getElementById('theme').onclick=()=>apply(document.documentElement.classList.contains('light')?'dark':'light');
 })();
 
-/* ===== helpers ===== */
-const DEF_API = () => (location.protocol.startsWith('http') ? location.protocol : 'http:') + '//' + location.hostname + ':3000';
+/* ===== Helpers ===== */
+const PROD_API = 'https://gouzepe-api.onrender.com';
+const isPrivateNet = (h)=>/^(localhost|127\.0\.0\.1|10\.\d+\.\d+\.\d+|192\.168\.\d+\.\d+|172\.(1[6-9]|2\d|3[01])\.\d+\.\d+)$/.test(h);
+const DEF_API = ()=>{
+  const host = location.hostname || '';
+  if (isPrivateNet(host)) {
+    return (location.protocol.startsWith('http') ? location.protocol : 'http:') + '//' + host + ':3000';
+  }
+  return PROD_API;
+};
 function getAPI(){ return (localStorage.getItem('efoot.api')||DEF_API()).replace(/\/+$/,''); }
 function setAPI(v){ localStorage.setItem('efoot.api', v.replace(/\/+$/,'')); }
-function showErr(msg){ const el=document.getElementById('err'); el.textContent=msg||''; }
-async function safeFetch(url, opt={}, ms=4000){
+
+function showErr(msg){ document.getElementById('err').textContent=msg||''; }
+function showBoot(msg){ document.getElementById('boot').textContent=msg||''; }
+function setBusy(v){
+  const b=document.getElementById('submit');
+  b.disabled=!!v; b.textContent=v?'Connexion…':'Se connecter';
+}
+
+async function safeFetch(url, opt={}, ms=8000){
   const ctrl = new AbortController();
   const t = setTimeout(()=>ctrl.abort(), ms);
   try{ return await fetch(url, {signal:ctrl.signal, ...opt}); }
   finally{ clearTimeout(t); }
 }
+
+/* Attente du /health (Render “cold start”) */
+async function waitForHealth(base, maxMs=90000){
+  const start=Date.now();
+  let delay=900;               // première tentative rapide
+  const mult=1.5, maxDelay=5000;
+  while(Date.now()-start < maxMs){
+    try{
+      const r=await safeFetch(base+'/health',{cache:'no-store'},Math.min(4000,delay));
+      if(r && r.ok){
+        const d=await r.json().catch(()=>({}));
+        if(d && (d.ok===true || d.service)){ return true; }
+      }
+    }catch(_){}
+    const waited = Math.round((Date.now()-start)/1000);
+    showBoot(`Le serveur démarre… (${waited}s)`);
+    await new Promise(res=>setTimeout(res, delay));
+    delay = Math.min(maxDelay, Math.round(delay*mult));
+  }
+  return false;
+}
+
+/* Validation du token avant redirection */
+async function validateSession(){
+  const token = localStorage.getItem('efoot.token');
+  const expAt = +localStorage.getItem('efoot.expAt') || 0;
+  if(!token || Date.now()>=expAt) return null;
+  try{
+    const r=await safeFetch(getAPI()+'/auth/me',{headers:{Authorization:'Bearer ' + token}},7000);
+    if(!r || !r.ok) return null;
+    const d=await r.json();
+    return (d.user && d.user.role) ? d.user.role : (localStorage.getItem('efoot.role')||'member');
+  }catch(_){ return null; }
+}
+
 function goAfterLogin(role){
   const r=(role||'member').toLowerCase();
   location.replace(r==='admin' ? 'Accueil.html' : 'Panel-Membre.html');
 }
 
-/* ===== si déjà loggé (token encore valide) ⇒ redirection immédiate ===== */
-(function quickRedirect(){
+/* Bootstrap quand une session existe déjà (NE PLUS rediriger à l’aveugle) */
+(async function bootstrapIfAlreadyLogged(){
   const token = localStorage.getItem('efoot.token');
   const expAt = +localStorage.getItem('efoot.expAt') || 0;
-  if (token && Date.now() < expAt) {
-    const role = (localStorage.getItem('efoot.role') || 'member').toLowerCase();
-    goAfterLogin(role);
-  }
-})();
-
-/* ===== validation token côté API (plus sûre) ===== */
-(async function autoRedirect(){
-  const token=localStorage.getItem('efoot.token');
-  const expAt=parseInt(localStorage.getItem('efoot.expAt')||'0',10);
   if(!token || Date.now()>=expAt) return;
-  try{
-    const r=await safeFetch(getAPI()+'/auth/me',{headers:{Authorization:'Bearer ' + token}},4000);
-    if(!r || !r.ok) throw 0;
-    const d=await r.json();
-    const role=(d.user&&d.user.role)||localStorage.getItem('efoot.role')||'member';
-    goAfterLogin(role);
-  }catch(_){ /* on garde le formulaire visible */ }
+  setBusy(true); showErr(''); showBoot('Préparation…');
+
+  // 1) Attendre /health (serveur prêt)
+  const ok = await waitForHealth(getAPI(), 90000);
+  if(!ok){ setBusy(false); showBoot(''); return; }
+
+  // 2) Valider la session et partir
+  const role = await validateSession();
+  if(role){ showBoot(''); goAfterLogin(role); }
+  else { setBusy(false); showBoot(''); }
 })();
 
-/* ===== toggle password ===== */
+/* Afficher/masquer le mot de passe */
 (function(){
   const btn=document.getElementById('togglePwd');
-  if(!btn) return;
-  btn.addEventListener('click', ()=>{
+  btn?.addEventListener('click', ()=>{
     const i=document.getElementById('pwd');
     if(!i) return;
     const t=i.getAttribute('type')==='password'?'text':'password';
@@ -229,39 +266,46 @@ function goAfterLogin(role){
   });
 })();
 
-/* ===== formulaire ===== */
+/* Soumission simple avec attente serveur prêt avant redirection */
 document.getElementById('f').addEventListener('submit', async (e)=>{
   e.preventDefault();
-  showErr('');
-  const btn=document.getElementById('submit');
-  btn.disabled=true; btn.textContent='Connexion…';
+  showErr(''); showBoot(''); setBusy(true);
+
   let email=(document.getElementById('email').value||'').trim();
   const password=document.getElementById('pwd').value||'';
-  if(email && !email.includes('@')) email = email+'@gz.local'; // nom -> nom@gz.local
+  if(email && !email.includes('@')) email = email+'@gz.local';
 
   try{
     const r=await safeFetch(getAPI()+'/auth/login', {
       method:'POST',
       headers:{'Content-Type':'application/json'},
       body:JSON.stringify({email,password})
-    }, 7000);
+    }, 12000);
+
     const d=await r.json().catch(()=>({}));
     if(!r || !r.ok){ throw new Error((d&&d.error)||'Identifiants invalides'); }
 
     const token=d.token;
     const role=(d.user&&d.user.role)||'member';
-    const expHours = Number(d.expHours||24); // si l’API renvoie expHours, on l’utilise
-
+    const expHours = Number(d.expHours||1);
     localStorage.setItem('efoot.token', token);
     localStorage.setItem('efoot.role', role.toLowerCase());
-    localStorage.setItem('efoot.expAt', String(Date.now()+expHours*3600*1000));
+    localStorage.setItem('efoot.expAt', String(Date.now()+expHours*60*1000));
 
-    goAfterLogin(role);
+    // <— NOUVEAU : on attend que l’API soit prête avant de quitter la page
+    showBoot('Connexion réussie. Le serveur se réveille…');
+    const ok = await waitForHealth(getAPI(), 90000);
+    if(!ok){ showErr("Le serveur est lent à démarrer (Render). Patiente et réessaie."); setBusy(false); showBoot(''); return; }
+
+    // on valide le token et on part
+    const vr = await validateSession();
+    if(vr){ showBoot(''); goAfterLogin(vr); }
+    else { showErr("Impossible de valider la session pour l’instant."); setBusy(false); showBoot(''); }
+
   }catch(err){
     console.error(err);
     showErr(err.message||'Erreur réseau');
-  }finally{
-    btn.disabled=false; btn.textContent='Se connecter';
+    setBusy(false); showBoot('');
   }
 });
 
@@ -271,6 +315,7 @@ document.getElementById('f').addEventListener('submit', async (e)=>{
   const btn=document.getElementById('cfgBtn');
   const input=document.getElementById('apiUrl');
   const msg=document.getElementById('cfgMsg');
+
   btn.onclick=()=>{ input.value=getAPI(); msg.textContent='—'; dlg.showModal(); };
   document.getElementById('cfgClose').onclick=()=>dlg.close();
   document.getElementById('cfgSave').onclick=()=>{ setAPI(input.value.trim()); msg.textContent='Sauvé.'; };
@@ -278,14 +323,14 @@ document.getElementById('f').addEventListener('submit', async (e)=>{
     msg.textContent='Test…';
     try{
       const u=(input.value||'').trim().replace(/\/+$/,'')||DEF_API();
-      const r=await safeFetch(u+'/health',{cache:'no-store'},4000);
+      const r=await safeFetch(u+'/health',{cache:'no-store'},6000);
       if(!r || !r.ok) throw 0;
       msg.textContent='OK ✅';
-    }catch(_){ msg.textContent="Échec ❌ — vérifie l'IP/port"; }
+    }catch(_){ msg.textContent="Échec ❌ — vérifie l'URL (CORS/SSL)"; }
   };
 })();
 </script>
 
-<footer style="text-align: center; font-family:cursive;">Copyright © -GOUZEPE GAMING CLUB 2025</footer>
+<footer style="text-align:center; color:var(--muted); margin:12px 0">Copyright © -GOUZEPE GAMING CLUB 2025</footer>
 </body>
 </html>

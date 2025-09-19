@@ -6,12 +6,13 @@
 <meta name="viewport" content="width=device-width, initial-scale=1" />
 <link rel="stylesheet" href="theme.css">
 <link rel="stylesheet" href="common.css">
-
+<script src="common.js"></script>
 <meta name="color-scheme" content="dark light">
 
 <style>
-  :root{--bg:#0b1220;--panel:#0f1627;--card:#0c1426;--text:#e5e7eb;--muted:#94a3b8;--border:#1f2937}
-  :root.light{--bg:#f4f6fb;--panel:#fff;--card:#fff;--text:#0f172a;--muted:#475569;--border:#e5e7eb}
+  :root{--bg:#0b1220;--panel:#0f1627;--card:#0c1426;--text:#e5e7eb;--muted:#94a3b8;--border:#1f2937;--accent:#2563eb}
+  :root.light{--bg:#f4f6fb;--panel:#fff;--card:#fff;--text:#0f172a;--muted:#475569;--border:#e2e8f0;--accent:#2563eb}
+
   *{box-sizing:border-box} html,body{height:100%}
   body{margin:0;color:var(--text);font-family:system-ui,-apple-system,Segoe UI,Roboto,Ubuntu,"Trebuchet MS",sans-serif;
     background:
@@ -24,6 +25,7 @@
       radial-gradient(900px 600px at 80% 100%, rgba(34,197,94,.16), transparent 42%),
       linear-gradient(180deg, rgba(255,255,255,.86), rgba(245,247,251,.92)),
       url('assets/fond.png') center/cover fixed no-repeat;}
+
   .wrap{max-width:1100px;margin:auto;padding:12px}
   .top{position:sticky;top:0;z-index:50;display:flex;align-items:center;justify-content:space-between;gap:12px;padding:8px 6px;background:rgba(12,18,32,.55);backdrop-filter:blur(6px);border-radius:14px}
   html.light .top{background:rgba(255,255,255,.7)}
@@ -42,25 +44,46 @@
     }
     .menu.open{display:flex}
   }
-  .btn{border:1px solid var(--border);border-radius:12px;padding:10px 14px;background:#10192c;color:var(--text);cursor:pointer}
-  html.light .btn{background:#fff}
+
+  /* Boutons boost */
+  .btn{
+    display:inline-flex;align-items:center;justify-content:center;gap:8px;
+    padding:10px 14px;border-radius:12px;border:1.6px solid var(--border);
+    background:#10192c;color:var(--text);cursor:pointer;font-weight:700;letter-spacing:.2px;
+    box-shadow:0 6px 16px rgba(0,0,0,.28); transition:.18s;
+  }
+  .btn:hover{transform:translateY(-1px);box-shadow:0 10px 24px rgba(0,0,0,.30)}
+  .btn:active{transform:translateY(0);box-shadow:0 4px 12px rgba(0,0,0,.22)}
+  .btn:focus-visible{outline:3px solid rgba(37,99,235,.55);outline-offset:2px}
+  html.light .btn{background:#fff;color:#0f172a;border-color:#cbd5e1;box-shadow:0 6px 16px rgba(2,6,23,.10)}
+  html.light .btn:hover{background:#f8fafc;box-shadow:0 10px 24px rgba(2,6,23,.12)}
   .btn.danger{background:#2a0c0c;border-color:#7f1d1d;color:#fecaca}
+  html.light .btn.danger{background:#dc2626;border-color:#b91c1c;color:#fff}
   .btn.primary{background:#0b1b0f;border-color:#14532d;color:#d1fae5}
-  .card{background:var(--panel);border:1px solid var(--border);border-radius:16px;padding:14px}
-  .row{display:flex;gap:10px;flex-wrap:wrap}
-  input,select{border:1px solid var(--border);border-radius:12px;padding:10px 12px;background:#0b1020;color:var(--text)}
-  html.light input,html.light select{background:#fff}
+  html.light .btn.primary{background:#16a34a;border-color:#15803d;color:#fff}
+
+  .card{background:var(--panel);border:1px solid var(--border);border-radius:16px;padding:14px;box-shadow:0 8px 24px rgba(0,0,0,.24)}
+  html.light .card{box-shadow:0 8px 24px rgba(2,6,23,.08)}
+  .row{display:flex;gap:12px;flex-wrap:wrap}
+  input,select{border:1.5px solid var(--border);border-radius:12px;padding:10px 12px;background:#0b1020;color:var(--text)}
+  html.light input,html.light select{background:#fff;border-color:#cbd5e1}
   table{width:100%;border-collapse:collapse;border:1px solid var(--border);background:var(--card);border-radius:12px;overflow:hidden}
   th,td{padding:10px;border-bottom:1px solid var(--border);text-align:center}
   th{color:var(--muted)}
+  html.light th{background:#f1f5f9;border-bottom:1px solid #e2e8f0}
+  html.light td{border-bottom:1px solid #eef2f7}
   .muted{color:var(--muted)}
+
   dialog{border:none;border-radius:14px;max-width:520px;width:min(92vw,520px);padding:0;background:var(--panel);color:var(--text)}
   dialog::backdrop{background:rgba(0,0,0,.35)}
   .dlg-h{padding:14px 16px;border-bottom:1px solid var(--border);font-weight:700}
   .dlg-b{padding:14px 16px;display:grid;gap:10px}
   .dlg-f{padding:14px 16px;border-top:1px solid var(--border);display:flex;gap:10px;justify-content:flex-end}
   .keepcase{text-transform:none !important}
-  
+
+  /* pastille présence simple */
+  .dot{display:inline-block;width:10px;height:10px;border-radius:999px;background:#64748b;margin-right:6px}
+  .dot.online{background:#22c55e}
 </style>
 </head>
 
@@ -90,13 +113,13 @@
     <div id="editMsg" class="muted">—</div>
   </div>
   <div class="dlg-f">
-    <button class="iconbtn" id="editCancel">Annuler</button>
+    <button class="btn" id="editCancel">Annuler</button>
     <button class="btn" id="linkUser">Lier/MAJ compte</button>
     <button class="btn primary" id="editSave">Enregistrer</button>
   </div>
 </dialog>
 
-<body>
+<body class="container">
 <div class="wrap">
   <div class="top">
     <div class="nav">
@@ -142,55 +165,41 @@
   </section>
 </div>
 
-<script src="common.js"></script>
 <script>
-/* Auth & visibilité */
-const API=(localStorage.getItem('efoot.api')||((location.protocol.startsWith('http')?location.protocol:'http:')+'//'+location.hostname+':3000')).replace(/\/+$/,'');
-const token=localStorage.getItem('efoot.token');
-const role =(localStorage.getItem('efoot.role')||'member').toLowerCase();
-document.querySelectorAll('.adminOnly').forEach(el=>el.style.display=(role==='admin')?'inline-flex':'none');
+/* ===== Bootstrap minimal si common.js indispo ===== */
+const DEF_API = ()=> `${location.protocol.startsWith('http')?location.protocol:'http:'}//${location.hostname}:3000`;
+const API=(window.API || (localStorage.getItem('efoot.api')||DEF_API())).replace(/\/+$/,'');
+const token=window.token || localStorage.getItem('efoot.token');
+const role =(window.role || localStorage.getItem('efoot.role')||'member').toLowerCase();
 if(!token){ location.href='login.html' }
 
-/* thème + menu + logout */
+/* ===== Thème + menu + logout (robuste) ===== */
 (function(){
   const k='efoot.theme';
   const apply=m=>{document.documentElement.classList.toggle('light',m==='light');localStorage.setItem(k,m);document.getElementById('theme').textContent=m==='light'?'🌙':'☀️'};
   apply(localStorage.getItem(k)||'dark');
   document.getElementById('theme').onclick=()=>apply(document.documentElement.classList.contains('light')?'dark':'light');
-})();
-(function(){
+
   const menu=document.getElementById('menu'), toggle=document.getElementById('menuToggle');
-  function open(v){menu.classList.toggle('open',v);toggle.setAttribute('aria-expanded',v?'true':'false')}
-  toggle?.addEventListener('click',()=>open(!menu.classList.contains('open')));
-  document.addEventListener('click',(e)=>{
-    if(!menu.classList.contains('open'))return;
-    if(e.target===toggle||menu.contains(e.target))return;
-    open(false);
-  },true);
+  function open(v){menu.classList.toggle('open',v);toggle?.setAttribute('aria-expanded',v?'true':'false')}
+  toggle?.addEventListener('click',(e)=>{e.stopPropagation();open(!menu.classList.contains('open'));});
+  document.addEventListener('click',(e)=>{ if(menu.classList.contains('open') && e.target!==toggle && !menu.contains(e.target)) open(false); },true);
+
+  document.getElementById('logoutBtn')?.addEventListener('click',()=>{
+    if(confirm('Voulez-vous vraiment vous déconnecter ?')){
+      ['efoot.token','efoot.role','efoot.expAt'].forEach(k=>localStorage.removeItem(k));
+      location.href='login.html';
+    }
+  });
+
+  // visibilité admin-only
+  document.querySelectorAll('.adminOnly').forEach(el=>el.style.display=(role==='admin')?'inline-flex':'none');
 })();
-document.getElementById('logoutBtn')?.addEventListener('click',()=>{
-  if(confirm('Voulez-vous vraiment vous déconnecter ?')){
-    ['efoot.token','efoot.role','efoot.expAt'].forEach(k=>localStorage.removeItem(k));
-    location.href='login.html';
-  }
-});
 
-/* list/load */
+/* ===== Chargement joueurs + présence ===== */
 let players=[];
-async function load(){
-  try{
-    const r=await fetch(`${API}/players`,{headers:{'Authorization':`Bearer ${token}`}});
-    const d=await r.json(); players=d.players||[];
-    await loadPresence();      // <— new
-    render();
-    document.getElementById('msg').textContent='';
-  }catch(e){
-    document.getElementById('msg').textContent='Impossible de charger les joueurs';
-  }
-}
-
-
 let ONLINE = new Set();
+
 async function loadPresence(){
   try{
     const r = await fetch(`${API}/presence/players`, { headers:{Authorization:`Bearer ${token}`} });
@@ -198,14 +207,22 @@ async function loadPresence(){
     ONLINE = new Set(d.online || []);
   }catch(_){ ONLINE = new Set(); }
 }
-
-
+async function load(){
+  try{
+    const r=await fetch(`${API}/players`,{headers:{'Authorization':`Bearer ${token}`}});
+    const d=await r.json(); players=d.players||[];
+    await loadPresence();
+    render();
+    document.getElementById('msg').textContent='';
+  }catch(e){
+    document.getElementById('msg').textContent='Impossible de charger les joueurs';
+  }
+}
 function render(){
   const q=(document.getElementById('q').value||'').toLowerCase();
   const rows=players.filter(p=>(p.player_id||'').toLowerCase().includes(q)||(p.name||'').toLowerCase().includes(q));
   const tb=document.getElementById('list'); tb.innerHTML='';
-  const isAdmin = (window.role || localStorage.getItem('efoot.role') || '').toLowerCase() === 'admin';
-
+  const isAdmin = role === 'admin';
   rows.forEach(p=>{
     const tr=document.createElement('tr');
     const online = ONLINE.has(p.player_id);
@@ -226,8 +243,7 @@ function render(){
   });
 }
 
-
-/* helpers */
+/* ===== CRUD ===== */
 async function write(method,url,body){
   const opt={method,headers:{'Authorization':`Bearer ${token}`}};
   if(body){opt.headers['Content-Type']='application/json';opt.body=JSON.stringify(body);}
@@ -235,21 +251,15 @@ async function write(method,url,body){
   if(!r.ok) throw new Error(d.error||`Erreur ${r.status}`);
   return d;
 }
-
-/* add/update/delete (CRUD basique) */
 document.getElementById('addBtn').onclick=async ()=>{
-  const player_id=document.getElementById('pid').value.trim()
+  const player_id=document.getElementById('pid').value.trim();
   const name=document.getElementById('pname').value.trim();
   const roleSel=document.getElementById('prole').value||'MEMBRE';
   if(!player_id||!name){ document.getElementById('msg').textContent='ID et Nom requis'; return; }
   document.getElementById('msg').textContent='Enregistrement…';
-  try{
-    await write('POST',`${API}/admin/players`,{player_id,name,role:roleSel});
-    document.getElementById('msg').textContent='OK';
-    await load();
-  }catch(e){
-    document.getElementById('msg').textContent=e.message||'Erreur';
-  }
+  try{ await write('POST',`${API}/admin/players`,{player_id,name,role:roleSel});
+       document.getElementById('msg').textContent='OK'; await load();
+  }catch(e){ document.getElementById('msg').textContent=e.message||'Erreur'; }
 };
 document.getElementById('list').addEventListener('click',async (e)=>{
   const id = e.target.dataset.edit || e.target.dataset.del;
@@ -258,16 +268,14 @@ document.getElementById('list').addEventListener('click',async (e)=>{
     openEditPlayer(id);
   }else if(e.target.dataset.del){
     if(!confirm('Supprimer ce joueur ?')) return;
-    try{
-      await write('DELETE',`${API}/admin/players/${encodeURIComponent(id)}`);
-      await load();
-    }catch(err){ alert(err.message||'Erreur'); }
+    try{ await write('DELETE',`${API}/admin/players/${encodeURIComponent(id)}`); await load(); }
+    catch(err){ alert(err.message||'Erreur'); }
   }
 });
 document.getElementById('reload').onclick=load;
 document.getElementById('q').addEventListener('input',render);
 
-/* == EDIT MODAL == */
+/* ===== Édition modale (joueur + liaison compte) ===== */
 function slugifyNameToEmail(name){
   const domain = (localStorage.getItem('efoot.emailDomain')||'gz.local');
   const loc = (name||'')
@@ -318,45 +326,9 @@ async function openEditPlayer(id){
 }
 
 /* init */
-(function(){
-  const role = (localStorage.getItem('efoot.role') || 'member').toLowerCase();
-  if (role !== 'admin') {
-    const t = document.getElementById('pageTitle');
-    if (t) t.textContent = 'Liste des membres';
-    const lm = document.getElementById('linkMembers');
-    if (lm) lm.textContent = '👥 Liste des membres';
-    // Le reste (ajout/suppression/modif) reste masqué via .adminOnly déjà en place
-  }
-})();
-// === Menu mobile robuste (id: menuToggle OR menuBtn)
-(function(){
-  const menu = document.getElementById('menu');
-  const toggle = document.getElementById('menuToggle') || document.getElementById('menuBtn');
-  if(!menu || !toggle) return;
-  function open(v){
-    menu.classList.toggle('open', v);
-    toggle.setAttribute('aria-expanded', v?'true':'false');
-  }
-  toggle.addEventListener('click', (e)=>{ e.stopPropagation(); open(!menu.classList.contains('open')); });
-  document.addEventListener('click', (e)=>{
-    if(!menu.classList.contains('open')) return;
-    if(e.target===toggle || menu.contains(e.target)) return;
-    open(false);
-  }, true);
-  document.addEventListener('keydown', (e)=>{ if(e.key==='Escape') open(false); });
-})();
-
-(function(){
-  const k='efoot.theme';
-  const apply=m=>{document.documentElement.classList.toggle('light',m==='light');localStorage.setItem(k,m);$('#theme').textContent=m==='light'?'🌙':'☀️'};
-  apply(localStorage.getItem(k)||'dark');
-  $('#theme').onclick=()=>apply(document.documentElement.classList.contains('light')?'dark':'light');
-})();
-
-
 load();
 </script>
-<footer style="text-align: center; font-family:'Gill Sans', 'Gill Sans MT', Calibri, 'Trebuchet MS', sans-serif;">Copyright © -GOUZEPE GAMING CLUB 2025</footer>
 
+<footer style="text-align:center;font-family:'Gill Sans','Gill Sans MT',Calibri,'Trebuchet MS',sans-serif;">Copyright © -GOUZEPE GAMING CLUB 2025</footer>
 </body>
 </html>

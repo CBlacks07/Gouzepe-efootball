@@ -5,72 +5,62 @@
   <meta name="viewport" content="width=device-width, initial-scale=1"/>
   <title>Panel Membre — GOUZEPE</title>
   <link rel="stylesheet" href="theme.css"/>
-  <link rel="stylesheet" href="common.css"/>
-  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300..800&display=swap" rel="stylesheet">
-  <style>
-    :root{
-      --font-ui:"Inter", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, "Noto Sans", "Apple Color Emoji", "Segoe UI Emoji", sans-serif;
-      --lh:1.45; --tracking:.01em;
-      --bg:#0b1220; --panel:#0f1627; --card:#0c1426; --text:#e5e7eb; --muted:#94a3b8; --border:#1f2937; --accent:#2563eb;
-    }
-    :root.light{--bg:#f4f6fb; --panel:#fff; --card:#fff; --text:#0f172a; --muted:#475569; --border:#e5e7eb; --accent:#1d4ed8}
-    html,body{font-family:var(--font-ui); line-height:var(--lh); letter-spacing:var(--tracking)}
-    h1,h2,h3{letter-spacing:-.01em}
-    body{
-      margin:0; color:var(--text);
-      background:
-        radial-gradient(900px 600px at 20% 0%, rgba(96,165,250,.12), transparent 40%),
-        radial-gradient(900px 600px at 80% 100%, rgba(34,197,94,.10), transparent 40%),
-        linear-gradient(180deg, rgba(7,10,22,.94), rgba(15,23,42,.96)),
-        url('assets/fond.png') center/cover fixed no-repeat;
-    }
-    html.light body{
-      background:
-        radial-gradient(900px 600px at 20% 0%, rgba(96,165,250,.18), transparent 42%),
-        radial-gradient(900px 600px at 80% 100%, rgba(34,197,94,.16), transparent 42%),
-        linear-gradient(180deg, rgba(255,255,255,.86), rgba(245,247,251,.92)),
-        url('assets/fond.png') center/cover fixed no-repeat;
-    }
-    .wrap{max-width:1200px;margin:auto;padding:12px}
-    .top{position:sticky;top:0;z-index:50;display:flex;align-items:center;justify-content:space-between;gap:12px;padding:8px 6px;background:rgba(12,18,32,.55);backdrop-filter:blur(6px);border-radius:14px}
-    html.light .top{background:rgba(255,255,255,.7)}
-    .nav{display:flex;gap:10px;align-items:center;flex-wrap:wrap}
-    .logo{width:52px;height:52px;border-radius:14px;background:url('assets/fond.png') center/cover no-repeat;pointer-events:none}
-    .menu-toggle{display:none}
-    .menu{display:flex;gap:10px;align-items:center;flex-wrap:wrap}
-    @media (max-width: 840px){
-      .menu-toggle{display:inline-flex;align-items:center;justify-content:center;border:1px solid var(--border);border-radius:12px;padding:10px 14px;background:#10192c;color:var(--text);cursor:pointer}
-      html.light .menu-toggle{background:#fff}
-      .menu{
-        position:fixed; right:12px; top:64px; z-index:1000; display:none;
-        flex-direction:column; gap:10px; width:min(88vw,340px); padding:12px;
-        background:var(--panel); border:1px solid var(--border); border-radius:14px;
-        box-shadow:0 20px 40px rgba(0,0,0,.35)
-      }
-      .menu.open{display:flex}
-    }
-    .btn{border:1px solid var(--border);border-radius:12px;padding:10px 14px;background:#10192c;color:var(--text);cursor:pointer}
-    html.light .btn{background:#fff}
-    .btn.danger{background:#2a0c0c;border-color:#7f1d1d;color:#fecaca}
-    .status{margin:8px 0;color:var(--muted)}
-    .card{border:1px solid var(--border);border-radius:14px;padding:12px;background:var(--panel)}
-    .kpis{display:grid;grid-template-columns:repeat(auto-fit,minmax(160px,1fr));gap:10px;margin:10px 0}
-    .tbl{width:100%;border-collapse:separate;border-spacing:0;border:1px solid var(--border);border-radius:12px;overflow:hidden;background:var(--card)}
-    .tbl th,.tbl td{padding:10px;border-bottom:1px solid var(--border);text-align:left}
-    .muted{opacity:.75}
-    /* badges face-à-face */
-    .badge{display:inline-block;padding:.2rem .5rem;border-radius:999px;font-size:12px;font-weight:700}
-    .badge.win{background:#064e3b;color:#a7f3d0}
-    .badge.draw{background:#1f2937;color:#e5e7eb}
-    .badge.lose{background:#5b0b0b;color:#fecaca}
-    /* tables scrollables sur mobile */
-    @media (max-width:480px){ .tableWrap{overflow:auto; max-height:55vh} .tbl{min-width:600px} }
-    
-  </style>
 
-  
+  <style>
+    :root{ --font-ui: system-ui,-apple-system,Segoe UI,Roboto,Inter,Ubuntu,"Trebuchet MS",sans-serif; --lh:1.45; --tracking:.01em; }
+    html,body{font-family:var(--font-ui); line-height:var(--lh); letter-spacing:var(--tracking)}
+    .wrap{max-width:1200px;margin:auto;padding:12px}
+    .status{margin:8px 0;color:var(--muted)}
+
+    /* Sections rétractables */
+    .section{ margin-top:12px }
+    .section-head{ display:flex;align-items:center;justify-content:space-between;gap:10px;flex-wrap:wrap; border-bottom:1px solid var(--border); padding-bottom:8px; margin-bottom:10px; }
+    .toggle-card{ display:inline-flex; align-items:center; gap:6px }
+    .section-body[hidden]{ display:none !important }
+
+    /* KPIs */
+    .kpis{display:grid;grid-template-columns:repeat(auto-fit,minmax(160px,1fr));gap:10px;margin:10px 0}
+    .kpi .big{font-size:24px;font-weight:800}
+
+    /* Table wrap mobile */
+    .tableWrap{overflow:auto}
+    .tbl{min-width:700px}
+
+    /* Résultats (Mes confrontations) */
+    .score-pill{display:inline-block;min-width:46px;text-align:center;padding:4px 8px;border-radius:10px;border:1px solid var(--border);font-weight:700}
+    .score-pill.win{background:#064e3b;color:#b7fbdc}
+    .score-pill.draw{background:#1f2937;color:#e5e7eb}
+    .score-pill.lose{background:#5b0b0b;color:#fed7d7}
+
+    /* Comparateur */
+    .cmp-grid{display:grid;grid-template-columns:1fr;gap:12px}
+    @media (min-width: 920px){ .cmp-grid{grid-template-columns:1fr 1fr} }
+    .avatar{width:56px;height:56px;border-radius:12px;object-fit:cover;border:1px solid var(--border)}
+    .cmp-card h4{margin:0 0 6px}
+    .stat-row{display:grid;grid-template-columns:1fr auto;gap:10px;align-items:center}
+    .form5{display:flex;gap:6px}
+    .form5 .dot{width:18px;height:18px;border-radius:6px;border:1px solid var(--border);display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:800}
+    .form5 .W{background:#064e3b;color:#b7fbdc}
+    .form5 .D{background:#1f2937;color:#e5e7eb}
+    .form5 .L{background:#5b0b0b;color:#fed7d7}
+
+    /* Modales */
+    dialog{border:none;border-radius:14px;max-width:980px;width:min(96vw,980px);padding:0;background:var(--panel);color:var(--text)}
+    dialog::backdrop{background:rgba(0,0,0,.4);backdrop-filter:blur(1.5px)}
+    .h2h-h{display:flex;align-items:center;gap:12px;padding:14px 16px;border-bottom:1px solid var(--border);font-weight:700}
+    .h2h-b{padding:14px 16px;display:grid;gap:10px}
+    .h2h-f{padding:12px 16px;border-top:1px solid var(--border);display:flex;gap:10px;justify-content:flex-end}
+    .h2h-toolbar{display:flex;flex-wrap:wrap;gap:8px;align-items:center}
+    .h2h-hero{display:flex;align-items:center;gap:14px;border:1px solid var(--border);border-radius:14px;padding:10px 12px}
+    .h2h-hero img{width:40px;height:40px;border-radius:10px;object-fit:cover;border:1px solid var(--border)}
+    .h2h-hero .wdl{display:flex;gap:8px;margin-left:auto}
+    .badge{display:inline-block;padding:4px 8px;border-radius:999px;border:1px solid var(--border);font-weight:600}
+    .badge.win{background:#064e3b;color:#b7fbdc}
+    .badge.draw{background:#1f2937;color:#e5e7eb}
+    .badge.lose{background:#5b0b0b;color:#fed7d7}
+  </style>
 </head>
+
 <body>
 <div class="wrap">
 
@@ -83,29 +73,22 @@
     <button id="menuToggle" class="menu-toggle" aria-label="Ouvrir le menu" aria-expanded="false" aria-controls="menu">☰</button>
     <div id="menu" class="menu top">
       <a class="btn" href="Accueil.html">🏠 Accueil</a>
+      <a class="btn" href="Duel.html">⚔️ Duel</a>
       <a class="btn" href="Classement-general.html">📊 Classements</a>
-      <a class="btn" id="linkMembers" href="Admin-Joueurs.html">👥 Admin-Joueurs</a>
+      <a class="btn" id="linkMembers" href="Admin-Joueurs.html" style="display:none">👥 Admin-Joueurs</a>
       <button id="theme" class="btn" title="Basculer thème">☀️</button>
       <button id="logoutBtn" class="btn danger">Déconnexion</button>
     </div>
   </div>
-  
 
   <main style="margin-top:12px">
     <div id="status" class="status">—</div>
 
     <!-- Identité -->
-    <section class="card">
-      <div style="display:flex;gap:12px;align-items:center;justify-content:space-between;flex-wrap:wrap">
-        <div style="display:flex;gap:10px;align-items:center">
-          <img id="avatar" src="" alt="photo" style="width:64px;height:64px;border-radius:50%;object-fit:cover;border:1px solid var(--border)">
-          <div>
-            <div class="muted">Connecté en tant que</div>
-            <div id="playerName" style="font-size:20px;font-weight:700">—</div>
-            <div id="playerId" class="muted">—</div>
-          </div>
-        </div>
-        <div style="display:flex;gap:8px;align-items:center">
+    <section class="card section">
+      <div class="section-head">
+        <h3 style="margin:6px 0">Mon espace</h3>
+        <div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap">
           <label>Saison :</label>
           <select id="seasonSel">
             <option value="current">En cours</option>
@@ -113,44 +96,63 @@
           </select>
         </div>
       </div>
-    </section>
+      <div class="section-body">
+        <div style="display:flex;gap:12px;align-items:center;justify-content:space-between;flex-wrap:wrap">
+          <div style="display:flex;gap:10px;align-items:center">
+            <img id="avatar" src="" alt="photo" class="avatar" style="width:64px;height:64px;border-radius:50%">
+            <div>
+              <div class="muted">Connecté en tant que</div>
+              <div id="playerName" style="font-size:20px;font-weight:700">—</div>
+              <div id="playerId" class="muted">—</div>
+            </div>
+          </div>
+          <button id="toggleIdent" class="btn toggle-card" aria-expanded="true" aria-controls="identBody">Réduire</button>
+        </div>
 
-    <!-- KPIs -->
-    <section class="kpis">
-      <div class="card"><div class="muted">Matchs (aller/retour) joués</div><div id="k_played" style="font-size:24px;font-weight:700">0</div></div>
-      <div class="card"><div class="muted">Buts marqués</div><div id="k_bm" style="font-size:24px;font-weight:700">0</div></div>
-      <div class="card"><div class="muted">Buts encaissés</div><div id="k_bc" style="font-size:24px;font-weight:700">0</div></div>
-      <div class="card"><div class="muted">Rang général</div><div id="k_rank" style="font-size:24px;font-weight:700">—</div></div>
-      <div class="card"><div class="muted">Points saison</div><div id="k_pts" style="font-size:24px;font-weight:700">—</div></div>
-      <div class="card"><div class="muted">Moyenne</div><div id="k_avg" style="font-size:24px;font-weight:700">—</div></div>
-    </section>
-
-    <!-- Mon profil -->
-    <section class="card">
-      <h3 style="margin:6px 0">Mon profil</h3>
-      <div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap">
-        <input id="nameInp" placeholder="Votre nom"/>
-        <button id="saveName" class="btn">Enregistrer nom</button>
-      </div>
-      <div style="display:flex;gap:8px;align-items:center;margin-top:10px;flex-wrap:wrap">
-        <input id="photoInp" type="file" accept="image/*">
-        <button id="savePhoto" class="btn">Changer la photo</button>
-      </div>
-      <div style="margin-top:10px">
-        <div class="muted">Changer le mot de passe</div>
-        <div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap">
-          <input id="curPwd" type="password" placeholder="Mot de passe actuel (optionnel)">
-          <input id="newPwd" type="password" placeholder="Nouveau mot de passe (min 6)">
-          <button id="savePwd" class="btn">Mettre à jour</button>
+        <div id="identBody" style="margin-top:10px">
+          <div class="kpis">
+            <div class="card kpi"><div class="muted">Manches jouées</div><div id="k_played" class="big">0</div></div>
+            <div class="card kpi"><div class="muted">Buts marqués</div><div id="k_bm" class="big">0</div></div>
+            <div class="card kpi"><div class="muted">Buts encaissés</div><div id="k_bc" class="big">0</div></div>
+            <div class="card kpi"><div class="muted">Rang général</div><div id="k_rank" class="big">—</div></div>
+            <div class="card kpi"><div class="muted">Points</div><div id="k_pts" class="big">—</div></div>
+            <div class="card kpi"><div class="muted">Moyenne</div><div id="k_avg" class="big">—</div></div>
+          </div>
         </div>
       </div>
     </section>
 
-    <!-- Mes confrontations (liste rapide + accès H2H) -->
-    <section class="card">
-      <div style="display:flex;justify-content:space-between;align-items:center;gap:10px;flex-wrap:wrap">
+    <!-- Mon profil -->
+    <section class="card section">
+      <div class="section-head">
+        <h3 style="margin:6px 0">Mon profil</h3>
+        <button class="btn toggle-card" aria-expanded="true" aria-controls="profilBody">Réduire</button>
+      </div>
+      <div id="profilBody" class="section-body">
+        <div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap">
+          <input id="nameInp" placeholder="Votre nom"/>
+          <button id="saveName" class="btn">Enregistrer</button>
+        </div>
+        <div style="display:flex;gap:8px;align-items:center;margin-top:10px;flex-wrap:wrap">
+          <input id="photoInp" type="file" accept="image/*">
+          <button id="savePhoto" class="btn">Changer la photo</button>
+        </div>
+        <div style="margin-top:10px">
+          <div class="muted">Changer le mot de passe</div>
+          <div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap">
+            <input id="curPwd" type="password" placeholder="Mot de passe actuel (optionnel)">
+            <input id="newPwd" type="password" placeholder="Nouveau mot de passe (min 6)">
+            <button id="savePwd" class="btn">Mettre à jour</button>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Mes confrontations récentes -->
+    <section class="card section">
+      <div class="section-head">
         <h3 style="margin:6px 0">Mes confrontations récentes</h3>
-        <div style="display:flex;gap:6px;align-items:center">
+        <div style="display:flex;gap:6px;align-items:center;flex-wrap:wrap">
           <label>Saison :</label>
           <select id="seasonConfSel">
             <option value="current">En cours</option>
@@ -158,354 +160,463 @@
           </select>
           <label>Limite</label>
           <select id="confLimit"><option>10</option><option selected>15</option><option>25</option><option>50</option></select>
+          <button class="btn toggle-card" aria-expanded="true" aria-controls="confBody">Réduire</button>
         </div>
       </div>
-      <div class="tableWrap">
-        <table class="tbl">
-          <thead><tr><th>Date</th><th>Division</th><th>Adversaire</th><th>Manche</th><th>Score</th><th></th></tr></thead>
-          <tbody id="confTbody"></tbody>
-        </table>
+      <div id="confBody" class="section-body">
+        <div class="tableWrap">
+          <table class="tbl">
+            <thead><tr><th>Date</th><th>Division</th><th>Adversaire</th><th>Manche</th><th>Score</th><th></th></tr></thead>
+            <tbody id="confTbody"></tbody>
+          </table>
+        </div>
+      </div>
+    </section>
+
+    <!-- Comparateur de joueurs -->
+    <section class="card section">
+      <div class="section-head">
+        <h3 style="margin:6px 0">Comparateur de joueurs</h3>
+        <div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap">
+          <label>Saison :</label>
+          <select id="cmpSeason">
+            <option value="current" selected>En cours</option>
+            <option value="previous">Précédente</option>
+          </select>
+          <button class="btn toggle-card" aria-expanded="true" aria-controls="cmpBody">Réduire</button>
+        </div>
+      </div>
+      <div id="cmpBody" class="section-body">
+        <div style="display:flex;gap:8px;flex-wrap:wrap;align-items:center;margin-bottom:8px">
+          <select id="cmpA" style="min-width:220px"><option value="">Joueur A…</option></select>
+          <select id="cmpB" style="min-width:220px"><option value="">Joueur B…</option></select>
+          <button id="cmpRun" class="btn">Comparer</button>
+          <button id="cmpSwap" class="btn">Inverser</button>
+        </div>
+        <div id="cmpOut" class="cmp-grid"></div>
       </div>
     </section>
 
     <!-- Recherche & Profil joueur -->
-    <section class="card">
-      <h3 style="margin:6px 0">Rechercher un joueur</h3>
-      <div style="display:flex;gap:8px;flex-wrap:wrap">
-        <input id="pSearch" placeholder="Nom ou ID…" style="min-width:220px">
-        <button id="pSearchBtn" class="btn">Rechercher</button>
+    <section class="card section">
+      <div class="section-head">
+        <h3 style="margin:6px 0">Rechercher un joueur</h3>
+        <div style="display:flex;gap:8px;flex-wrap:wrap">
+          <input id="pSearch" placeholder="Nom ou ID…" style="min-width:220px">
+          <button id="pSearchBtn" class="btn">Rechercher</button>
+          <button class="btn toggle-card" aria-expanded="true" aria-controls="searchBody">Réduire</button>
+        </div>
       </div>
-      <div id="pResults" style="display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:10px;margin-top:10px"></div>
+      <div id="searchBody" class="section-body">
+        <div id="pResults" style="display:grid;grid-template-columns:repeat(auto-fit,minmax(260px,1fr));gap:10px"></div>
+      </div>
     </section>
 
-    <!-- Dialog Profil joueur -->
-    <dialog id="pModal">
-      <div style="padding:14px;border-bottom:1px solid var(--border);font-weight:700" id="pmTitle">Profil joueur</div>
-      <div style="padding:14px;display:grid;gap:10px">
-        <div style="display:flex;gap:12px;align-items:center">
-          <img id="pmAvatar" style="width:64px;height:64px;border-radius:50%;object-fit:cover;border:1px solid var(--border)">
-          <div>
-            <div id="pmName" style="font-weight:700">—</div>
-            <div id="pmId" class="muted">—</div>
-          </div>
+    <!-- Classement rapide -->
+    <section class="card section" id="seasonBlock">
+      <div class="section-head">
+        <h3 style="margin:6px 0">Classement — Saison</h3>
+        <div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap">
+          <input id="search" placeholder="Rechercher joueur…" style="min-width:220px">
+          <button id="seasonReload" class="btn" type="button">Rafraîchir</button>
+          <button class="btn toggle-card" aria-expanded="true" aria-controls="seasonBody">Réduire</button>
         </div>
-        <div style="display:flex;gap:12px;flex-wrap:wrap;align-items:center">
-          <select id="pmSeason">
-            <option value="current">Saison en cours</option>
-            <option value="previous">Saison précédente</option>
-          </select>
-          <button id="pmH2hBtn" class="btn" type="button">Voir face-à-face</button>
-        </div>
-        <div id="pmStats" class="muted">—</div>
+      </div>
+      <div id="seasonBody" class="section-body">
         <div class="tableWrap">
-          <table class="tbl">
-            <thead><tr><th>Date</th><th>Division</th><th>Manche</th><th>Score</th></tr></thead>
-            <tbody id="pmMatches"></tbody>
+          <table id="seasonTable" class="tbl">
+            <thead>
+              <tr>
+                <th>#</th>
+                <th>Joueur</th>
+                <th class="hid-m">ID</th>
+                <th>Total</th>
+                <th>Part.</th>
+                <th>Moy.</th>
+                <th>D1 gagnés</th>
+                <th>D2 gagnés</th>
+                <th>Équipes diff.</th>
+              </tr>
+            </thead>
+            <tbody></tbody>
           </table>
         </div>
+        <div id="seasonCards" style="margin-top:10px"></div>
       </div>
-      <div style="padding:12px;border-top:1px solid var(--border);display:flex;gap:10px;justify-content:flex-end">
-        <button class="btn" onclick="document.getElementById('pModal').close()">Fermer</button>
-      </div>
-    </dialog>
-
-    <!-- Dialog Face-à-face -->
-    <dialog id="h2hModal">
-      <div style="padding:14px;border-bottom:1px solid var(--border);font-weight:700" id="h2hTitle">Face-à-face</div>
-      <div style="padding:14px;display:grid;gap:10px">
-        <div id="h2hSummary" class="muted">—</div>
-        <div class="tableWrap">
-          <table class="tbl">
-            <thead><tr><th>Date</th><th>Division</th><th>Manche</th><th>Score</th></tr></thead>
-            <tbody id="h2hBody"></tbody>
-          </table>
-        </div>
-      </div>
-      <div style="padding:12px;border-top:1px solid var(--border);display:flex;gap:10px;justify-content:flex-end">
-        <button class="btn" onclick="document.getElementById('h2hModal').close()">Fermer</button>
-      </div>
-    </dialog>
-
-    <!-- Classement -->
-  <section id="seasonBlock" class="card" style="margin-top:12px">
-  <div style="display:flex;justify-content:space-between;align-items:center;gap:10px;flex-wrap:wrap">
-    <h3 style="margin:6px 0">Classement — Saison</h3>
-    <div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap">
-      <input id="search" placeholder="Rechercher joueur (nom ou ID)…" style="min-width:220px">
-      <button id="seasonReload" class="btn" type="button">Rafraîchir</button>
-    </div>
-  </div>
-
-  <div class="tableWrap">
-    <table id="seasonTable" class="tbl">
-      <thead>
-        <tr>
-          <th>#</th>
-          <th>Joueur</th>
-          <th class="hid-m">ID</th>
-          <th>Total</th>
-          <th>Part.</th>
-          <th>Moy.</th>
-          <th>D1 gagnés</th>
-          <th>D2 gagnés</th>
-          <th>Équipes diff.</th>
-        </tr>
-      </thead>
-      <tbody></tbody>
-    </table>
-  </div>
-
-  <!-- Cartes (mobile) -->
-  <div id="seasonCards"></div>
-</section>
+    </section>
 
   </main>
-
 </div>
 
-<script src="common.js"></script>
+<!-- Modale Profil joueur -->
+<dialog id="pModal">
+  <div style="padding:14px;border-bottom:1px solid var(--border);font-weight:700" id="pmTitle">Profil joueur</div>
+  <div style="padding:14px;display:grid;gap:10px">
+    <div style="display:flex;gap:12px;align-items:center">
+      <img id="pmAvatar" class="avatar">
+      <div>
+        <div id="pmName" style="font-weight:700">—</div>
+        <div id="pmId" class="muted">—</div>
+      </div>
+    </div>
+    <div style="display:flex;gap:12px;flex-wrap:wrap;align-items:center">
+      <select id="pmSeason">
+        <option value="current">Saison en cours</option>
+        <option value="previous">Saison précédente</option>
+      </select>
+      <button id="pmH2hBtn" class="btn" type="button">Voir face-à-face</button>
+    </div>
+    <div id="pmStats" class="muted">—</div>
+    <div class="tableWrap">
+      <table class="tbl">
+        <thead><tr><th>Rang</th><th>Points</th><th>Moyenne</th><th>Part.</th><th>D1</th><th>D2</th></tr></thead>
+        <tbody id="pmMatches"><tr><td colspan="6" class="muted">Données issues du classement de la saison.</td></tr></tbody>
+      </table>
+    </div>
+  </div>
+  <div style="padding:12px;border-top:1px solid var(--border);display:flex;gap:10px;justify-content:flex-end">
+    <button class="btn" onclick="document.getElementById('pModal').close()">Fermer</button>
+  </div>
+</dialog>
+
+<!-- Modale Face-à-face -->
+<dialog id="h2hModal">
+  <form method="dialog" style="margin:0">
+    <div class="h2h-h">
+      <div id="h2hTitle">Face-à-face</div>
+      <button class="btn" value="close" aria-label="Fermer">✖</button>
+    </div>
+    <div class="h2h-b">
+      <div class="h2h-toolbar">
+        <select id="h2hSeason" title="Saison">
+          <option value="current">Saison en cours</option>
+          <option value="previous">Saison précédente</option>
+        </select>
+      </div>
+
+      <div class="h2h-hero">
+        <img id="h2hMePic" src="assets/fond.png" alt="">
+        <div id="h2hNames">Moi vs Adversaire</div>
+        <div class="wdl">
+          <span class="badge win"  id="h2hW">V 0</span>
+          <span class="badge draw" id="h2hD">N 0</span>
+          <span class="badge lose" id="h2hL">D 0</span>
+          <span class="badge"      id="h2hGFGA">0-0</span>
+        </div>
+      </div>
+
+      <div class="tableWrap">
+        <table class="tbl" id="h2hTable">
+          <thead><tr><th>Date</th><th>Division</th><th>Manche</th><th>Score</th></tr></thead>
+          <tbody id="h2hBody"></tbody>
+        </table>
+      </div>
+    </div>
+    <div class="h2h-f">
+      <button class="btn" value="close">Fermer</button>
+    </div>
+  </form>
+</dialog>
+
+<footer style="text-align:center;margin:14px 0;color:var(--muted)">Copyright © -GOUZEPE GAMING CLUB 2025</footer>
+
 <script>
-/* ===== Thème ===== */
+/* ===== Util ===== */
+const $  = s => document.querySelector(s);
+const $$ = s => document.querySelectorAll(s);
+const DEF_API = ()=> (location.protocol.startsWith('http') ? location.protocol : 'http:') + '//' + location.hostname + ':3000';
+const API = (localStorage.getItem('efoot.api')||DEF_API()).replace(/\/+$/,'');
+const TOKEN = localStorage.getItem('efoot.token');
+
+/* Auth guard */
 (function(){
-  const k='efoot.theme';
-  const apply=m=>{document.documentElement.classList.toggle('light',m==='light');localStorage.setItem(k,m);document.getElementById('theme').textContent=m==='light'?'🌙':'☀️'};
-  apply(localStorage.getItem(k)||'dark');
-  document.getElementById('theme').onclick=()=>apply(document.documentElement.classList.contains('light')?'dark':'light');
+  const expAt=+localStorage.getItem('efoot.expAt')||0;
+  if(!TOKEN || Date.now()>=expAt){ location.href='login.html'; }
 })();
 
-/* ===== Menu mobile ===== */
+/* Thème */
 (function(){
-  const menu=document.getElementById('menu'), toggle=document.getElementById('menuToggle');
+  const k='efoot.theme';
+  const apply=m=>{document.documentElement.classList.toggle('light',m==='light');localStorage.setItem(k,m);$('#theme').textContent=m==='light'?'🌙':'☀️'};
+  apply(localStorage.getItem(k)||'dark');
+  $('#theme').onclick=()=>apply(document.documentElement.classList.contains('light')?'dark':'light');
+})();
+
+/* Menu mobile */
+(function(){
+  const menu=$('#menu'), toggle=$('#menuToggle');
   function open(v){menu.classList.toggle('open',v);toggle.setAttribute('aria-expanded',v?'true':'false')}
   toggle?.addEventListener('click',(e)=>{e.stopPropagation();open(!menu.classList.contains('open'));});
-  document.addEventListener('click',(e)=>{
-    if(!menu.classList.contains('open'))return;
-    if(e.target===toggle||menu.contains(e.target))return;
-    open(false);
-  },true);
+  document.addEventListener('click',(e)=>{ if(!menu.classList.contains('open'))return; if(e.target===toggle||menu.contains(e.target))return; open(false); },true);
   document.addEventListener('keydown',(e)=>{ if(e.key==='Escape') open(false); });
 })();
 
-/* ===== Renommer Admin-Joueurs -> Liste des membres pour les membres ===== */
-(function(){
-  const role=(localStorage.getItem('efoot.role')||'member').toLowerCase();
-  const lm=document.getElementById('linkMembers');
-  if(lm) lm.textContent = (role==='admin') ? '👥 Admin-Joueurs' : '👥 Liste des membres';
-})();
+/* Déconnexion (confirmation, sans bug si Annuler) */
+$('#logoutBtn').onclick=()=>{
+  if(!confirm('Voulez-vous vraiment vous déconnecter ?')) return;
+  ['efoot.token','efoot.role','efoot.expAt'].forEach(k=>localStorage.removeItem(k));
+  location.href='login.html';
+};
 
-/* ===== Shim App si besoin ===== */
-(function(){
-  if(!window.App){
-    const DEF_API = () => (location.protocol.startsWith('http') ? location.protocol : 'http:') + '//' + location.hostname + ':3000';
-    window.App = {
-      getAPI: ()=> (localStorage.getItem('efoot.api')||DEF_API()).replace(/\/+$/,''),
-      getToken: ()=> localStorage.getItem('efoot.token'),
-      logout: ()=>{ localStorage.clear(); location.href='login.html'; },
-      toast: (m)=>{ const s=document.getElementById('status'); if(s) s.textContent=m||''; },
-      async safeFetch(url,opt={},ms=10000){ const c=new AbortController(); const t=setTimeout(()=>c.abort(),ms); try{ return await fetch(url,{signal:c.signal,...opt}); } finally{ clearTimeout(t);} }
-    };
-  }
-})();
+/* Safe fetch */
+async function safe(url,opt={},ms=12000){
+  const c=new AbortController(); const t=setTimeout(()=>c.abort(),ms);
+  try{ return await fetch(url,{signal:c.signal,...opt}); } finally{ clearTimeout(t); }
+}
 
-/* ===== Déconnexion ===== */
-document.getElementById('logoutBtn').onclick=()=>{ localStorage.clear(); location.href='login.html'; };
-
-/* ===== Chargement profil + matches + KPIs ===== */
-(async function init(){
-  const tok = App.getToken?.()||localStorage.getItem('efoot.token');
-  const role = (localStorage.getItem('efoot.role')||'member').toLowerCase();
-  if(!tok){ location.replace('login.html'); return; }
-  if(role!=='member' && role!=='admin'){ location.replace('Accueil.html'); return; }
-
+/* ===== Chargement identités / rôle admin ===== */
+(async function loadIdentity(){
   try{
-    const rp = await App.safeFetch(App.getAPI()+'/me/player', { headers:{Authorization:'Bearer '+tok} }, 8000);
-    const dp = await rp.json();
-    document.getElementById('playerName').textContent = dp.player?.name || '—';
-    document.getElementById('playerId').textContent   = dp.player?.player_id || '—';
-    document.getElementById('avatar').src = dp.player?.profile_pic_url ? (App.getAPI()+dp.player.profile_pic_url) : 'assets/fond.png';
-
-    async function refresh(){
-      const season = document.getElementById('seasonSel').value;
-      const rs = await App.safeFetch(App.getAPI()+'/me/stats?season='+season, { headers:{Authorization:'Bearer '+tok} }, 10000);
-      const ds = await rs.json();
-      document.getElementById('k_played').textContent = ds.played_legs ?? 0;
-      document.getElementById('k_bm').textContent     = ds.goals_for ?? 0;
-      document.getElementById('k_bc').textContent     = ds.goals_against ?? 0;
-      document.getElementById('k_rank').textContent   = ds.season_rank ?? '—';
-      document.getElementById('k_pts').textContent    = ds.season_points ?? '—';
-      document.getElementById('k_avg').textContent    = (ds.season_average ?? '—');
-
-      const rm = await App.safeFetch(App.getAPI()+'/me/matches?season='+season, { headers:{Authorization:'Bearer '+tok} }, 10000);
-      const dm = await rm.json();
-      const tb = document.getElementById('confTbody'); tb.innerHTML='';
-      (dm.matches||[]).sort((a,b)=> new Date(b.date)-new Date(a.date))
-        .slice(0, Number(document.getElementById('confLimit').value||15))
-        .forEach(x=>{
-          const add = (leg,sc) => `<tr>
-              <td>${new Date(x.date).toLocaleDateString('fr-FR')}</td>
-              <td>${x.division}</td>
-              <td>${(x.opponent_name||x.opponent)}</td>
-              <td>${leg}</td>
-              <td>${sc}</td>
-              <td><button class="btn" data-view="${x.opponent}">Voir</button></td>
-            </tr>`;
-          if(x.aller)  tb.insertAdjacentHTML('beforeend', add('Aller',  `${x.aller.gf}-${x.aller.ga}`));
-          if(x.retour) tb.insertAdjacentHTML('beforeend', add('Retour', `${x.retour.gf}-${x.retour.ga}`));
-        });
+    const r = await safe(API+'/auth/me',{headers:{Authorization:'Bearer '+TOKEN}});
+    if(r.ok){
+      const me = await r.json();
+      if((me.user?.role||'member').toLowerCase()==='admin') $('#linkMembers').style.display='';
     }
-    document.getElementById('seasonSel').onchange = refresh;
-    document.getElementById('confLimit').onchange = refresh;
-    document.getElementById('seasonConfSel').onchange = refresh;
-    document.getElementById('confTbody').addEventListener('click',(e)=>{
-      const pid=e.target?.dataset?.view; if(!pid) return; openPlayerPreview(pid);
+  }catch(_){}
+})();
+
+(async function initMe(){
+  try{
+    const rp = await safe(API+'/me/player', { headers:{Authorization:'Bearer '+TOKEN} }, 8000);
+    const dp = await rp.json();
+    $('#playerName').textContent = dp.player?.name || '—';
+    $('#playerId').textContent   = dp.player?.player_id || '—';
+    $('#avatar').src = dp.player?.profile_pic_url ? (API+dp.player.profile_pic_url) : 'assets/fond.png';
+  }catch(e){ console.error(e); }
+
+  async function refresh(){
+    const season = $('#seasonSel').value;
+    const rs = await safe(API+'/me/stats?season='+season, { headers:{Authorization:'Bearer '+TOKEN} });
+    const ds = await rs.json();
+    $('#k_played').textContent = ds.played_legs ?? 0;
+    $('#k_bm').textContent     = ds.goals_for ?? 0;
+    $('#k_bc').textContent     = ds.goals_against ?? 0;
+    $('#k_rank').textContent   = ds.season_rank ?? '—';
+    $('#k_pts').textContent    = ds.season_points ?? '—';
+    $('#k_avg').textContent    = (ds.season_average ?? '—');
+
+    // Confrontations récentes (avec limite fonctionnelle)
+    const season2 = $('#seasonConfSel').value || season;
+    const rm = await safe(API+'/me/matches?season='+season2, { headers:{Authorization:'Bearer '+TOKEN} });
+    const dm = await rm.json();
+    const tb = $('#confTbody'); tb.innerHTML='';
+    const limit = Number($('#confLimit').value||15);
+
+    const rows=[];
+    (dm.matches||[]).sort((a,b)=> new Date(b.date)-new Date(a.date)).forEach(x=>{
+      if(x.aller){
+        const r = x.aller.gf>x.aller.ga?'win':x.aller.gf<x.aller.ga?'lose':'draw';
+        rows.push({d:x.date,div:x.division,opp:(x.opponent_name||x.opponent),leg:'Aller',sc:`${x.aller.gf}-${x.aller.ga}`,badge:r, pid:x.opponent});
+      }
+      if(x.retour){
+        const r = x.retour.gf>x.retour.ga?'win':x.retour.gf<x.retour.ga?'lose':'draw';
+        rows.push({d:x.date,div:x.division,opp:(x.opponent_name||x.opponent),leg:'Retour',sc:`${x.retour.gf}-${x.retour.ga}`,badge:r, pid:x.opponent});
+      }
     });
-    await refresh();
-  }catch(e){ App.toast('Erreur de chargement'); console.error(e); }
+
+    rows.slice(0, limit).forEach(r=>{
+      const tr=document.createElement('tr');
+      tr.innerHTML = `<td>${new Date(r.d).toLocaleDateString('fr-FR')}</td>
+                      <td>${r.div}</td>
+                      <td>${r.opp}</td>
+                      <td>${r.leg}</td>
+                      <td><span class="score-pill ${r.badge}">${r.sc}</span></td>
+                      <td><button class="btn" data-view="${r.pid}">Face-à-face</button></td>`;
+      tb.appendChild(tr);
+    });
+  }
+  $('#seasonSel').onchange = refresh;
+  $('#seasonConfSel').onchange = refresh;
+  $('#confLimit').onchange = refresh;      // ⟵ limite désormais EFFECTIVE
+  $('#confTbody').addEventListener('click',(e)=>{
+    const pid=e.target?.dataset?.view; if(!pid) return; openH2H(pid);
+  });
+  refresh();
 })();
 
 /* ===== Profil : nom / mot de passe / photo ===== */
 (function profile(){
-  const API=App.getAPI(), tok=App.getToken?.()||localStorage.getItem('efoot.token');
-  document.getElementById('saveName').onclick=async ()=>{
-    const name = document.getElementById('nameInp').value.trim();
+  $('#saveName').onclick=async ()=>{
+    const name = $('#nameInp').value.trim();
     if(name.length<2) return alert('Nom trop court');
-    const r=await fetch(`${API}/me/name`,{method:'PUT',headers:{'Content-Type':'application/json',Authorization:'Bearer '+tok},body:JSON.stringify({name})});
+    const r=await fetch(`${API}/me/name`,{method:'PUT',headers:{'Content-Type':'application/json',Authorization:'Bearer '+TOKEN},body:JSON.stringify({name})});
     if(!r.ok){ const d=await r.json().catch(()=>({})); return alert(d.error||'Erreur'); }
     location.reload();
   };
-  document.getElementById('savePwd').onclick=async ()=>{
-    const currentPassword = document.getElementById('curPwd').value;
-    const newPassword = document.getElementById('newPwd').value;
+  $('#savePwd').onclick=async ()=>{
+    const currentPassword=$('#curPwd').value;
+    const newPassword=$('#newPwd').value;
     if(!newPassword || newPassword.length<6) return alert('Mot de passe trop court');
-    const r=await fetch(`${API}/me/password`,{method:'PUT',headers:{'Content-Type':'application/json',Authorization:'Bearer '+tok},body:JSON.stringify({currentPassword,newPassword})});
+    const r=await fetch(`${API}/me/password`,{method:'PUT',headers:{'Content-Type':'application/json',Authorization:'Bearer '+TOKEN},body:JSON.stringify({currentPassword,newPassword})});
     if(!r.ok){ const d=await r.json().catch(()=>({})); return alert(d.error||'Erreur'); }
-    alert('Mot de passe mis à jour'); document.getElementById('curPwd').value=''; document.getElementById('newPwd').value='';
+    alert('Mot de passe mis à jour'); $('#curPwd').value=''; $('#newPwd').value='';
   };
-  document.getElementById('savePhoto').onclick=async ()=>{
-    const f=document.getElementById('photoInp').files[0]; if(!f) return alert('Choisir une image');
+  $('#savePhoto').onclick=async ()=>{
+    const f=$('#photoInp').files[0]; if(!f) return alert('Choisir une image');
     const fd=new FormData(); fd.append('photo', f);
-    const r=await fetch(`${API}/me/photo`,{method:'POST',headers:{Authorization:'Bearer '+tok},body:fd});
+    const r=await fetch(`${API}/me/photo`,{method:'POST',headers:{Authorization:'Bearer '+TOKEN},body:fd});
     if(!r.ok){ const d=await r.json().catch(()=>({})); return alert(d.error||'Erreur'); }
     location.reload();
   };
 })();
 
-/* ===== Recherche / Aperçu joueur / Face-à-face ===== */
+/* ===== Recherche / aperçus (routes existantes) ===== */
+$('#pSearchBtn').onclick = searchPlayers;
 async function searchPlayers(){
-  const q = document.getElementById('pSearch').value.trim(); const box = document.getElementById('pResults'); box.innerHTML='';
+  const q = $('#pSearch').value.trim();
+  const box = $('#pResults'); box.innerHTML='';
   if(!q) return;
-  const r = await fetch(App.getAPI()+'/players/search?q='+encodeURIComponent(q), { headers:{Authorization:'Bearer '+(App.getToken?.()||localStorage.getItem('efoot.token'))} });
+  const r = await fetch(API+'/players/search?q='+encodeURIComponent(q), { headers:{Authorization:'Bearer '+TOKEN} });
   const d = await r.json();
   (d.players||[]).forEach(p=>{
     const card=document.createElement('div'); card.className='card';
-    const img = p.profile_pic_url ? (App.getAPI()+p.profile_pic_url) : 'assets/fond.png';
-    card.innerHTML = `<div style="display:flex;gap:10px;align-items:center">
-      <img src="${img}" style="width:48px;height:48px;border-radius:50%;object-fit:cover;border:1px solid var(--border)">
-      <div><div style="font-weight:700">${p.name||p.player_id}</div><div class="muted">${p.player_id}</div></div>
-      <div style="flex:1"></div>
-      <button class="btn" data-p="${p.player_id}">Aperçu</button>
-    </div>`;
-    card.querySelector('button').onclick=()=> openPlayerPreview(p.player_id);
+    const img = p.profile_pic_url ? (API+p.profile_pic_url) : 'assets/fond.png';
+    card.innerHTML = `
+      <div style="display:flex;gap:10px;align-items:center">
+        <img src="${img}" style="width:48px;height:48px;border-radius:12px;object-fit:cover;border:1px solid var(--border)">
+        <div><div style="font-weight:700">${p.name||p.player_id}</div><div class="muted">${p.player_id}</div></div>
+        <div style="flex:1"></div>
+        <div style="display:flex;gap:8px">
+          <button class="btn" data-preview="${p.player_id}">Aperçu</button>
+          <button class="btn" data-h2h="${p.player_id}">Face-à-face</button>
+        </div>
+      </div>`;
+    card.querySelector('button[data-preview]').onclick = ()=> openPlayerPreview(p.player_id);
+    card.querySelector('button[data-h2h]').onclick     = ()=> openH2H(p.player_id);
     box.appendChild(card);
   });
 }
-document.getElementById('pSearchBtn').onclick = searchPlayers;
-
 async function openPlayerPreview(pid){
-  const modal = document.getElementById('pModal');
-  const seasonSel = document.getElementById('pmSeason');
-
+  const modal = $('#pModal'), seasonSel = $('#pmSeason');
   async function fill(){
-    const pr = await fetch(App.getAPI()+`/players/${pid}`, { headers:{Authorization:'Bearer '+(App.getToken?.()||localStorage.getItem('efoot.token'))} });
+    // profil
+    const pr = await fetch(API+`/players/${pid}`, { headers:{Authorization:'Bearer '+TOKEN} });
     const pd = await pr.json();
-    document.getElementById('pmName').textContent = pd.player?.name || '—';
-    document.getElementById('pmId').textContent   = pd.player?.player_id || pid;
-    document.getElementById('pmAvatar').src = pd.player?.profile_pic_url ? (App.getAPI()+pd.player.profile_pic_url) : 'assets/fond.png';
+    $('#pmName').textContent = pd.player?.name || '—';
+    $('#pmId').textContent   = pd.player?.player_id || pid;
+    $('#pmAvatar').src = pd.player?.profile_pic_url ? (API+pd.player.profile_pic_url) : 'assets/fond.png';
 
+    // stats depuis le classement de la saison
     const ss=seasonSel.value;
-    const sr = await fetch(App.getAPI()+`/players/${pid}/summary?season=${ss}`, { headers:{Authorization:'Bearer '+(App.getToken?.()||localStorage.getItem('efoot.token'))} });
-    const sd = await sr.json();
-    document.getElementById('pmStats').textContent =
-      `Rang ${sd.rank ?? '—'} • Points ${sd.points ?? '—'} • Moyenne ${sd.moyenne ?? '—'} • `+
-      `Manches ${sd.legs ?? 0} • BM ${sd.goals_for ?? 0} • BC ${sd.goals_against ?? 0}` +
-      (sd.best?.date ? ` • Best ${sd.best.gf}-${sd.best.ga} (${sd.best.leg}, ${sd.best.division})` : '');
-
-    const mr = await fetch(App.getAPI()+`/players/${pid}/matches?season=${ss}`, { headers:{Authorization:'Bearer '+(App.getToken?.()||localStorage.getItem('efoot.token'))} });
-    const md = await mr.json(); const tb=document.getElementById('pmMatches'); tb.innerHTML='';
-    (md.matches||[]).sort((a,b)=> new Date(b.date)-new Date(a.date)).forEach(x=>{
-      const appendLeg = (leg, gf, ga)=>{ const tr=document.createElement('tr'); tr.innerHTML = `<td>${new Date(x.date).toLocaleDateString('fr-FR')}</td><td>${x.division}</td><td>${leg}</td><td>${gf}-${ga}</td>`; tb.appendChild(tr); };
-      if(x.aller)  appendLeg('Aller',  x.aller.gf,  x.aller.ga);
-      if(x.retour) appendLeg('Retour', x.retour.gf, x.retour.ga);
-    });
+    const st = await fetch(API+`/season/standings?season=${ss}`, { headers:{Authorization:'Bearer '+TOKEN} });
+    const sd = await st.json();
+    const list = sd.standings||[];
+    const idx = list.findIndex(x=>x.id===pid);
+    const rec = idx>=0 ? list[idx] : {};
+    $('#pmStats').textContent = (idx>=0)
+      ? `Rang ${idx+1} • Points ${rec.total ?? '—'} • Moyenne ${(rec.moyenne??0).toFixed ? (rec.moyenne||0).toFixed(2) : (rec.moyenne??'—')} • Participations ${rec.participations??0} • D1 ${rec.won_d1??0} • D2 ${rec.won_d2??0}`
+      : 'Aucune donnée dans le classement pour cette saison.';
+    const tb=$('#pmMatches');
+    tb.innerHTML = `<tr><td>${idx>=0?idx+1:'—'}</td><td>${rec.total??'—'}</td><td>${(rec.moyenne??'—')}</td><td>${rec.participations??'—'}</td><td>${rec.won_d1??'—'}</td><td>${rec.won_d2??'—'}</td></tr>`;
   }
   seasonSel.onchange = fill;
-  document.getElementById('pmH2hBtn').onclick = ()=> openH2H(pid);
+  $('#pmH2hBtn').onclick = ()=> openH2H(pid);
   await fill(); modal.showModal();
 }
 
+/* ===== Face-à-face (modale) — /faceoff/:oppId ===== */
 async function openH2H(oppId){
-  const modal = document.getElementById('h2hModal');
-  try{
-    const r = await fetch(App.getAPI()+`/faceoff/${encodeURIComponent(oppId)}`, { headers:{Authorization:'Bearer '+(App.getToken?.()||localStorage.getItem('efoot.token'))} });
-    const d = await r.json();
-    if(!r.ok) throw new Error(d.error||('HTTP '+r.status));
-
-    const title = `Face-à-face : ${d.me?.name||'Moi'} vs ${d.opponent?.name||oppId}`;
-    document.getElementById('h2hTitle').textContent = title;
+  const modal = $('#h2hModal');
+  async function load(){
+    const season = $('#h2hSeason').value || 'current';
+    const r = await fetch(API+`/faceoff/${encodeURIComponent(oppId)}?season=${encodeURIComponent(season)}`, { headers:{Authorization:'Bearer '+TOKEN} });
+    const d = await r.json(); if(!r.ok) return alert(d.error||'Erreur');
 
     const t = d.totals || {legs:0,wins:0,draws:0,losses:0,gf:0,ga:0};
-    const who = d.leader==='me' ? '<span class="badge win">Vous menez</span>' :
-                d.leader==='opponent' ? '<span class="badge lose">Adversaire en tête</span>' :
-                '<span class="badge draw">Égalité</span>';
+    $('#h2hTitle').textContent = `Face-à-face : ${(d.me?.name||'Moi')} vs ${(d.opponent?.name||'Adversaire')}`;
+    $('#h2hMePic').src = d.me?.profile_pic_url ? (API+d.me.profile_pic_url) : 'assets/fond.png';
+    $('#h2hW').textContent = `V ${t.wins}`; $('#h2hD').textContent = `N ${t.draws}`; $('#h2hL').textContent = `D ${t.losses}`;
+    $('#h2hGFGA').textContent = `${t.gf}-${t.ga}`;
 
-    const bestMe  = d.best_me  ? `${d.best_me.gf}-${d.best_me.ga} (${d.best_me.leg}, ${d.best_me.division}, ${new Date(d.best_me.date).toLocaleDateString('fr-FR')})` : '—';
-    const bestOpp = d.best_opp ? `${d.best_opp.gf}-${d.best_opp.ga} (${d.best_opp.leg}, ${d.best_opp.division}, ${new Date(d.best_opp.date).toLocaleDateString('fr-FR')})` : '—';
-
-    document.getElementById('h2hSummary').innerHTML =
-      `${who} • Manches: <b>${t.legs}</b> • V: <b>${t.wins}</b> • `+
-      `N: <b>${t.draws}</b> • D: <b>${t.losses}</b> • Buts: <b>${t.gf}</b>–<b>${t.ga}</b><br>`+
-      `Meilleur score (vous): <b>${bestMe}</b> • Meilleur (${d.opponent?.name||'Adversaire'}): <b>${bestOpp}</b>`;
-
-    const tb=document.getElementById('h2hBody'); tb.innerHTML='';
-    (d.legs||[]).forEach(L=>{
-      const badge = L.result==='W' ? 'win' : (L.result==='L' ? 'lose' : 'draw');
+    const tb=$('#h2hBody'); tb.innerHTML='';
+    (d.legs||[]).sort((a,b)=> new Date(b.date)-new Date(a.date)).forEach(L=>{
+      const badge = (+L.gf>+L.ga)?'win':(+L.gf<+L.ga?'lose':'draw');
       const tr=document.createElement('tr');
-      tr.innerHTML = `<td>${new Date(L.date).toLocaleDateString('fr-FR')}</td><td>${L.division}</td><td>${L.leg}</td><td><span class="badge ${badge}">${L.gf}&nbsp;–&nbsp;${L.ga}</span></td>`;
+      tr.innerHTML = `<td>${new Date(L.date).toLocaleDateString('fr-FR')}</td>
+                      <td>${L.division||''}</td>
+                      <td>${L.leg||''}</td>
+                      <td><span class="score-pill ${badge}">${L.gf}&nbsp;–&nbsp;${L.ga}</span></td>`;
       tb.appendChild(tr);
     });
-    modal.showModal();
-  }catch(e){
-    console.error(e);
-    document.getElementById('h2hSummary').textContent='Impossible de charger le face-à-face.';
-    document.getElementById('h2hBody').innerHTML='';
-    modal.showModal();
   }
+  if(!modal._bound){ $('#h2hSeason').addEventListener('change', load); modal._bound=true; }
+  await load(); modal.showModal();
 }
 
-/* ===== Classement général (bas de page) ===== */
-const $ = (s)=>document.querySelector(s);
+/* ===== Comparateur — basé sur /season/standings (routes dispo) ===== */
+const NAME_BY_ID = new Map();
+const PIC_BY_ID  = new Map();
+async function loadPlayersList(){
+  if(NAME_BY_ID.size) return;
+  const r=await fetch(API+'/players',{headers:{Authorization:'Bearer '+TOKEN}});
+  const d=await r.json();
+  (d.players||[]).forEach(p=>{
+    NAME_BY_ID.set(p.player_id, p.name||p.player_id);
+    PIC_BY_ID.set(p.player_id, p.profile_pic_url ? (API+p.profile_pic_url) : 'assets/fond.png');
+  });
+}
+function fillSelectOptions(sel){
+  sel.innerHTML = '<option value="">Choisir…</option>' + [...NAME_BY_ID.keys()]
+    .map(id=>`<option value="${id}">${NAME_BY_ID.get(id)} — ${id}</option>`).join('');
+}
+function buildCmpCard(pid, rec, rank){
+  const name = NAME_BY_ID.get(pid)||pid;
+  const pic  = PIC_BY_ID.get(pid)||'assets/fond.png';
+  const div = document.createElement('div'); div.className='card cmp-card';
+  div.innerHTML = `
+    <div style="display:flex;gap:10px;align-items:center">
+      <img src="${pic}" class="avatar">
+      <div>
+        <h4>${name}</h4>
+        <div class="muted">${pid}</div>
+      </div>
+    </div>
+    <div style="height:8px"></div>
+    <div class="stat-row"><span class="muted">Rang</span><b>${rank ?? '—'}</b></div>
+    <div class="stat-row"><span class="muted">Points</span><b>${rec.total ?? '—'}</b></div>
+    <div class="stat-row"><span class="muted">Moyenne</span><b>${(rec.moyenne??'—')}</b></div>
+    <div class="stat-row"><span class="muted">Participations</span><b>${rec.participations ?? 0}</b></div>
+    <div class="stat-row"><span class="muted">Titres D1 / D2</span><b>${rec.won_d1 ?? 0} / ${rec.won_d2 ?? 0}</b></div>
+    <div class="stat-row"><span class="muted">Équipes diff.</span><b>${rec.teams_used ?? 0}</b></div>
+  `;
+  return div;
+}
+(async function initComparator(){
+  await loadPlayersList();
+  fillSelectOptions($('#cmpA'));
+  fillSelectOptions($('#cmpB'));
 
+  $('#cmpSwap').onclick = ()=>{
+    const a=$('#cmpA').value, b=$('#cmpB').value;
+    $('#cmpA').value=b; $('#cmpB').value=a;
+  };
+
+  $('#cmpRun').onclick = async ()=>{
+    const A=$('#cmpA').value, B=$('#cmpB').value, season=$('#cmpSeason').value;
+    if(!A || !B || A===B) return alert('Choisir deux joueurs différents.');
+    $('#cmpOut').innerHTML = '<div class="muted">Chargement…</div>';
+    try{
+      const st = await fetch(API+`/season/standings?season=${season}`, { headers:{Authorization:'Bearer '+TOKEN} });
+      const sd = await st.json();
+      const list = sd.standings||[];
+      const iA=list.findIndex(x=>x.id===A), iB=list.findIndex(x=>x.id===B);
+      const recA=iA>=0?list[iA]:{}, recB=iB>=0?list[iB]:{};
+      const host = $('#cmpOut'); host.innerHTML=''; host.appendChild(buildCmpCard(A,recA,iA>=0?iA+1:'—')); host.appendChild(buildCmpCard(B,recB,iB>=0?iB+1:'—'));
+    }catch(e){ console.error(e); $('#cmpOut').innerHTML='<div class="muted">Erreur de chargement</div>'; }
+  };
+})();
+
+/* ===== Classement ===== */
 let seasonData=[];
-
 async function loadSeason(){
-  const API = (window.App?.getAPI?.()) || (localStorage.getItem('efoot.api') || ((location.protocol.startsWith('http')?location.protocol:'http:')+'//'+location.hostname+':3000')).replace(/\/+$/,'');
-  const token = (window.App?.getToken?.()) || localStorage.getItem('efoot.token');
   try{
-    const r=await fetch(`${API}/season/standings`,{headers:{'Authorization':`Bearer ${token}`}});
+    const r=await fetch(`${API}/season/standings`,{headers:{'Authorization':`Bearer ${TOKEN}`}});
     const d=await r.json();
     seasonData = d.standings||[];
     renderSeason();
-  }catch(e){
-    console.error(e);
-    seasonData = [];
-    renderSeason();
-  }
+  }catch(e){ console.error(e); seasonData=[]; renderSeason(); }
 }
-
-function escapeHtml(t){
-  return String(t||'').replace(/[&<>"']/g,m=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;','\'':'&#39;'}[m]));
-}
-
+function escapeHtml(t){return String(t||'').replace(/[&<>"']/g,m=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;','\'':'&#39;'}[m])||'');}
 function renderSeason(){
   const q = ($('#search')?.value||'').toLowerCase();
   const data = (seasonData||[]).filter(x=>(x.name||'').toLowerCase().includes(q) || (x.id||'').toLowerCase().includes(q));
@@ -528,8 +639,7 @@ function renderSeason(){
 
   const cards = $('#seasonCards'); if(cards) cards.innerHTML='';
   data.forEach((p,i)=>{
-    const div=document.createElement('div');
-    div.className='card';
+    const div=document.createElement('div'); div.className='card';
     div.innerHTML =
       '<div style="font-weight:700;margin-bottom:4px">'+(i+1)+'. '+escapeHtml(p.name||p.id||'')+'</div>'
       + '<div class="grid2">'
@@ -544,48 +654,33 @@ function renderSeason(){
     cards.appendChild(div);
   });
 }
-
-// interactions
-document.getElementById('seasonReload')?.addEventListener('click', loadSeason);
-document.getElementById('search')?.addEventListener('input', renderSeason);
-
-// chargement initial
+$('#seasonReload')?.addEventListener('click', loadSeason);
+$('#search')?.addEventListener('input', renderSeason);
 loadSeason();
-/* ===== Ping présence (membres) ===== */
+
+/* Toggle sections */
+function bindToggles(){
+  $$('.toggle-card').forEach(btn=>{
+    const id = btn.getAttribute('aria-controls');
+    const box = document.getElementById(id);
+    if(!box) return;
+    btn.addEventListener('click', ()=>{
+      const open = btn.getAttribute('aria-expanded')==='true';
+      btn.setAttribute('aria-expanded', open?'false':'true');
+      btn.textContent = open ? 'Développer' : 'Réduire';
+      box.hidden = open;
+    });
+  });
+}
+bindToggles();
+
+/* Ping présence (membres) */
 (function(){
   const role=(localStorage.getItem('efoot.role')||'member').toLowerCase();
-  const token=App.getToken?.(); const API=App.getAPI?.();
-  if(!token || role==='admin') return;
-  const ping = ()=> fetch(`${API}/presence/ping`, { method:'POST', headers:{Authorization:`Bearer ${token}`}}).catch(()=>{});
+  if(!TOKEN || role==='admin') return;
+  const ping = ()=> fetch(`${API}/presence/ping`, { method:'POST', headers:{Authorization:`Bearer ${TOKEN}`}}).catch(()=>{});
   ping(); setInterval(ping, 15000);
 })();
-// === Menu mobile robuste (id: menuToggle OR menuBtn)
-(function(){
-  const menu = document.getElementById('menu');
-  const toggle = document.getElementById('menuToggle') || document.getElementById('menuBtn');
-  if(!menu || !toggle) return;
-  function open(v){
-    menu.classList.toggle('open', v);
-    toggle.setAttribute('aria-expanded', v?'true':'false');
-  }
-  toggle.addEventListener('click', (e)=>{ e.stopPropagation(); open(!menu.classList.contains('open')); });
-  document.addEventListener('click', (e)=>{
-    if(!menu.classList.contains('open')) return;
-    if(e.target===toggle || menu.contains(e.target)) return;
-    open(false);
-  }, true);
-  document.addEventListener('keydown', (e)=>{ if(e.key==='Escape') open(false); });
-})();
-
-(function(){
-  const k='efoot.theme';
-  const apply=m=>{document.documentElement.classList.toggle('light',m==='light');localStorage.setItem(k,m);$('#theme').textContent=m==='light'?'🌙':'☀️'};
-  apply(localStorage.getItem(k)||'dark');
-  $('#theme').onclick=()=>apply(document.documentElement.classList.contains('light')?'dark':'light');
-})();
-
 </script>
-
-<footer style="text-align: center; font-family:'Gill Sans', 'Gill Sans MT', Calibri, 'Trebuchet MS', sans-serif;">Copyright © -GOUZEPE GAMING CLUB 2025</footer>
 </body>
 </html>

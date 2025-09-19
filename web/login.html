@@ -150,7 +150,7 @@
   <dialog id="cfg">
     <div class="dlg-h">Configuration de l’API</div>
     <div class="dlg-b">
-      <label>Adresse (ex: https://gouzepe-efootball.onrender.com)</label>
+      <label>Adresse (ex: https://gouzepe-app.onrender.com)</label>
       <input id="apiUrl">
       <div id="cfgMsg" class="muted">—</div>
     </div>
@@ -172,7 +172,7 @@
 })();
 
 /* ===== Helpers ===== */
-const PROD_API = 'https://gouzepe-efootball.onrender.com';
+const PROD_API = 'https://gouzepe-app.onrender.com';
 const isPrivateNet = (h)=>/^(localhost|127\.0\.0\.1|10\.\d+\.\d+\.\d+|192\.168\.\d+\.\d+|172\.(1[6-9]|2\d|3[01])\.\d+\.\d+)$/.test(h);
 const DEF_API = ()=>{
   const host = location.hostname || '';

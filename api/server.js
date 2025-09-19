@@ -50,10 +50,20 @@ const pool = new Pool(pgOpts);
 const app = express();
 const server = http.createServer(app);
 
-const allowedOrigins = (process.env.CORS_ORIGIN || '*')
-  .split(',')
-  .map(s => s.trim())
-  .filter(Boolean);
+const allowedOrigins = (process.env.CORS_ORIGIN || 
+  'https://gouzepe-api.onrender.com,http://localhost:3000,http://localhost:5173,*'
+).split(',').map(s=>s.trim()).filter(Boolean);
+
+app.use(cors({
+  origin: (origin, cb) => {
+    if (!origin || allowedOrigins.includes('*')) return cb(null, true);
+    return cb(null, allowedOrigins.includes(origin));
+  },
+  methods: ['GET','POST','PUT','DELETE','OPTIONS'],
+  allowedHeaders: ['Authorization','Content-Type'],
+  maxAge: 86400
+}));
+app.options('*', cors());
 
 const io = require('socket.io')(server, {
   cors: {

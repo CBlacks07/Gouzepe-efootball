@@ -19,10 +19,11 @@ const PORT = parseInt(process.env.PORT || '10000', 10);
 const JWT_SECRET = process.env.JWT_SECRET || '1XS1r4QJNp6AtkjORvKUU01RZRfzbGV+echJsio9gq8lAOc2NW7sSYsQuncE6+o9';
 const EMAIL_DOMAIN = process.env.EMAIL_DOMAIN || 'gz.local';
 
-/* Database (Render-friendly) */
+/* ====== Database (Render-friendly) ====== */
 const localHosts = new Set(['localhost','127.0.0.1']);
 const parsedDbUrl = (()=>{ try { return process.env.DATABASE_URL ? new URL(process.env.DATABASE_URL) : null; } catch(_) { return null; } })();
 const inferLocal = parsedDbUrl ? localHosts.has(parsedDbUrl.hostname) : localHosts.has(String(process.env.PGHOST||'').toLowerCase());
+
 const forceSSL = process.env.PGSSL_FORCE === 'true';
 const useSSL =
   forceSSL ? true :
@@ -45,9 +46,15 @@ const pgOpts = process.env.DATABASE_URL
 
 const pool = new Pool(pgOpts);
 
+/* ====== App ====== */
 const app = express();
 const server = http.createServer(app);
-const allowedOrigins = (process.env.CORS_ORIGIN || '*').split(',').map(s => s.trim()).filter(Boolean);
+
+const allowedOrigins = (process.env.CORS_ORIGIN || '*')
+  .split(',')
+  .map(s => s.trim())
+  .filter(Boolean);
+
 const io = require('socket.io')(server, {
   cors: {
     origin: (origin, cb) => {
@@ -65,7 +72,7 @@ const corsOptions = {
     if (!origin || allowedOrigins.includes('*')) return cb(null, true);
     return cb(null, allowedOrigins.includes(origin));
   },
-  credentials: false, // we use Authorization: Bearer, not cookies
+  credentials: false, // on utilise Authorization: Bearer (pas de cookies)
   methods: ['GET','POST','PUT','DELETE','OPTIONS'],
   allowedHeaders: ['Authorization','Content-Type'],
   exposedHeaders: ['Content-Length'],
@@ -116,16 +123,16 @@ function teamKey(raw){
     .normalize('NFD').replace(/[\u0300-\u036f]/g,'')                 // accents
     .replace(/\p{Emoji_Presentation}|\p{Extended_Pictographic}/gu,'')// emoji/drapeaux
     .toUpperCase()
-    .replace(/\b(FC|CF|SC|AC|REAL|THE)\b/g, ' ')                    // mots vides fréquents
-    .replace(/[^A-Z0-9]+/g,'')                                      // garde lettres/chiffres
+    .replace(/\b(FC|CF|SC|AC|REAL|THE)\b/g, ' ')
+    .replace(/[^A-Z0-9]+/g,'')
     .trim();
   return s.slice(0, TEAM_KEY_LEN);
 }
 
-/* ====== Schema (tolerant — no hard FKs) ====== */
+/* ====== Schema (tolérant) ====== */
 async function ensureSchema(){
 
-  /* ====== Duels table (additive) ====== */
+  /* duels */
   await q(`CREATE TABLE IF NOT EXISTS duels(
     id SERIAL PRIMARY KEY,
     p1_id TEXT NOT NULL,
@@ -136,52 +143,38 @@ async function ensureSchema(){
     created_at TIMESTAMPTZ DEFAULT now()
   )`);
 
-  // users
-  // users (tolerant, auto-migrations soft)
-await q(`CREATE TABLE IF NOT EXISTS users(
-  email TEXT UNIQUE NOT NULL,
-  password_hash TEXT NOT NULL,
-  role TEXT NOT NULL DEFAULT 'member',
-  player_id TEXT,
-  created_at TIMESTAMP DEFAULT now(),
-  last_login TIMESTAMP
-)`);
-
-// si la table existait déjà, on ajoute les colonnes manquantes
-await q(`ALTER TABLE users ADD COLUMN IF NOT EXISTS created_at TIMESTAMP DEFAULT now()`);
-await q(`ALTER TABLE users ADD COLUMN IF NOT EXISTS last_login TIMESTAMP`);
-await q(`ALTER TABLE users ADD COLUMN IF NOT EXISTS player_id TEXT`);
-await q(`ALTER TABLE users ADD COLUMN IF NOT EXISTS role TEXT`);
-
-// garantir une clé "id" même si très ancienne base (fallback sans IDENTITY)
-await q(`
-DO $$
-BEGIN
-  IF NOT EXISTS (
-    SELECT 1 FROM information_schema.columns
-    WHERE table_name='users' AND column_name='id'
-  ) THEN
-    -- crée une séquence si besoin
-    IF NOT EXISTS (
-      SELECT 1 FROM pg_class WHERE relkind='S' AND relname='users_id_seq'
-    ) THEN
-      CREATE SEQUENCE users_id_seq;
+  /* users (ajouts “soft”) */
+  await q(`CREATE TABLE IF NOT EXISTS users(
+    email TEXT UNIQUE NOT NULL,
+    password_hash TEXT NOT NULL,
+    role TEXT NOT NULL DEFAULT 'member',
+    player_id TEXT,
+    created_at TIMESTAMP DEFAULT now(),
+    last_login TIMESTAMP
+  )`);
+  await q(`ALTER TABLE users ADD COLUMN IF NOT EXISTS created_at TIMESTAMP DEFAULT now()`);
+  await q(`ALTER TABLE users ADD COLUMN IF NOT EXISTS last_login TIMESTAMP`);
+  await q(`ALTER TABLE users ADD COLUMN IF NOT EXISTS player_id TEXT`);
+  await q(`ALTER TABLE users ADD COLUMN IF NOT EXISTS role TEXT`);
+  await q(`
+  DO $$
+  BEGIN
+    IF NOT EXISTS (SELECT 1 FROM information_schema.columns WHERE table_name='users' AND column_name='id') THEN
+      IF NOT EXISTS (SELECT 1 FROM pg_class WHERE relkind='S' AND relname='users_id_seq') THEN
+        CREATE SEQUENCE users_id_seq;
+      END IF;
+      ALTER TABLE users ADD COLUMN id INTEGER;
+      ALTER TABLE users ALTER COLUMN id SET DEFAULT nextval('users_id_seq');
+      UPDATE users SET id = nextval('users_id_seq') WHERE id IS NULL;
+      BEGIN
+        ALTER TABLE users ADD PRIMARY KEY (id);
+      EXCEPTION WHEN duplicate_table THEN
+      END;
     END IF;
-    ALTER TABLE users ADD COLUMN id INTEGER;
-    ALTER TABLE users ALTER COLUMN id SET DEFAULT nextval('users_id_seq');
-    -- backfill pour les lignes existantes
-    UPDATE users SET id = nextval('users_id_seq') WHERE id IS NULL;
-    -- tente de poser la PK (ignore si déjà là)
-    BEGIN
-      ALTER TABLE users ADD PRIMARY KEY (id);
-    EXCEPTION WHEN duplicate_table THEN
-      -- ignore
-    END;
-  END IF;
-END$$;
-`);
+  END$$;
+  `);
 
-  // sessions (no FK to avoid deploy crashes on existing DBs)
+  /* sessions */
   await q(`CREATE TABLE IF NOT EXISTS sessions(
     id TEXT PRIMARY KEY,
     user_id INTEGER,
@@ -197,7 +190,7 @@ END$$;
   )`);
   await q(`CREATE INDEX IF NOT EXISTS sessions_user_active ON sessions(user_id) WHERE is_active`);
 
-  // seasons
+  /* seasons */
   await q(`CREATE TABLE IF NOT EXISTS seasons(
     id SERIAL PRIMARY KEY,
     name TEXT NOT NULL,
@@ -206,7 +199,7 @@ END$$;
     is_closed BOOLEAN NOT NULL DEFAULT false
   )`);
 
-  // matchday
+  /* matchday */
   await q(`CREATE TABLE IF NOT EXISTS matchday(
     day DATE PRIMARY KEY,
     season_id INTEGER,
@@ -214,7 +207,7 @@ END$$;
     created_at TIMESTAMPTZ DEFAULT now()
   )`);
 
-  // draft
+  /* draft */
   await q(`CREATE TABLE IF NOT EXISTS draft(
     day DATE PRIMARY KEY,
     payload JSONB NOT NULL,
@@ -223,7 +216,7 @@ END$$;
   )`);
   await q(`CREATE INDEX IF NOT EXISTS draft_author_idx ON draft(author_user_id)`);
 
-  // players
+  /* players */
   await q(`CREATE TABLE IF NOT EXISTS players(
     player_id TEXT PRIMARY KEY,
     name      TEXT NOT NULL,
@@ -233,7 +226,7 @@ END$$;
   )`);
   await q(`ALTER TABLE players ADD COLUMN IF NOT EXISTS profile_pic_url TEXT`);
 
-  // seed admin
+  /* seed admin */
   const adminEmail = process.env.ADMIN_EMAIL || 'admin@gz.local';
   const adminPass  = process.env.ADMIN_PASSWORD || 'admin';
   const row = await q(`SELECT id FROM users WHERE email=$1`,[adminEmail]);
@@ -243,7 +236,7 @@ END$$;
     console.log(`Seed admin: ${adminEmail} / ${adminPass}`);
   }
 
-  // season default
+  /* season par défaut */
   const s = await q(`SELECT id FROM seasons WHERE is_closed=false ORDER BY id DESC LIMIT 1`);
   if(s.rowCount===0){
     await q(`INSERT INTO seasons(name,is_closed) VALUES ('Saison courante', false)`);
@@ -258,7 +251,6 @@ function signToken(user, sessionId){
     { expiresIn: '24h' }
   );
 }
-
 function auth(req,res,next){
   (async ()=>{
     try{
@@ -270,7 +262,6 @@ function auth(req,res,next){
       const r = await q(`SELECT is_active,last_seen FROM sessions WHERE id=$1`, [p.sid]);
       if(!r.rowCount || !r.rows[0].is_active) return bad(res,401,'Session revoked');
 
-      // inactivity auto-revoke (24h)
       const last = r.rows[0].last_seen;
       if (last && Date.now() - new Date(last).getTime() > 24*3600*1000){
         await q(`UPDATE sessions SET is_active=false, revoked_at=now() WHERE id=$1`, [p.sid]);
@@ -284,7 +275,6 @@ function auth(req,res,next){
     }catch(e){ return bad(res,401,'Invalid token'); }
   })();
 }
-
 function adminOnly(req,res,next){
   if((req.user?.role||'member')!=='admin') return bad(res,403,'Admin only');
   next();
@@ -292,9 +282,9 @@ function adminOnly(req,res,next){
 
 /* ====== Health ====== */
 app.get('/healthz', (_req,res)=> ok(res,{ ok:true, service:'gouzepe-api', ts:Date.now() }));
-app.get('/health', (_req,res)=> ok(res,{ ok:true, service:'gouzepe-api', ts:Date.now() }));
+app.get('/health',  (_req,res)=> ok(res,{ ok:true, service:'gouzepe-api', ts:Date.now() }));
 
-/* ====== Auth (NO HANDOFF) ====== */
+/* ====== Auth (single-session simple) ====== */
 app.post('/auth/login', async (req,res)=>{
   let {email,password}=req.body||{};
   email = normEmail(email);
@@ -306,7 +296,6 @@ app.post('/auth/login', async (req,res)=>{
   const match = await bcrypt.compare(password, u.password_hash);
   if(!match) return bad(res,401,'Mot de passe incorrect');
 
-  // Single-session policy (simple): revoke all previous sessions then create a new one
   await q(`UPDATE sessions SET is_active=false, revoked_at=now() WHERE user_id=$1 AND is_active=true`, [u.id]);
 
   const sid = newId();
@@ -317,13 +306,11 @@ app.post('/auth/login', async (req,res)=>{
   await q(`UPDATE users SET last_login=now() WHERE id=$1`, [u.id]);
   ok(res,{ token, user:{id:u.id,email:u.email,role:u.role}, expHours:24 });
 });
-
 app.get('/auth/me', auth, async (req,res)=>{
   const r=await q(`SELECT id,email,role,player_id FROM users WHERE id=$1`,[req.user.uid]);
   if(!r.rowCount) return bad(res,404,'User not found');
   ok(res,{ user:r.rows[0] });
 });
-
 app.post('/auth/logout', auth, async (req,res)=>{
   await q(`UPDATE sessions SET is_active=false, revoked_at=now(), logout_at=now() WHERE id=$1`, [req.user.sid]);
   ok(res,{ ok:true });
@@ -391,7 +378,7 @@ app.delete('/admin/users/:id', auth, adminOnly, async (req,res)=>{
   ok(res,{ ok:true });
 });
 
-/* ====== Players (list/search/profile) ====== */
+/* ====== Players ====== */
 function markOnlineField(rows){
   const now=Date.now();
   return rows.map(p=>{
@@ -530,6 +517,22 @@ async function computeSeasonStandings(seasonId){
   return arr;
 }
 
+/* ====== /leaderboard (alias pour tes pages) ====== */
+app.get('/leaderboard', auth, async (req,res)=>{
+  const sid = await resolveSeasonId(req.query.season);
+  const list = await computeSeasonStandings(sid);
+  // adapte aux besoins front : name, player_id, points (=total), games (=participations)
+  const leaderboard = list.map(x=>({
+    player_id: x.id,
+    name: x.name,
+    points: x.total,
+    games: x.participations,
+    wins: undefined, draws: undefined, losses: undefined, // non calculés au niveau saison (optionnel)
+    gf: undefined, ga: undefined, gd: undefined
+  }));
+  ok(res,{ season_id:sid, leaderboard });
+});
+
 /* ====== Member panel (/me*) ====== */
 async function loadDaysForSeason(seasonId){
   const r = await q(`SELECT day,payload FROM matchday WHERE season_id=$1 ORDER BY day ASC`, [seasonId]);
@@ -549,7 +552,6 @@ function rowsForPlayer(payload, pid, date){
   }
   return out;
 }
-
 app.get('/me/player', auth, async (req,res)=>{
   const r=await q(`SELECT id,email,role,player_id FROM users WHERE id=$1`,[req.user.uid]);
   const user = r.rows[0];
@@ -701,7 +703,6 @@ app.put('/matchdays/:day/season', auth, adminOnly, async (req,res)=>{
   const day = req.params.day;
   const { season_id } = req.body||{};
   if(!season_id) return bad(res,400,'season_id requis');
-  // sanity check (no FK):
   const chk = await q(`SELECT 1 FROM seasons WHERE id=$1`,[+season_id]);
   if(!chk.rowCount) return bad(res,404,'saison inconnue');
   await q(`UPDATE matchday SET season_id=$2 WHERE day=$1`,[day,+season_id]);
@@ -841,7 +842,6 @@ app.get('/faceoff/:oppId', auth, async (req,res)=>{
   });
 });
 
-
 /* ====== Duels (additive) ====== */
 function normalizeDuelBody(body){
   const src = body && typeof body==='object' ? (body.duel && typeof body.duel==='object' ? body.duel : body) : {};
@@ -855,7 +855,6 @@ function normalizeDuelBody(body){
   const n = (x)=>{ const i = parseInt(x,10); return Number.isFinite(i) ? i : NaN; };
   return { p1, p2, score_a: n(sa), score_b: n(sb), played_at: when };
 }
-
 /* Create duel */
 app.post('/duels', async (req,res)=>{
   try{
@@ -874,7 +873,6 @@ app.post('/duels', async (req,res)=>{
     bad(res,500,'Server error');
   }
 });
-
 /* Recent duels */
 app.get('/duels/recent', async (req,res)=>{
   try{
@@ -901,7 +899,6 @@ app.get('/duels/recent', async (req,res)=>{
     bad(res,500,'Server error');
   }
 });
-
 /* Head-to-head */
 app.get('/duels/compare', async (req,res)=>{
   try{
@@ -947,7 +944,6 @@ app.get('/duels/compare', async (req,res)=>{
     bad(res,500,'Server error');
   }
 });
-
 /* Delete duel (admin) */
 app.delete('/duels/:id', auth, adminOnly, async (req,res)=>{
   try{
@@ -961,14 +957,11 @@ app.delete('/duels/:id', auth, adminOnly, async (req,res)=>{
   }
 });
 
-
 /* ====== WebSockets (no handoff) ====== */
 io.on('connection', (socket)=>{
   socket.on('join', ({room})=>{
     if(room && typeof room === 'string') socket.join(room);
   });
-
-  // relais des notifications de brouillon
   socket.on('draft:update', ({date})=>{
     if(!date) return;
     io.to(`draft:${date}`).emit('draft:update', { date });

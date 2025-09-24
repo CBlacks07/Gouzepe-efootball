@@ -25,12 +25,13 @@
     }
 
     /* ===== BACKDROP SLIDER (fonds/) ===== */
-    #bgSlider{
-      position:fixed; inset:0; z-index:0; pointer-events:none; opacity:.20; transition:opacity .5s ease;
-      background-position:center; background-size:cover; background-repeat:no-repeat;
-      filter:saturate(.9) contrast(.98) brightness(.95);
-    }
-    html.light #bgSlider{opacity:.15; filter:saturate(.85) contrast(.95) brightness(1)}
+    .bg-wrap{position:fixed; inset:0; z-index:0; pointer-events:none; overflow:hidden}
+.bg-video{position:absolute; min-width:100%; min-height:100%;
+          width:auto; height:auto; top:50%; left:50%;
+          transform:translate(-50%,-50%); opacity:.25; filter:contrast(.98) saturate(.9)}
+html.light .bg-video{opacity:.18; filter:contrast(.95) saturate(.85)}
+
+
     .overlayGrad{
       position:fixed; inset:0; z-index:1; pointer-events:none;
       background: radial-gradient(60% 40% at 10% 0%, rgba(59,130,246,.14), transparent 60%),
@@ -141,8 +142,15 @@
 </head>
 <body>
   <!-- Backdrops -->
-  <div id="bgSlider" aria-hidden="true"></div>
-  <div class="overlayGrad" aria-hidden="true"></div>
+<div class="bg-wrap" aria-hidden="true">
+  <video id="bgVideo"
+         class="bg-video"
+         autoplay muted loop playsinline preload="auto"
+         poster="fonds/bg.jpg">
+    <source src="fonds/bg.webm" type="video/webm">
+    <source src="fonds/bg.mp4"  type="video/mp4">
+  </video>
+</div>
 
   <!-- ===== TOP ===== -->
   <header class="top" id="topbar">
@@ -748,31 +756,16 @@
     }
   });
 
-  /* ===== Diaporama images fonds/ ===== */
-  (function bgSlider(){
-    // Mets ici les noms réels si besoin. Le code teste l’existence et ne garde que celles qui chargent.
-    const candidates = [
-      'fonds/image1.jpg','fonds/image2.jpg','fonds/image3.jpg','fonds/image4.jpg',
-      'fonds/image5.jpg','fonds/image6.jpg', 'fonds/image7.jpg','fonds/image8.jpg',
-      'fonds/image9.jpg','fonds/image10.jpg','fonds/image11.jpg','fonds/image12.jpg',
-    ];
-    const ok=[];
-    let idx=0, timer=null;
-    const host=document.getElementById('bgSlider');
-    const preload = (src)=> new Promise(res=>{
-      const im=new Image(); im.onload=()=>res(src); im.onerror=()=>res(null); im.src=src+'?v='+(Date.now()%1e6);
-    });
-    (async ()=>{
-      for(const p of candidates){ const r=await preload(p); if(r) ok.push(r); }
-      if(!ok.length){ host.style.display='none'; return; }
-      const show=(i)=>{ host.style.backgroundImage = `url('${ok[i]}')`; };
-      show(0);
-      timer=setInterval(()=>{ idx=(idx+1)%ok.length; show(idx); }, 7000);
-      document.addEventListener('visibilitychange',()=>{ if(document.hidden){ clearInterval(timer); } else { timer=setInterval(()=>{ idx=(idx+1)%ok.length; show(idx); }, 7000); }});
-    })();
-  })();
+  (function(){
+  const v = document.getElementById('bgVideo');
+  if(!v) return;
+  // Respecte "réduire les animations"
+  const pr = window.matchMedia('(prefers-reduced-motion: reduce)');
+  function apply(){ if(pr.matches){ v.pause(); v.currentTime = 0; } else { v.play().catch(()=>{}); } }
+  pr.addEventListener ? pr.addEventListener('change', apply) : pr.addListener(apply);
+  apply();
+})();
 
-  /* ===== Boot ===== */
   (async function(){
     await loadSession();
     await loadPlayers();

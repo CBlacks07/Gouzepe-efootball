@@ -529,12 +529,12 @@ async function loadHeadline(){
   }
 }
 
+
 async function loadNextFixtures(){
   const box=$('#next-fixtures'); box.innerHTML='';
   try{
     const s=await loadSeason(); const sid=s?.id; if(!sid) return;
-
-    // samedi suivant CALENDAIRE, même si la journée n'existe pas en base
+    // samedi suivant CALENDAIRE, même si la journée n'existe pas encore en base
     function toISODateLocal(d){
       const y=d.getFullYear();
       const m=String(d.getMonth()+1).padStart(2,'0');
@@ -543,12 +543,12 @@ async function loadNextFixtures(){
     }
     const now=new Date();
     const nextSat=new Date(now);
-    const dow=now.getDay();              // 0..6
-    const add=((6 - dow + 7) % 7) || 7;  // toujours samedi SUIVANT
+    const dow=now.getDay(); // 0..6
+    const add=((6 - dow + 7) % 7) || 7; // toujours le VRAI samedi suivant
     nextSat.setDate(now.getDate()+add);
     const target = toISODateLocal(nextSat);
 
-    // On ne teste QUE cette date (publiée ou brouillon)
+    // On cherche UNIQUEMENT cette date (publiée ou brouillon)
     let url=null;
     try{
       const rr = await fetch(API()+`/matchdays/${encodeURIComponent(target)}`,hd());
@@ -575,6 +575,25 @@ async function loadNextFixtures(){
     console.warn('next fixtures error', e);
   }
 }
+
+      }
+    }catch(e){
+      console.warn('next fixtures inner error', e);
+    }
+
+    const li=el('li','item');
+    li.innerHTML = url
+      ? `<div><strong>Prochaine journée</strong><div class="meta">${labelDate}</div></div><a class="btn ghost" href="${url}">Voir</a>`
+      : `<div><strong>Prochaine journée</strong><div class="meta">${labelDate} — pas encore créée</div></div>`;
+    box.appendChild(li);
+  }catch(e){
+    const li=el('li','item'); 
+    li.innerHTML='<div><strong>Prochaine journée</strong><div class="meta">Erreur de chargement</div></div>'; 
+    box.appendChild(li);
+    console.warn('next fixtures error', e);
+  }
+}
+
 
   /* ============ JOURNÉE: STATE / OUTILS ============ */
   const S = { d1:[], d2:[], barr:{}, champions:{ d1:{}, d2:{} } };

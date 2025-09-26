@@ -120,6 +120,87 @@
     }
   </style>
 
+  <style id="theme-fix">
+    /* ===== Visual refresh: higher contrast & clearer buttons (dark/light) ===== */
+    :root{
+      --accent:#2563eb; /* blue-600 */
+      --brand:#16a34a;  /* green-600 */
+      --warn:#f59e0b;   /* amber-500 */
+      --danger:#ef4444; /* red-500 */
+      --focus: 0 0 0 3px color-mix(in srgb, var(--accent) 35%, transparent);
+    }
+    :root.light{
+      --accent:#1d4ed8; /* blue-700 for light */
+      --brand:#15803d;  /* green-700 */
+      --danger:#dc2626; /* red-600 */
+    }
+
+    /* Buttons */
+    .btn{ font-weight:700; border-radius:999px; padding:10px 14px; }
+    .btn:focus-visible{ outline: var(--focus); }
+    .btn.primary{ background: var(--brand); color:#fff; border-color: color-mix(in srgb, var(--brand) 60%, var(--border)); }
+    .btn.primary:hover{ filter:none; background: color-mix(in srgb, var(--brand) 88%, black 12%); }
+    .btn.info{ background: var(--accent); color:#fff; border-color: color-mix(in srgb, var(--accent) 60%, var(--border)); }
+    .btn.info:hover{ filter:none; background: color-mix(in srgb, var(--accent) 88%, black 12%); }
+    .btn.danger{ background: var(--danger); color:#fff; border-color: color-mix(in srgb, var(--danger) 60%, var(--border)); }
+    .btn.danger:hover{ filter:none; background: color-mix(in srgb, var(--danger) 88%, black 12%); }
+    .btn.ghost{ background: transparent; border-color: var(--border); }
+    .btn[disabled]{ opacity:.6; cursor:not-allowed; }
+
+    /* Inputs */
+    select,input,textarea{
+      background: var(--input-bg); color: var(--input-text);
+      border:1px solid var(--border);
+    }
+    select:focus,input:focus,textarea:focus{
+      outline: var(--focus); border-color: color-mix(in srgb, var(--accent) 60%, var(--border));
+    }
+
+    /* Top bar tweaks */
+    .top{ border-bottom:1px solid var(--border); }
+    .menu .btn{ padding:8px 12px; }
+    .menu-toggle{ border-color: var(--border); }
+    .menu.top{ background: var(--panel); }
+
+    /* Cards & headings */
+    .card{ border-color: var(--border); }
+    .h3{ font-size:20px; margin:4px 0 12px; }
+    label{ color: var(--muted); }
+
+    /* Pills (result selector) */
+    .pill{ background: var(--panel); }
+    .pill[data-v="A"]{ background: color-mix(in srgb, var(--brand) 18%, transparent); }
+    .pill[data-v="D"]{ background: color-mix(in srgb, var(--muted) 16%, transparent); }
+    .pill[data-v="B"]{ background: color-mix(in srgb, var(--accent) 18%, transparent); }
+    .pill.active{ outline: 2px solid color-mix(in srgb, var(--accent) 55%, transparent); }
+
+    /* Table improvements */
+    thead th{ background: color-mix(in srgb, var(--panel) 94%, transparent); }
+    tbody tr:hover{ background: color-mix(in srgb, var(--panel) 88%, transparent); }
+    .table-wrap{ overflow:auto; border-radius:12px; }
+
+    /* Tags for W/D/L with stronger contrast */
+    .tag{ font-weight:800; }
+    .tag.win{ color:#065f46; background: color-mix(in srgb, #10b981 22%, var(--panel)); border-color: color-mix(in srgb, #059669 40%, var(--border)); }
+    .tag.draw{ color:#334155; background: color-mix(in srgb, #94a3b8 22%, var(--panel)); border-color: color-mix(in srgb, #475569 40%, var(--border)); }
+    .tag.lose{ color:#1e3a8a; background: color-mix(in srgb, #60a5fa 22%, var(--panel)); border-color: color-mix(in srgb, #1d4ed8 40%, var(--border)); }
+    :root.light .tag.win{ color:#064e3b; }
+    :root.light .tag.draw{ color:#0f172a; }
+    :root.light .tag.lose{ color:#1e3a8a; }
+
+    /* Danger link more visible */
+    .danger-link{ color:#fecaca; }
+    .danger-link:hover{ text-decoration:underline; }
+
+    /* Responsive spacing */
+    @media (max-width:700px){
+      .row{ gap:12px; }
+      .field{ min-width:unset; flex:1; }
+      .right .btn{ width:100%; justify-content:center; }
+    }
+  </style>
+
+
   <!-- Intercepteur logout (Annuler = reste connecté) -->
   <script>
   (function hardenLogout(){

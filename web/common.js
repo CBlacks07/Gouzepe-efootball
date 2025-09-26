@@ -1,102 +1,217 @@
-/* ===== common.js (Render-ready, API par défaut: https://gouzepe-api.onrender.com) ===== */
+/* ===== common.js (factorisé) ===== */
+
 (() => {
+  // --- utils existants minimal (pour compat) ---
+  const $  = (s) => document.querySelector(s);
+
+  // --- Inject favicon/logo pour toutes les pages qui chargent common.js ---
+  (function ensureFavicon(){
+    const head = document.head || document.getElementsByTagName('head')[0];
+    if(!head) return;
+
+    // Si une icône existe déjà, ne rien faire
+    if (head.querySelector('link[rel~="icon"], link[rel="shortcut icon"]')) return;
+
+    const href = 'assets/fond.png';         // ← logo du club
+    const sizes = ['32x32','192x192'];      // tailles classiques
+    const links = [
+      ['icon', 'image/png', sizes[0], href],
+      ['icon', 'image/png', sizes[1], href],
+      ['apple-touch-icon', 'image/png', '180x180', href],
+      ['shortcut icon', 'image/png', '', href]
+    ];
+
+    links.forEach(([rel,type,size,url]) => {
+      const l = document.createElement('link');
+      l.setAttribute('rel', rel);
+      if (type)  l.setAttribute('type', type);
+      if (size)  l.setAttribute('sizes', size);
+      l.setAttribute('href', url);
+      head.appendChild(l);
+    });
+
+    // Couleur de thème pour adresse barre mobile
+    if(!head.querySelector('meta[name="theme-color"]')){
+      const m = document.createElement('meta');
+      m.setAttribute('name','theme-color');
+      m.setAttribute('content','#0b1119');
+      head.appendChild(m);
+    }
+  })();
+
+  // --- le reste de ton common.js original peut rester inchangé ici ---
+})();
+
+
+(() => {
+  // ---------- Utils & accès globaux ----------
   const $  = (s) => document.querySelector(s);
   const $$ = (s) => Array.from(document.querySelectorAll(s));
 
-  const PROD_DEFAULT = "https://gouzepe-api.onrender.com".replace(/\/+$/,''); // ← ton API Render
-  const isPrivateNet = (h)=>/^(localhost|127\.0\.0\.1|10\.\d+\.\d+\.\d+|192\.168\.\d+\.\d+|172\.(1[6-9]|2\d|3[01])\.\d+\.\d+)$/.test(h);
+  const DEF_API = () =>
+    (location.protocol.startsWith('http') ? location.protocol : 'http:') +
+    '//' + location.hostname + ':3000';
 
-  function DEF_API(){
-    const host = location.hostname || 'localhost';
-    if(isPrivateNet(host)){
-      const proto = location.protocol.startsWith('http') ? location.protocol : 'http:';
-      return proto + '//' + host + ':3000';
-    }
-    // En prod: on utilise directement ton API Render
-    return PROD_DEFAULT;
+  const getAPI  = () => (localStorage.getItem('efoot.api') || DEF_API()).replace(/\/+$/, '');
+  const getTok  = () => localStorage.getItem('efoot.token') || '';
+  const getRole = () => (localStorage.getItem('efoot.role') || 'member').toLowerCase();
+  const getExp  = () => +localStorage.getItem('efoot.expAt') || 0;
+
+  function toast(msg){
+    const s = document.querySelector('#status');
+    if (!s) { console.log(msg); return; }
+    s.textContent = msg; s.style.opacity = 1; setTimeout(() => s.style.opacity = .75, 1200);
   }
 
-  function getAPI(){ return (localStorage.getItem('efoot.api') || DEF_API()).replace(/\/+$/,''); }
-  function setAPI(v){ localStorage.setItem('efoot.api', (v||'').replace(/\/+$/,'')); }
-  function getTok(){ return localStorage.getItem('efoot.token') || ''; }
-  function getRole(){ return (localStorage.getItem('efoot.role')||'member').toLowerCase(); }
-  function getExp(){ return +localStorage.getItem('efoot.expAt') || 0; }
-
-  async function safeFetch(url, opt = {}, ms = 10000){
+  async function safeFetch(url, opt = {}, ms = 8000){
     const ctrl = new AbortController();
-    const t = setTimeout(()=>ctrl.abort(), ms);
+    const t = setTimeout(() => ctrl.abort(), ms);
     try { return await fetch(url, { signal: ctrl.signal, ...opt }); }
     finally { clearTimeout(t); }
   }
 
-  async function waitForHealth(base, maxMs=45000){
-    const start = Date.now();
-    let delay = 900;
-    while(Date.now()-start < maxMs){
-      try{
-        const r = await safeFetch(base + '/health', { cache:'no-store' }, Math.min(4000, delay));
-        if(r && r.ok) return true;
-      }catch(_){}
-      await new Promise(res=>setTimeout(res, delay));
-      delay = Math.min(5000, Math.round(delay*1.5));
-    }
-    return false;
+  function logout(){
+    ['efoot.token','efoot.role','efoot.expAt'].forEach(k => localStorage.removeItem(k));
+    location.href = 'login.html';
   }
 
-  async function logout(){
-    try{
-      const token = getTok();
-      if(token) await safeFetch(getAPI()+'/auth/logout', { method:'POST', headers:{Authorization:'Bearer '+token} }, 6000);
-    }catch(_){}
-    const keep = new Map([['efoot.theme', localStorage.getItem('efoot.theme')], ['efoot.api', getAPI()]]);
-    localStorage.clear();
-    keep.forEach((v,k)=> v!=null && localStorage.setItem(k,v));
-    location.replace('login.html');
+  function requireAdmin(){
+    if (getRole() !== 'admin') location.replace('accueil.html');
   }
 
-  // Expose
+  // Expose minimal API globale
   window.$ = $; window.$$ = $$;
-  window.API = getAPI;     // ATTENTION : c'est une FONCTION => toujours faire API()
+  window.API  = getAPI();
   window.token = getTok();
   window.role  = getRole();
   window.expAt = getExp();
-  window.App = { $, $$, getAPI, setAPI, getToken:getTok, getRole, getExp, waitForHealth, logout };
+  window.App = { $, $$, getAPI, getToken: getTok, getRole, getExp, toast, safeFetch, logout, requireAdmin };
 
-  // Auto-config première visite : impose ton API Render si rien n'est défini
-  (function ensureAPI(){
-    if(!localStorage.getItem('efoot.api')){
-      localStorage.setItem('efoot.api', PROD_DEFAULT);
-      // pas de reload obligatoire; les prochains fetch utiliseront API()
+  /* auto-discovery de l’API (premier chargement, sans action utilisateur) */
+  (async function autoDiscoverAPI(){
+    if (localStorage.getItem('efoot.api')) return;
+    const candidates = [];
+    const h = location.hostname;
+    if (h.endsWith('.onrender.com')) {
+      if (h.includes('-static')) candidates.push('https://' + h.replace('-static', '-api'));
+      candidates.push('https://' + h.replace('-static', ''));
+    }
+    candidates.push(DEF_API());
+    for (const base of candidates) {
+      try {
+        const r = await safeFetch(base.replace(/\/+$/,'') + '/health', { cache:'no-store' }, 2500);
+        if (r && r.ok) {
+          localStorage.setItem('efoot.api', base.replace(/\/+$/,''));
+          location.reload();
+          return;
+        }
+      } catch (_) {}
     }
   })();
 
-  // Auth guard (toutes pages sauf login)
+  // ---------- Auth guard (toutes pages sauf login) ----------
   (function guard(){
     const here = (location.pathname.split('/').pop() || '').toLowerCase();
     const isLogin = here === '' || here === 'login.html';
     if (isLogin) return;
+
     const tok = getTok(), exp = getExp();
     if (!tok || Date.now() >= exp) { location.replace('login.html'); return; }
-    if (here.startsWith('admin-') && getRole() !== 'admin') { location.replace('Accueil.html'); return; }
-    $$('.adminOnly').forEach(el => el.style.display = (getRole() === 'admin') ? 'inline-flex' : 'none');
-  })();
 
-  // Thème
+    // Pages admin : tout sauf Admin-Joueurs reste réservé aux admins
+    if (here.startsWith('admin-')) {
+      const isAdmin = (getRole() || '').toLowerCase() === 'admin';
+      const isPlayersAdmin = here === 'admin-joueurs.html';
+      
+    }
+})();
+
+  // ---------- Affichage "adminOnly" ----------
+  $$('.adminOnly').forEach(el => el.style.display = (getRole() === 'admin') ? 'inline-flex' : 'none');
+
+  // ---------- Thème ----------
   (function theme(){
-    const k='efoot.theme'; const btn = document.querySelector('#theme');
-    const apply = (m)=>{ document.documentElement.classList.toggle('light', m==='light'); localStorage.setItem(k,m); if(btn) btn.textContent=(m==='light')?'🌙':'☀️'; };
-    apply(localStorage.getItem(k)||'dark');
-    btn?.addEventListener('click', ()=> apply(document.documentElement.classList.contains('light') ? 'dark' : 'light'));
+    const k = 'efoot.theme';
+    const btn = document.querySelector('#theme');
+    const apply = (m) => {
+      document.documentElement.classList.toggle('light', m === 'light');
+      localStorage.setItem(k, m);
+      if (btn) btn.textContent = (m === 'light') ? '🌙' : '☀️';
+    };
+    apply(localStorage.getItem(k) || 'dark');
+    if (btn) btn.addEventListener('click', () =>
+      apply(document.documentElement.classList.contains('light') ? 'dark' : 'light'));
   })();
 
-  // Menu mobile
+  // ---------- Menu mobile ----------
   (function menu(){
-    const btn=$('#menuToggle'), menu=$('#menu'); if(!btn||!menu) return;
-    btn.addEventListener('click', (ev)=>{ ev.stopPropagation(); const open=menu.classList.toggle('open'); btn.setAttribute('aria-expanded', open?'true':'false'); }, {passive:true});
-    document.addEventListener('click', (e)=>{ if(!menu.classList.contains('open')) return; if(e.target===btn||menu.contains(e.target)) return; menu.classList.remove('open'); btn.setAttribute('aria-expanded','false'); }, true);
-    document.addEventListener('keydown', (e)=>{ if(e.key==='Escape'&&menu.classList.contains('open')){ menu.classList.remove('open'); btn.setAttribute('aria-expanded','false'); } });
+    const btn = document.querySelector('#menuToggle');
+    const menu = document.querySelector('#menu');
+    if (!btn || !menu) return;
+    btn.addEventListener('click', () => {
+      const open = menu.classList.toggle('open');
+      btn.setAttribute('aria-expanded', open ? 'true' : 'false');
+      btn.setAttribute('aria-label', open ? 'Fermer le menu' : 'Ouvrir le menu');
+    });
+    document.addEventListener('click', (e) => {
+      if (!menu.classList.contains('open')) return;
+      if (e.target === btn || menu.contains(e.target)) return;
+      menu.classList.remove('open');
+      btn.setAttribute('aria-expanded', 'false');
+      btn.setAttribute('aria-label', 'Ouvrir le menu');
+    });
   })();
 
-  // Logout button (si présent)
-  document.querySelector('#logoutBtn')?.addEventListener('click', (e)=>{ e.preventDefault(); logout(); });
+  // ---------- Logout ----------
+  const logoutBtn = document.querySelector('#logoutBtn');
+  if (logoutBtn) logoutBtn.addEventListener('click', logout);
+})();
+
+
+
+(async function bindLogout(){
+  const btn = document.getElementById('logoutBtn');
+  if(!btn) return;
+
+  // utilitaires
+  const isPrivateNet = (h)=>/^(localhost|127\.0\.0\.1|10\.\d+\.\d+\.\d+|192\.168\.\d+\.\d+|172\.(1[6-9]|2\d|3[01])\.\d+\.\d+)$/.test(h);
+  const DEF_API = ()=>{
+    const host = location.hostname || '';
+    if (isPrivateNet(host)) {
+      return (location.protocol.startsWith('http') ? location.protocol : 'http:') + '//' + host + ':3000';
+    }
+    return 'https://gouzepe-efootball.onrender.com';
+  };
+  const API = (localStorage.getItem('efoot.api')||DEF_API()).replace(/\/+$/,'');
+
+  async function clearCaches(){
+    try{
+      // Préserver quelques clés utiles
+      const preserve = new Set(['efoot.theme','efoot.api']);
+      for(let i=localStorage.length-1; i>=0; i--){
+        const k = localStorage.key(i);
+        if(!preserve.has(k)) localStorage.removeItem(k);
+      }
+      try{ sessionStorage.clear(); }catch(_){}
+      if('caches' in window){
+        const keys = await caches.keys();
+        for(const k of keys) await caches.delete(k);
+      }
+    }catch(_){}
+  }
+
+  async function fullLogout(){
+    const token = localStorage.getItem('efoot.token');
+    try{
+      await fetch(API+'/auth/logout',{ method:'POST', headers:{ Authorization:'Bearer '+token } });
+    }catch(_){}
+    await clearCaches();
+    // petite latence pour flush
+    setTimeout(()=> location.replace('login.html'), 180);
+  }
+
+  btn.addEventListener('click', async ()=>{
+    if(!confirm('Voulez-vous vraiment vous déconnecter ?')) return;
+    await fullLogout();
+  });
 })();

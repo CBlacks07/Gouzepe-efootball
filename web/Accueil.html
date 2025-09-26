@@ -3,7 +3,7 @@
 <head>
   <meta charset="utf-8" />
   <title>GOUZEPE eFOOTBALL — Accueil</title>
-  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <meta name="viewport" content="width=device-width, i nitial-scale=1" />
   <link rel="stylesheet" href="theme.css">
   <link rel="stylesheet" href="common.css">
   <style>
@@ -411,35 +411,170 @@ html.light .bg-video{opacity:.18; filter:contrast(.95) saturate(.85)}
       (d.players||[]).forEach(p=>{ const o=document.createElement('option'); o.value=p.player_id; o.label=`${p.player_id} — ${p.name}`; dl.appendChild(o); });
     }catch(_){}
   }
-  async function loadHeadline(){
-    const news=$('#news'); news.innerHTML='';
+  
+
+
+async function loadHeadline(){
+  const news=$('#news'); news.innerHTML='';
+  try{
+    const s = await loadSeason(); const sid = s?.id;
+    if(!sid){
+      const li=el('li','item'); li.innerHTML='<div><strong>À la une</strong><div class="meta">Aucune saison active</div></div>'; news.appendChild(li);
+      return;
+    }
+    const rDays = await (await fetch(API()+`/seasons/${sid}/matchdays`,hd())).json();
+    const days = (rDays.days||[]).sort();
+    if(!days.length){
+      const li=el('li','item'); li.innerHTML='<div><strong>À la une</strong><div class="meta">Aucune journée planifiée</div></div>'; news.appendChild(li);
+      return;
+    }
+
+    // Dernière journée publiée (sinon brouillon le plus récent)
+    let lastDay = null, payload = null;
+    for(let i=days.length-1;i>=0;i--){
+      const d = days[i];
+      try{
+        const rr = await fetch(API()+`/matchdays/${encodeURIComponent(d)}`,hd());
+        if(rr.ok){ payload = await rr.json(); lastDay = d; break; }
+      }catch(_){}
+    }
+    if(!lastDay){
+      lastDay = days[days.length-1];
+      try{
+        const rDraft = await fetch(API()+`/matchdays/draft/${encodeURIComponent(lastDay)}`,hd());
+        if(rDraft.ok){ const d = await rDraft.json(); payload = d.payload||{}; }
+      }catch(_){}
+    }
+    if(!payload){
+      const li=el('li','item'); li.innerHTML='<div><strong>À la une</strong><div class="meta">Aucune journée publiée</div></div>'; news.appendChild(li);
+      return;
+    }
+
+    // Classements du jour
+    const st1 = computeStandingsDay(payload.d1||[]);
+    const st2 = computeStandingsDay(payload.d2||[]);
+    const sp1 = splitAndRankDaily(st1);
+    const sp2 = splitAndRankDaily(st2);
+    const winnerD1 = sp1.main[0]?.id || null;
+    const winnerD2 = sp2.main[0]?.id || null;
+
+    // Invité en vue
+    const guests = [...sp1.inv, ...sp2.inv];
+    guests.sort((a,b)=> b.PTS-a.PTS || b.DIFF-a.DIFF || b.BP-a.BP);
+    const bestGuest = guests[0] || null;
+
+    // Mouvement au général (avant vs après)
+    const pointsD1=(n,rank)=> (rank<1||rank>n)?0 : 9+(n-rank);
+    const pointsD2=(rank)=> [10,8,7,6,5,4,3,2,1,1,1][rank-1] || 1;
+    async function tableFor(daysSubset){
+      const totals = new Map();
+      const ensure = id => { id=String(id); if(!totals.has(id)) totals.set(id,{id,total:0,part:0}); return totals.get(id); };
+      for(const d of daysSubset){
+        let pl=null;
+        try{ const r=await fetch(API()+`/matchdays/${encodeURIComponent(d)}`,hd()); if(r.ok) pl=await r.json(); }catch(_){}
+        if(!pl){
+          try{ const r=await fetch(API()+`/matchdays/draft/${encodeURIComponent(d)}`,hd()); if(r.ok){ const dd=await r.json(); pl=dd.payload||{}; } }catch(_){}
+        }
+        if(!pl) continue;
+        const s1 = splitAndRankDaily(computeStandingsDay(pl.d1||[])).main;
+        const s2 = splitAndRankDaily(computeStandingsDay(pl.d2||[])).main;
+        s1.forEach((row,i)=>{ const o=ensure(row.id); o.total += pointsD1(s1.length, i+1); o.part++; });
+        s2.forEach((row,i)=>{ const o=ensure(row.id); o.total += pointsD2(i+1);           o.part++; });
+        const champ = pl?.champions?.d1?.id;
+        if(champ){ const o=ensure(champ); o.total += 1; }
+      }
+      return [...totals.values()].map(o=>({id:o.id,total:o.total,avg:o.part?+(o.total/o.part).toFixed(2):0}))
+        .sort((a,b)=> b.avg-a.avg || b.total-a.total || String(a.id).localeCompare(String(b.id)));
+    }
+
+    let dropText = '—'; let riseText = '—';
     try{
-      const st=await (await fetch(API()+'/standings',hd())).json();
-      const pls=await (await fetch(API()+'/players',hd())).json();
-      const byId=new Map((pls.players||[]).map(p=>[p.player_id,p]));
-      const top=(st.standings||[]).slice(0,3);
-      if(top.length){
-        const li=el('li','item');
-        li.innerHTML='<div><strong>Top saison</strong><div class="meta">'+top.map((r,i)=>{const p=byId.get(r.id)||{};return (i+1)+'. '+(p.name||('Joueur #'+r.id))+' ('+(r.total||r.points||0)+' pts)'}).join(' • ')+'</div></div><a class="btn ghost" href="./Classement-general.html">Détails</a>';
-        news.appendChild(li);
+      const ix = days.indexOf(lastDay);
+      if(ix>0){
+        const before = days.slice(0, ix);
+        const after  = days.slice(0, ix+1);
+        const tb = await tableFor(before);
+        const ta = await tableFor(after);
+        const rmap = arr => { const m=new Map(); arr.forEach((o,i)=>m.set(String(o.id), i+1)); return m; };
+        const rb = rmap(tb), ra = rmap(ta);
+        let worst=null, best=null;
+        ra.forEach((rA,id)=>{
+          if(!rb.has(id)) return;
+          const delta = rA - rb.get(id);
+          if(delta>0 && (!worst || delta>worst.delta)) worst = { id, delta, from: rb.get(id), to: rA };
+          if(delta<0 && (!best  || delta<best.delta )) best  = { id, delta, from: rb.get(id), to: rA };
+        });
+        if(worst) dropText = `${worst.id} a perdu ${worst.delta} place(s) (${worst.from} → ${worst.to})`;
+        if(best){ const g=-best.delta; riseText = `${best.id} a gagné ${g} place(s) (${best.from} → ${best.to})`; }
       }
     }catch(_){}
-    try{
-      const on=await (await fetch(API()+'/presence/online',hd())).json();
-      const li=el('li','item'); li.innerHTML='<div><strong>Joueurs connectés</strong><div class="meta">'+((on.online||[]).length)+' en ligne</div></div>';
+
+    const fmt = new Date(lastDay).toLocaleDateString('fr-FR',{weekday:'long', day:'2-digit', month:'long', year:'numeric'});
+    const items = [
+      {title:'Journée', meta: fmt},
+      {title:'D1 — Premier', meta: winnerD1 ? String(winnerD1) : '—'},
+      {title:'D2 — Premier', meta: winnerD2 ? String(winnerD2) : '—'},
+      {title:'Invité en vue', meta: bestGuest ? String(bestGuest.id) + ` (${bestGuest.PTS} pts, diff ${bestGuest.DIFF})` : '—'},
+      {title:'Montée au général', meta: riseText},
+      {title:'Chute au général',  meta: dropText}
+    ];
+    items.forEach(({title,meta})=>{
+      const li=el('li','item');
+      li.innerHTML = `<div><strong>${title}</strong><div class="meta">${meta}</div></div>`;
       news.appendChild(li);
-    }catch(_){}
+    });
+  }catch(e){
+    const li=el('li','item'); li.innerHTML='<div><strong>À la une</strong><div class="meta">Erreur de chargement</div></div>'; $('#news').appendChild(li);
+    console.warn('headline error', e);
   }
-  async function loadNextFixtures(){
-    const box=$('#next-fixtures'); box.innerHTML='';
+}
+
+async function loadNextFixtures(){
+  const box=$('#next-fixtures'); box.innerHTML='';
+  try{
+    const s=await loadSeason(); const sid=s?.id; if(!sid) return;
+
+    // samedi suivant CALENDAIRE, même si la journée n'existe pas en base
+    function toISODateLocal(d){
+      const y=d.getFullYear();
+      const m=String(d.getMonth()+1).padStart(2,'0');
+      const day=String(d.getDate()).padStart(2,'0');
+      return `${y}-${m}-${day}`;
+    }
+    const now=new Date();
+    const nextSat=new Date(now);
+    const dow=now.getDay();              // 0..6
+    const add=((6 - dow + 7) % 7) || 7;  // toujours samedi SUIVANT
+    nextSat.setDate(now.getDate()+add);
+    const target = toISODateLocal(nextSat);
+
+    // On ne teste QUE cette date (publiée ou brouillon)
+    let url=null;
     try{
-      const s=await loadSeason(); const sid=s?.id; if(!sid) return;
-      const r=await (await fetch(API()+`/seasons/${sid}/matchdays`,hd())).json();
-      const days=(r.days||[]).sort(); const today=new Date().toISOString().slice(0,10);
-      const next=days.find(d=>d>=today)||days[days.length-1];
-      const li=el('li','item'); li.innerHTML= next?'<div><strong>Journée '+next+'</strong><div class="meta">D1 & D2</div></div><a class="btn ghost" href="./Duel.html">Ouvrir les duels</a>':'<div><strong>Aucune journée planifiée</strong><div class="meta">Crée une nouvelle journée depuis l’admin</div></div>'; box.appendChild(li);
-    }catch(_){}
+      const rr = await fetch(API()+`/matchdays/${encodeURIComponent(target)}`,hd());
+      if(rr.ok){
+        url = `./Duel.html?day=${encodeURIComponent(target)}`;
+      } else {
+        const dr = await fetch(API()+`/matchdays/draft/${encodeURIComponent(target)}`,hd());
+        if(dr.ok){ url = `./Duel.html?day=${encodeURIComponent(target)}&draft=1`; }
+      }
+    }catch(e){
+      console.warn('next fixtures inner error', e);
+    }
+
+    const labelDate = nextSat.toLocaleDateString('fr-FR',{weekday:'long', day:'2-digit', month:'long'});
+    const li=el('li','item');
+    li.innerHTML = url
+      ? `<div><strong>Prochaine journée</strong><div class="meta">${labelDate}</div></div><a class="btn ghost" href="${url}">Voir</a>`
+      : `<div><strong>Prochaine journée</strong><div class="meta">${labelDate} — pas encore créée</div></div>`;
+    box.appendChild(li);
+  }catch(e){
+    const li=el('li','item'); 
+    li.innerHTML='<div><strong>Prochaine journée</strong><div class="meta">Erreur de chargement</div></div>'; 
+    box.appendChild(li);
+    console.warn('next fixtures error', e);
   }
+}
 
   /* ============ JOURNÉE: STATE / OUTILS ============ */
   const S = { d1:[], d2:[], barr:{}, champions:{ d1:{}, d2:{} } };

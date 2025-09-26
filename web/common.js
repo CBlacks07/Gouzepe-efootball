@@ -1,6 +1,6 @@
-/* ===== common.js (factorisé) ===== */
+/* ===== common.js (factorisÃ©) ===== */
 (() => {
-  // ---------- Utils & accès globaux ----------
+  // ---------- Utils & accÃ¨s globaux ----------
   const $  = (s) => document.querySelector(s);
   const $$ = (s) => Array.from(document.querySelectorAll(s));
 
@@ -32,7 +32,7 @@
   }
 
   function requireAdmin(){
-    if (getRole() !== 'admin') location.replace('accueil.html');
+    if (getRole() !== 'admin') location.replace('Accueil.html');
   }
 
   // Expose minimal API globale
@@ -43,12 +43,13 @@
   window.expAt = getExp();
   window.App = { $, $$, getAPI, getToken: getTok, getRole, getExp, toast, safeFetch, logout, requireAdmin };
 
-  /* auto-discovery de l’API (premier chargement, sans action utilisateur) */
+  /* auto-discovery de lâ€™API (premier chargement, sans action utilisateur) */
   (async function autoDiscoverAPI(){
     if (localStorage.getItem('efoot.api')) return;
-    const candidates = [];
+    const candidates = [PROD_API];
     const h = location.hostname;
     if (h.endsWith('.onrender.com')) {
+      if (/-app\b/.test(h)) candidates.unshift('https://' + h.replace('-app','-api'));
       if (h.includes('-static')) candidates.push('https://' + h.replace('-static', '-api'));
       candidates.push('https://' + h.replace('-static', ''));
     }
@@ -74,7 +75,7 @@
     const tok = getTok(), exp = getExp();
     if (!tok || Date.now() >= exp) { location.replace('login.html'); return; }
 
-    // Pages admin : tout sauf Admin-Joueurs reste réservé aux admins
+    // Pages admin : tout sauf Admin-Joueurs reste rÃ©servÃ© aux admins
     if (here.startsWith('admin-')) {
       const isAdmin = (getRole() || '').toLowerCase() === 'admin';
       const isPlayersAdmin = here === 'admin-joueurs.html';
@@ -85,14 +86,14 @@
   // ---------- Affichage "adminOnly" ----------
   $$('.adminOnly').forEach(el => el.style.display = (getRole() === 'admin') ? 'inline-flex' : 'none');
 
-  // ---------- Thème ----------
+  // ---------- ThÃ¨me ----------
   (function theme(){
     const k = 'efoot.theme';
     const btn = document.querySelector('#theme');
     const apply = (m) => {
       document.documentElement.classList.toggle('light', m === 'light');
       localStorage.setItem(k, m);
-      if (btn) btn.textContent = (m === 'light') ? '🌙' : '☀️';
+      if (btn) btn.textContent = (m === 'light') ? 'ðŸŒ™' : 'â˜€ï¸';
     };
     apply(localStorage.getItem(k) || 'dark');
     if (btn) btn.addEventListener('click', () =>
@@ -131,18 +132,11 @@
 
   // utilitaires
   const isPrivateNet = (h)=>/^(localhost|127\.0\.0\.1|10\.\d+\.\d+\.\d+|192\.168\.\d+\.\d+|172\.(1[6-9]|2\d|3[01])\.\d+\.\d+)$/.test(h);
-  const DEF_API = ()=>{
-    const host = location.hostname || '';
-    if (isPrivateNet(host)) {
-      return (location.protocol.startsWith('http') ? location.protocol : 'http:') + '//' + host + ':3000';
-    }
-    return 'https://gouzepe-efootball.onrender.com';
-  };
   const API = (localStorage.getItem('efoot.api')||DEF_API()).replace(/\/+$/,'');
 
   async function clearCaches(){
     try{
-      // Préserver quelques clés utiles
+      // PrÃ©server quelques clÃ©s utiles
       const preserve = new Set(['efoot.theme','efoot.api']);
       for(let i=localStorage.length-1; i>=0; i--){
         const k = localStorage.key(i);
@@ -167,50 +161,7 @@
   }
 
   btn.addEventListener('click', async ()=>{
-    if(!confirm('Voulez-vous vraiment vous déconnecter ?')) return;
+    if(!confirm('Voulez-vous vraiment vous dÃ©connecter ?')) return;
     await fullLogout();
   });
 })();
-
-/* === GOUZEPE hotfix: API + Authorization global === */
-(function(){
-  try {
-    // 1) Base API (force le mapping app→api et conserve ton override localStorage.efoot.api)
-    const isPrivateNet = h => /^(localhost|127\.0\.0\.1|10\.\d+\.\d+\.\d+|192\.168\.\d+\.\d+|172\.(1[6-9]|2\d|3[01])\.\d+\.\d+)$/.test(h||'');
-    const DEF_API = () => {
-      const host = location.hostname||'';
-      if (isPrivateNet(host)) return (location.protocol.startsWith('http')?location.protocol:'http:')+'//'+host+':3000';
-      if (host.endsWith('.onrender.com')){
-        if (host.includes('-app.')) return 'https://'+host.replace('-app.','-api.');
-        if (host.includes('app.'))  return 'https://'+host.replace('app.','api.');
-      }
-      return 'https://gouzepe-api.onrender.com';
-    };
-    window.API = (localStorage.getItem('efoot.api') || DEF_API()).replace(/\/+$/,'');
-
-    // 2) Auth header automatique
-    const authHeader = () => {
-      const t = localStorage.getItem('efoot.token');
-      return t ? { Authorization: 'Bearer ' + t } : {};
-    };
-
-    // 3) Wrapper fetch → ajoute API + Authorization + logs d’erreur
-    const _fetch = window.fetch.bind(window);
-    window.apiFetch = (path, opt={}) => {
-      const url = (path.startsWith('http') ? path : (window.API + (path.startsWith('/')?path:'/'+path)));
-      const headers = Object.assign({}, authHeader(), opt.headers||{});
-      return _fetch(url, Object.assign({ headers }, opt)).then(async (res) => {
-        if (!res.ok) {
-          let msg = '';
-          try { msg = (await res.clone().json()).error || ''; } catch(_){}
-          console.warn('[API]', res.status, url, msg);
-        }
-        return res;
-      });
-    };
-
-    // 4) Petit check console au chargement
-    window.apiFetch('/health').then(r=>r.json()).then(j=>console.log('[HEALTH]', j));
-  } catch(e){ console.warn('GOUZEPE hotfix common.js error', e); }
-})();
-

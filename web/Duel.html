@@ -5,7 +5,6 @@
   <meta name="viewport" content="width=device-width, initial-scale=1"/>
   <title>Duel — GOUZEPE eFOOTBALL (Exhibitions)</title>
   <link rel="stylesheet" href="theme.css"/>
-
   <style>
     :root{
       /* Dark palette */
@@ -225,12 +224,88 @@
   })();
   </script>
 
+  
+
+<script>
+  (function(){
+    var img = document.getElementById('clubLogo');
+    if(!img) return;
+    img.addEventListener('error', function(){ this.style.display='none'; }, { once:true });
+  })();
+</script>
+
+
+  <style id="duel-mobile-fix">
+    /* Logo image as <img>, not empty div */
+    .logo{ object-fit:cover; display:block; background:var(--panel); }
+
+    /* Mobile polish */
+    @media (max-width: 700px){
+      .top{ padding:8px 10px; }
+      .title b{ font-size:16px }
+      .title small{ display:none } /* garder propre */
+      .wrap{ padding:12px }
+      .card{ padding:12px; border-radius:12px }
+      .row{ gap:10px }
+      .right .btn{ width:100%; justify-content:center; }
+      table{ display:block; overflow:auto; border-spacing:0; }
+      thead, tbody, tr{ width:100% }
+    }
+    @media (max-width: 480px){
+      .menu{ right:8px; top:56px; width:min(92vw,360px) }
+      .btn{ padding:10px 12px }
+      input,select,textarea{ padding:10px 12px }
+    }
+  </style>
+
   <script defer src="common.js"></script>
+
+  <!-- Favicon / PWA icons (club logo) -->
+  <link rel="icon" type="image/png" sizes="32x32"  href="assets/fond.png">
+  <link rel="icon" type="image/png" sizes="192x192" href="assets/fond.png">
+  <link rel="apple-touch-icon" sizes="180x180"     href="assets/fond.png">
+  <link rel="shortcut icon"                        href="assets/fond.png">
+  <meta name="theme-color" content="#0b1119">
+
+
+  <style id="pill-ux-fix">
+    .res{ gap:10px; }
+    .pill{
+      position:relative;
+      padding:10px 14px; font-weight:800;
+      border-radius:999px; border:1px solid var(--border);
+      transform:translateZ(0);
+    }
+    .pill:focus-visible{ outline: 0; box-shadow: 0 0 0 3px color-mix(in srgb, var(--accent) 35%, transparent); }
+    .pill.active{
+      box-shadow: 0 4px 14px rgba(0,0,0,.25), inset 0 0 0 999px color-mix(in srgb, var(--panel) 0%, transparent);
+    }
+    .pill[data-v="A"].active{ border-color: color-mix(in srgb, var(--brand) 70%, var(--border)); }
+    .pill[data-v="D"].active{ border-color: color-mix(in srgb, var(--muted) 70%, var(--border)); }
+    .pill[data-v="B"].active{ border-color: color-mix(in srgb, var(--accent) 70%, var(--border)); }
+    .pill .dot{
+      position:absolute; inset:auto 10px -6px auto; width:10px; height:10px; border-radius:50%;
+      background: currentColor; opacity:0; transition:opacity .15s ease, transform .15s ease;
+    }
+    .pill.active .dot{ opacity:1; transform:translateY(0) }
+    .pill[data-v="A"] .dot{ color: var(--brand); }
+    .pill[data-v="D"] .dot{ color: var(--muted); }
+    .pill[data-v="B"] .dot{ color: var(--accent); }
+  </style>
+
+
+  <style id="duel-mobile-polish2">
+    @media (max-width: 720px){
+      .right{ width:100% }
+      .right .btn{ width:100% }
+    }
+  </style>
+
 </head>
 <body class="container">
   <!-- TOP -->
   <div class="top" id="top">
-    <a class="brand" href="Accueil.html"><div class="logo"></div>
+    <a class="brand" href="Accueil.html"><img id="clubLogo" class="logo" src="assets/fond.png" alt="Logo" onerror="this.src='assets/fond.png';">
       <div class="title"><b>GOUZEPE — Duels</b><small>Matchs d’exhibition (hors championnat)</small></div>
     </a>
     <div class="sp"></div>
@@ -264,9 +339,9 @@
       <div class="field" style="margin-top:8px">
         <label>Résultat</label>
         <div class="res" id="resPick">
-          <button class="pill" data-v="A">🏆 A gagne</button>
-          <button class="pill" data-v="D">🤝 Nul</button>
-          <button class="pill" data-v="B">🏆 B gagne</button>
+          <button class="pill" data-v="A" aria-pressed="false">🏆 A gagne<span class="dot"></span></button>
+          <button class="pill" data-v="D" aria-pressed="false">🤝 Nul<span class="dot"></span></button>
+          <button class="pill" data-v="B" aria-pressed="false">🏆 B gagne<span class="dot"></span></button>
         </div>
         <div class="tiny muted">L’historique retient uniquement W/D/L (pas de score).</div>
       </div>
@@ -380,15 +455,31 @@
     ['p1','p2','cA','cB','histP'].forEach(id=>{ const sel=$('#'+id); if(sel) sel.innerHTML = (id==='histP' ? '<option value="">Tous</option>' : '<option value="">Choisir…</option>') + opts; });
   }
 
-  // Sélection résultat (A/D/B)
+  // Sélection résultat (A/D/B) avec clavier + aria
   let RESULT = null;
   (function(){
     const box = $('#resPick');
+    function setActive(btn){
+      RESULT = btn.dataset.v;
+      box.querySelectorAll('.pill').forEach(x=>{
+        const on = (x===btn);
+        x.classList.toggle('active', on);
+        x.setAttribute('aria-pressed', on ? 'true' : 'false');
+      });
+    }
     box.addEventListener('click',(e)=>{
       const b = e.target.closest('.pill'); if(!b) return;
-      RESULT = b.dataset.v; // 'A' | 'D' | 'B'
-      box.querySelectorAll('.pill').forEach(x=>x.classList.toggle('active', x===b));
+      setActive(b);
     });
+    box.addEventListener('keydown',(e)=>{
+      if(e.key!==' ' && e.key!=='Enter') return;
+      const b = e.target.closest('.pill'); if(!b) return;
+      e.preventDefault();
+      setActive(b);
+    });
+    // Focus du premier pill au chargement pour accessibilité
+    const first = box.querySelector('.pill'); first && first.setAttribute('tabindex', '0');
+    box.querySelectorAll('.pill').forEach(p=> p.setAttribute('tabindex','0'));
   })();
 
   const nowLocal = ()=>{ const d=new Date(); d.setSeconds(0,0); const pad=n=>String(n).padStart(2,'0'); return `${d.getFullYear()}-${pad(d.getMonth()+1)}-${pad(d.getDate())}T${pad(d.getHours())}:${pad(d.getMinutes())}`; };

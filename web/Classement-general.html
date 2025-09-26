@@ -215,16 +215,7 @@ document.querySelectorAll('.adminOnly').forEach(el=>el.style.display=(role==='ad
   apply(localStorage.getItem(k)||'dark');
   $('#theme').onclick=()=>apply(document.documentElement.classList.contains('light')?'dark':'light');
 })();
-(function(){
-  const menu=$('#menu'), toggle=$('#menuToggle');
-  function open(v){menu.classList.toggle('open',v);toggle.setAttribute('aria-expanded',v?'true':'false')}
-  toggle?.addEventListener('click',()=>open(!menu.classList.contains('open')));
-  document.addEventListener('click',(e)=>{
-    if(!menu.classList.contains('open'))return;
-    if(e.target===toggle||menu.contains(e.target))return;
-    open(false);
-  },true);
-})();
+
 $('#logoutBtn')?.addEventListener('click',()=>{
   if(confirm('Voulez-vous vraiment vous déconnecter ?')){
     ['efoot.token','efoot.role','efoot.expAt'].forEach(k=>localStorage.removeItem(k));

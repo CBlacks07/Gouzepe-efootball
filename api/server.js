@@ -477,7 +477,12 @@ function computeStandings(matches){
   return arr;
 }
 const BONUS_D1_CHAMPION = 1;
-function pointsD1(nPlayers, rank){ if(rank<1||rank>nPlayers) return 0; return 9+(nPlayers-rank); }
+function pointsD1(nPlayers, rank){
+  if(rank<1||rank>nPlayers) return 0;
+  const basePoints = nPlayers > 10 ? 17 : 15;
+  if(rank === 1) return basePoints;
+  return basePoints - rank;
+}
 function pointsD2(rank){ const table=[10,8,7,6,5,4,3,2,1,1,1]; return rank>0 && rank<=table.length ? table[rank-1] : 1; }
 async function computeSeasonStandings(seasonId){
   const days = await q(`SELECT day,payload FROM matchday WHERE season_id=$1 ORDER BY day ASC`,[seasonId]);

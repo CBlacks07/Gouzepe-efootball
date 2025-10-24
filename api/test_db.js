@@ -22,8 +22,7 @@ const pool = new Pool({
       'matchday',
       'draft',
       'sessions',
-      'season_totals',
-      'champion_result'
+      'duels'
     ];
 
     for (const tableName of criticalTables) {

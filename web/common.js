@@ -1,19 +1,88 @@
-/* ===== common.js (factorisé) ===== */
+/* ===== common.js (refactorisé - sans duplications) ===== */
 
 (() => {
-  // --- utils existants minimal (pour compat) ---
-  const $  = (s) => document.querySelector(s);
+  // ---------- Utils & accès globaux ----------
+  const $ = (s) => document.querySelector(s);
+  const $$ = (s) => Array.from(document.querySelectorAll(s));
 
-  // --- Inject favicon/logo pour toutes les pages qui chargent common.js ---
-  (function ensureFavicon(){
+  const DEF_API = () =>
+    (location.protocol.startsWith('http') ? location.protocol : 'http:') +
+    '//' + location.hostname + ':3000';
+
+  const getAPI = () => (localStorage.getItem('efoot.api') || DEF_API()).replace(/\/+$/, '');
+  const getTok = () => localStorage.getItem('efoot.token') || '';
+  const getRole = () => (localStorage.getItem('efoot.role') || 'member').toLowerCase();
+  const getExp = () => +localStorage.getItem('efoot.expAt') || 0;
+
+  function toast(msg) {
+    const s = document.querySelector('#status');
+    if (!s) { console.log(msg); return; }
+    s.textContent = msg;
+    s.style.opacity = 1;
+    setTimeout(() => s.style.opacity = .75, 1200);
+  }
+
+  async function safeFetch(url, opt = {}, ms = 8000) {
+    const ctrl = new AbortController();
+    const t = setTimeout(() => ctrl.abort(), ms);
+    try {
+      return await fetch(url, { signal: ctrl.signal, ...opt });
+    } finally {
+      clearTimeout(t);
+    }
+  }
+
+  async function clearCaches() {
+    try {
+      // Préserver quelques clés utiles
+      const preserve = new Set(['efoot.theme', 'efoot.api']);
+      for (let i = localStorage.length - 1; i >= 0; i--) {
+        const k = localStorage.key(i);
+        if (!preserve.has(k)) localStorage.removeItem(k);
+      }
+      try { sessionStorage.clear(); } catch (_) { }
+      if ('caches' in window) {
+        const keys = await caches.keys();
+        for (const k of keys) await caches.delete(k);
+      }
+    } catch (_) { }
+  }
+
+  async function logout() {
+    const token = getTok();
+    try {
+      await fetch(getAPI() + '/auth/logout', {
+        method: 'POST',
+        headers: { Authorization: 'Bearer ' + token }
+      });
+    } catch (_) { }
+    await clearCaches();
+    setTimeout(() => location.replace('login.html'), 180);
+  }
+
+  function requireAdmin() {
+    if (getRole() !== 'admin') location.replace('Accueil.html');
+  }
+
+  // Expose minimal API globale
+  window.$ = $;
+  window.$$ = $$;
+  window.API = getAPI();
+  window.token = getTok();
+  window.role = getRole();
+  window.expAt = getExp();
+  window.App = { $, $$, getAPI, getToken: getTok, getRole, getExp, toast, safeFetch, logout, requireAdmin };
+
+  // ---------- Inject favicon/logo pour toutes les pages ----------
+  (function ensureFavicon() {
     const head = document.head || document.getElementsByTagName('head')[0];
-    if(!head) return;
+    if (!head) return;
 
     // Si une icône existe déjà, ne rien faire
     if (head.querySelector('link[rel~="icon"], link[rel="shortcut icon"]')) return;
 
-    const href = 'assets/fond.png';         // ← logo du club
-    const sizes = ['32x32','192x192'];      // tailles classiques
+    const href = 'assets/fond.png';
+    const sizes = ['32x32', '192x192'];
     const links = [
       ['icon', 'image/png', sizes[0], href],
       ['icon', 'image/png', sizes[1], href],
@@ -21,74 +90,26 @@
       ['shortcut icon', 'image/png', '', href]
     ];
 
-    links.forEach(([rel,type,size,url]) => {
+    links.forEach(([rel, type, size, url]) => {
       const l = document.createElement('link');
       l.setAttribute('rel', rel);
-      if (type)  l.setAttribute('type', type);
-      if (size)  l.setAttribute('sizes', size);
+      if (type) l.setAttribute('type', type);
+      if (size) l.setAttribute('sizes', size);
       l.setAttribute('href', url);
       head.appendChild(l);
     });
 
     // Couleur de thème pour adresse barre mobile
-    if(!head.querySelector('meta[name="theme-color"]')){
+    if (!head.querySelector('meta[name="theme-color"]')) {
       const m = document.createElement('meta');
-      m.setAttribute('name','theme-color');
-      m.setAttribute('content','#0b1119');
+      m.setAttribute('name', 'theme-color');
+      m.setAttribute('content', '#0b1119');
       head.appendChild(m);
     }
   })();
 
-  // --- le reste de ton common.js original peut rester inchangé ici ---
-})();
-
-
-(() => {
-  // ---------- Utils & accès globaux ----------
-  const $  = (s) => document.querySelector(s);
-  const $$ = (s) => Array.from(document.querySelectorAll(s));
-
-  const DEF_API = () =>
-    (location.protocol.startsWith('http') ? location.protocol : 'http:') +
-    '//' + location.hostname + ':3000';
-
-  const getAPI  = () => (localStorage.getItem('efoot.api') || DEF_API()).replace(/\/+$/, '');
-  const getTok  = () => localStorage.getItem('efoot.token') || '';
-  const getRole = () => (localStorage.getItem('efoot.role') || 'member').toLowerCase();
-  const getExp  = () => +localStorage.getItem('efoot.expAt') || 0;
-
-  function toast(msg){
-    const s = document.querySelector('#status');
-    if (!s) { console.log(msg); return; }
-    s.textContent = msg; s.style.opacity = 1; setTimeout(() => s.style.opacity = .75, 1200);
-  }
-
-  async function safeFetch(url, opt = {}, ms = 8000){
-    const ctrl = new AbortController();
-    const t = setTimeout(() => ctrl.abort(), ms);
-    try { return await fetch(url, { signal: ctrl.signal, ...opt }); }
-    finally { clearTimeout(t); }
-  }
-
-  function logout(){
-    ['efoot.token','efoot.role','efoot.expAt'].forEach(k => localStorage.removeItem(k));
-    location.href = 'login.html';
-  }
-
-  function requireAdmin(){
-    if (getRole() !== 'admin') location.replace('accueil.html');
-  }
-
-  // Expose minimal API globale
-  window.$ = $; window.$$ = $$;
-  window.API  = getAPI();
-  window.token = getTok();
-  window.role  = getRole();
-  window.expAt = getExp();
-  window.App = { $, $$, getAPI, getToken: getTok, getRole, getExp, toast, safeFetch, logout, requireAdmin };
-
-  /* auto-discovery de l’API (premier chargement, sans action utilisateur) */
-  (async function autoDiscoverAPI(){
+  // ---------- Auto-discovery de l'API ----------
+  (async function autoDiscoverAPI() {
     if (localStorage.getItem('efoot.api')) return;
     const candidates = [];
     const h = location.hostname;
@@ -99,38 +120,46 @@
     candidates.push(DEF_API());
     for (const base of candidates) {
       try {
-        const r = await safeFetch(base.replace(/\/+$/,'') + '/health', { cache:'no-store' }, 2500);
+        const r = await safeFetch(base.replace(/\/+$/, '') + '/health', { cache: 'no-store' }, 2500);
         if (r && r.ok) {
-          localStorage.setItem('efoot.api', base.replace(/\/+$/,''));
+          localStorage.setItem('efoot.api', base.replace(/\/+$/, ''));
           location.reload();
           return;
         }
-      } catch (_) {}
+      } catch (_) { }
     }
   })();
 
   // ---------- Auth guard (toutes pages sauf login) ----------
-  (function guard(){
+  (function guard() {
     const here = (location.pathname.split('/').pop() || '').toLowerCase();
     const isLogin = here === '' || here === 'login.html';
     if (isLogin) return;
 
     const tok = getTok(), exp = getExp();
-    if (!tok || Date.now() >= exp) { location.replace('login.html'); return; }
-
-    // Pages admin : tout sauf Admin-Joueurs reste réservé aux admins
-    if (here.startsWith('admin-')) {
-      const isAdmin = (getRole() || '').toLowerCase() === 'admin';
-      const isPlayersAdmin = here === 'admin-joueurs.html';
-      
+    if (!tok || Date.now() >= exp) {
+      location.replace('login.html');
+      return;
     }
-})();
+
+    // Pages admin : vérification + redirection si non-admin
+    if (here.startsWith('admin-')) {
+      const isAdmin = getRole() === 'admin';
+      const isPlayersAdmin = here === 'admin-joueurs.html';
+
+      // Admin-Joueurs accessible aux membres, autres pages admin réservées
+      if (!isAdmin && !isPlayersAdmin) {
+        location.replace('Accueil.html');
+        return;
+      }
+    }
+  })();
 
   // ---------- Affichage "adminOnly" ----------
   $$('.adminOnly').forEach(el => el.style.display = (getRole() === 'admin') ? 'inline-flex' : 'none');
 
   // ---------- Thème ----------
-  (function theme(){
+  (function theme() {
     const k = 'efoot.theme';
     const btn = document.querySelector('#theme');
     const apply = (m) => {
@@ -144,7 +173,7 @@
   })();
 
   // ---------- Menu mobile ----------
-  (function menu(){
+  (function menu() {
     const btn = document.querySelector('#menuToggle');
     const menu = document.querySelector('#menu');
     if (!btn || !menu) return;
@@ -164,54 +193,10 @@
 
   // ---------- Logout ----------
   const logoutBtn = document.querySelector('#logoutBtn');
-  if (logoutBtn) logoutBtn.addEventListener('click', logout);
-})();
-
-
-
-(async function bindLogout(){
-  const btn = document.getElementById('logoutBtn');
-  if(!btn) return;
-
-  // utilitaires
-  const isPrivateNet = (h)=>/^(localhost|127\.0\.0\.1|10\.\d+\.\d+\.\d+|192\.168\.\d+\.\d+|172\.(1[6-9]|2\d|3[01])\.\d+\.\d+)$/.test(h);
-  const DEF_API = ()=>{
-    const host = location.hostname || '';
-    if (isPrivateNet(host)) {
-      return (location.protocol.startsWith('http') ? location.protocol : 'http:') + '//' + host + ':3000';
-    }
-    return 'https://gouzepe-efootball.onrender.com';
-  };
-  const API = (localStorage.getItem('efoot.api')||DEF_API()).replace(/\/+$/,'');
-
-  async function clearCaches(){
-    try{
-      // Préserver quelques clés utiles
-      const preserve = new Set(['efoot.theme','efoot.api']);
-      for(let i=localStorage.length-1; i>=0; i--){
-        const k = localStorage.key(i);
-        if(!preserve.has(k)) localStorage.removeItem(k);
-      }
-      try{ sessionStorage.clear(); }catch(_){}
-      if('caches' in window){
-        const keys = await caches.keys();
-        for(const k of keys) await caches.delete(k);
-      }
-    }catch(_){}
+  if (logoutBtn) {
+    logoutBtn.addEventListener('click', async () => {
+      if (!confirm('Voulez-vous vraiment vous déconnecter ?')) return;
+      await logout();
+    });
   }
-
-  async function fullLogout(){
-    const token = localStorage.getItem('efoot.token');
-    try{
-      await fetch(API+'/auth/logout',{ method:'POST', headers:{ Authorization:'Bearer '+token } });
-    }catch(_){}
-    await clearCaches();
-    // petite latence pour flush
-    setTimeout(()=> location.replace('login.html'), 180);
-  }
-
-  btn.addEventListener('click', async ()=>{
-    if(!confirm('Voulez-vous vraiment vous déconnecter ?')) return;
-    await fullLogout();
-  });
 })();

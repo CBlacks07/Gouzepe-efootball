@@ -50,20 +50,23 @@ const pool = new Pool(pgOpts);
 const app = express();
 const server = http.createServer(app);
 
-const allowedOrigins = (process.env.CORS_ORIGIN || 
-  'https://gouzepe-api.onrender.com,http://localhost:3000,http://localhost:5173,*'
+// ✅ FIX: Retirer le wildcard '*' pour plus de sécurité
+const allowedOrigins = (process.env.CORS_ORIGIN ||
+  'https://gouzepe-api.onrender.com,https://gouzepe-efootball.onrender.com,http://localhost:3000,http://localhost:5173'
 ).split(',').map(s=>s.trim()).filter(Boolean);
 
-app.use(cors({
+// ✅ FIX: Configuration CORS unique (suppression de la duplication)
+const corsOptions = {
   origin: (origin, cb) => {
     if (!origin || allowedOrigins.includes('*')) return cb(null, true);
     return cb(null, allowedOrigins.includes(origin));
   },
+  credentials: false,
   methods: ['GET','POST','PUT','DELETE','OPTIONS'],
   allowedHeaders: ['Authorization','Content-Type'],
+  exposedHeaders: ['Content-Length'],
   maxAge: 86400
-}));
-app.options('*', cors());
+};
 
 const io = require('socket.io')(server, {
   cors: {
@@ -77,17 +80,6 @@ const io = require('socket.io')(server, {
 
 /* ====== Middlewares ====== */
 app.use(helmet({ crossOriginResourcePolicy: { policy: "cross-origin" } }));
-const corsOptions = {
-  origin: (origin, cb) => {
-    if (!origin || allowedOrigins.includes('*')) return cb(null, true);
-    return cb(null, allowedOrigins.includes(origin));
-  },
-  credentials: false, // on utilise Authorization: Bearer (pas de cookies)
-  methods: ['GET','POST','PUT','DELETE','OPTIONS'],
-  allowedHeaders: ['Authorization','Content-Type'],
-  exposedHeaders: ['Content-Length'],
-  maxAge: 86400
-};
 app.use(cors(corsOptions));
 app.options('*', cors(corsOptions));
 app.use(express.json({ limit: '2mb' }));
@@ -695,7 +687,11 @@ app.get('/matchdays/draft/:date', auth, async (req,res)=>{
 });
 app.put('/matchdays/draft/:date', auth, async (req,res)=>{
   const d = req.params.date;
-  const payload = req.body || {};
+  // ✅ FIX: Validation de la date et du payload
+  if(!/^\d{4}-\d{2}-\d{2}$/.test(d)) return bad(res,400,'Invalid date format (YYYY-MM-DD expected)');
+  if(!req.body || typeof req.body !== 'object') return bad(res,400,'Invalid payload');
+
+  const payload = req.body;
   try{
     await q(`INSERT INTO draft(day,payload,updated_at,author_user_id)
          VALUES ($1,$2,now(),$3)
@@ -726,16 +722,31 @@ app.put('/matchdays/:day/season', auth, adminOnly, async (req,res)=>{
 app.post('/matchdays/confirm', auth, adminOnly, async (req,res)=>{
   const { date, d1=[], d2=[], barrage={}, champions={}, season_id } = req.body||{};
   if(!date) return bad(res,400,'date requise');
-  const sid = season_id ? +season_id : await currentSeasonId();
-  const payload = { d1, d2, barrage, champions };
-  await q(`INSERT INTO matchday(day,season_id,payload,created_at)
-           VALUES ($1,$2,$3,now())
-           ON CONFLICT (day) DO UPDATE SET season_id=EXCLUDED.season_id, payload=EXCLUDED.payload`,
-           [date, sid, payload]);
-  await q('DELETE FROM draft WHERE day=$1',[date]);
-  io.to(`draft:${date}`).emit('day:confirmed', { date });
-  io.emit('season:changed');
-  ok(res,{ ok:true });
+
+  // ✅ FIX: Utiliser une transaction pour garantir l'atomicité
+  try{
+    await q('BEGIN');
+
+    const sid = season_id ? +season_id : await currentSeasonId();
+    const payload = { d1, d2, barrage, champions };
+
+    await q(`INSERT INTO matchday(day,season_id,payload,created_at)
+             VALUES ($1,$2,$3,now())
+             ON CONFLICT (day) DO UPDATE SET season_id=EXCLUDED.season_id, payload=EXCLUDED.payload`,
+             [date, sid, payload]);
+
+    await q('DELETE FROM draft WHERE day=$1',[date]);
+
+    await q('COMMIT');
+
+    io.to(`draft:${date}`).emit('day:confirmed', { date });
+    io.emit('season:changed');
+    ok(res,{ ok:true });
+  }catch(e){
+    await q('ROLLBACK');
+    console.error('[matchdays/confirm] Error:', e);
+    bad(res,500,'Failed to confirm matchday');
+  }
 });
 app.delete('/matchdays/:date', auth, async (req,res)=>{
   await q(`DELETE FROM matchday WHERE day=$1`,[req.params.date]);
@@ -772,7 +783,8 @@ app.get('/season/list', auth, async (_req,res)=>{
 });
 app.get('/season/ids', auth, async (_req,res)=>{
   const r=await q(`SELECT id FROM seasons ORDER BY id DESC`);
-  ok(res, r.rows.map(x=>x.id));
+  // ✅ FIX: Retourner un objet JSON cohérent avec les autres endpoints
+  ok(res, { ids: r.rows.map(x=>x.id) });
 });
 app.post('/seasons', auth, adminOnly, async (req,res)=>{
   const { name } = req.body||{};

@@ -111,6 +111,9 @@
   // ---------- Auto-discovery de l'API ----------
   (async function autoDiscoverAPI() {
     if (localStorage.getItem('efoot.api')) return;
+    // Éviter de découvrir l'API si on est en train de rediriger
+    if (sessionStorage.getItem('_redirecting')) return;
+
     const candidates = [];
     const h = location.hostname;
     if (h.endsWith('.onrender.com')) {
@@ -123,7 +126,11 @@
         const r = await safeFetch(base.replace(/\/+$/, '') + '/health', { cache: 'no-store' }, 2500);
         if (r && r.ok) {
           localStorage.setItem('efoot.api', base.replace(/\/+$/, ''));
-          location.reload();
+          // Ne recharger qu'une seule fois
+          if (!sessionStorage.getItem('_api_discovered')) {
+            sessionStorage.setItem('_api_discovered', '1');
+            location.reload();
+          }
           return;
         }
       } catch (_) { }
@@ -132,24 +139,41 @@
 
   // ---------- Auth guard (toutes pages sauf login) ----------
   (function guard() {
-    const here = (location.pathname.split('/').pop() || '').toLowerCase();
-    const isLogin = here === '' || here === 'login.html';
+    // Détection plus robuste de la page login
+    const pathname = location.pathname.toLowerCase();
+    const isLogin = pathname === '/' ||
+                    pathname === '' ||
+                    pathname.endsWith('/login.html') ||
+                    pathname.endsWith('/login') ||
+                    pathname === 'login.html';
+
     if (isLogin) return;
 
     const tok = getTok(), exp = getExp();
-    if (!tok || Date.now() >= exp) {
-      location.replace('login.html');
+    // Si pas de token OU token expiré (mais pas expAt === 0 qui peut indiquer une erreur)
+    if (!tok || (exp > 0 && Date.now() >= exp)) {
+      // Éviter les boucles: ne rediriger que si on n'est pas déjà en train de rediriger
+      if (!sessionStorage.getItem('_redirecting')) {
+        sessionStorage.setItem('_redirecting', '1');
+        setTimeout(() => sessionStorage.removeItem('_redirecting'), 1000);
+        location.replace('login.html');
+      }
       return;
     }
 
     // Pages admin : vérification + redirection si non-admin
+    const here = pathname.split('/').pop() || '';
     if (here.startsWith('admin-')) {
       const isAdmin = getRole() === 'admin';
       const isPlayersAdmin = here === 'admin-joueurs.html';
 
       // Admin-Joueurs accessible aux membres, autres pages admin réservées
       if (!isAdmin && !isPlayersAdmin) {
-        location.replace('Accueil.html');
+        if (!sessionStorage.getItem('_redirecting')) {
+          sessionStorage.setItem('_redirecting', '1');
+          setTimeout(() => sessionStorage.removeItem('_redirecting'), 1000);
+          location.replace('Accueil.html');
+        }
         return;
       }
     }

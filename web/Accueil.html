@@ -510,7 +510,12 @@ async function loadHeadline(){
     const bestGuest = guests[0] || null;
 
     // Mouvement au général (avant vs après)
-    const pointsD1=(n,rank)=> (rank<1||rank>n)?0 : 9+(n-rank);
+    // ✅ FIX: Aligner avec le calcul backend (server.js:480-485)
+    const pointsD1=(n,rank)=> {
+      if(rank<1||rank>n) return 0;
+      const basePoints = n > 10 ? 17 : 15;
+      return rank === 1 ? basePoints : basePoints - rank;
+    };
     const pointsD2=(rank)=> [10,8,7,6,5,4,3,2,1,1,1][rank-1] || 1;
     async function tableFor(daysSubset){
       const totals = new Map();
@@ -703,8 +708,10 @@ async function loadNextFixtures(){
   function autoFillBarrage(force){
     const fld=$('#barrage_ids'); if(!force && (fld.value||'').trim()) return;
     const d2=standings('d2'), d1=standings('d1');
-    const d2second=d2[1]?.id, d1avant=d1.length>=2?d1[d1.length-2].id:null;
-    if(d1avant&&d2second) fld.value=`${d1avant} – ${d2second}`;
+    // ✅ FIX: Barrage entre DERNIER de D1 et CHAMPION de D2 (pas le 2ème)
+    const d2champion=d2[0]?.id;  // Premier D2 (champion)
+    const d1last=d1[d1.length-1]?.id;  // Dernier D1 (relégable)
+    if(d1last&&d2champion) fld.value=`${d1last} – ${d2champion}`;
     computeBarrageLabel();
   }
 

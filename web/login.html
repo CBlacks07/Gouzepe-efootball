@@ -292,7 +292,8 @@ document.getElementById('f').addEventListener('submit', async (e)=>{
     const expHours = Number(d.expHours||1);
     localStorage.setItem('efoot.token', token);
     localStorage.setItem('efoot.role', role.toLowerCase());
-    localStorage.setItem('efoot.expAt', String(Date.now()+expHours*60*1000));
+    // ✅ FIX: Corriger le calcul d'expiration (était *60*1000 = minutes, maintenant *60*60*1000 = heures)
+    localStorage.setItem('efoot.expAt', String(Date.now()+expHours*3600*1000));
 
     // <— NOUVEAU : on attend que l’API soit prête avant de quitter la page
     showBoot('Connexion réussie. Le serveur se réveille…');

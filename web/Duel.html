@@ -2,9 +2,16 @@
 <html lang="fr">
 <head>
   <meta charset="utf-8"/>
-  <meta name="viewport" content="width=device-width, initial-scale=1"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover"/>
   <title>Duel — GOUZEPE eFOOTBALL (Exhibitions)</title>
+
+  <!-- PWA Meta Tags -->
+  <meta name="description" content="Duels eFootball - Affrontements en exhibition" />
+  <meta name="theme-color" content="#16a34a" />
+  <link rel="manifest" href="manifest.json" />
+
   <link rel="stylesheet" href="theme.css"/>
+  <link rel="stylesheet" href="mobile.css"/>
   <style>
     :root{
       /* Dark palette */
@@ -579,5 +586,6 @@
     await refreshRecent();
   })();
   </script>
+  <script src="pwa-init.js"></script>
 </body>
 </html>

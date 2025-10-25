@@ -1,0 +1,355 @@
+/* ==========================================
+   GOUZEPE eFOOTBALL - Mobile Optimizations
+   Progressive Web App - Responsive Design
+   ========================================== */
+
+/* === VARIABLES MOBILE === */
+:root {
+  --mobile-padding: 16px;
+  --mobile-gap: 12px;
+  --touch-target: 44px;
+  --safe-area-top: env(safe-area-inset-top, 0);
+  --safe-area-bottom: env(safe-area-inset-bottom, 0);
+  --safe-area-left: env(safe-area-inset-left, 0);
+  --safe-area-right: env(safe-area-inset-right, 0);
+}
+
+/* === BASES MOBILE === */
+@media (max-width: 768px) {
+  html {
+    font-size: 16px;
+    -webkit-text-size-adjust: 100%;
+    text-size-adjust: 100%;
+  }
+
+  body {
+    font-size: 16px;
+    line-height: 1.5;
+    padding-top: var(--safe-area-top);
+    padding-bottom: var(--safe-area-bottom);
+    padding-left: var(--safe-area-left);
+    padding-right: var(--safe-area-right);
+    overflow-x: hidden;
+  }
+
+  /* Textes lisibles sur mobile */
+  p, li, td, th, .meta, .sub {
+    font-size: 16px !important;
+    line-height: 1.6 !important;
+    word-wrap: break-word;
+    overflow-wrap: break-word;
+    hyphens: auto;
+  }
+
+  h1, .heading {
+    font-size: 24px !important;
+    line-height: 1.3 !important;
+    word-wrap: break-word;
+  }
+
+  h2 {
+    font-size: 20px !important;
+    line-height: 1.4 !important;
+  }
+
+  h3 {
+    font-size: 18px !important;
+    line-height: 1.4 !important;
+  }
+
+  /* Muted text plus lisible */
+  .muted, .tiny {
+    font-size: 14px !important;
+    opacity: 0.85 !important;
+  }
+
+  /* Inputs et boutons plus grands (touch-friendly) */
+  input, select, textarea, button, .btn {
+    min-height: var(--touch-target);
+    font-size: 16px !important;
+    padding: 12px 16px !important;
+    border-radius: 12px;
+  }
+
+  input[type="date"],
+  input[type="datetime-local"] {
+    min-height: var(--touch-target);
+    font-size: 16px !important;
+  }
+
+  /* Boutons full-width sur mobile */
+  .actions {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+    width: 100%;
+  }
+
+  .actions .btn {
+    width: 100%;
+    justify-content: center;
+  }
+
+  /* Cards et sections avec padding adapté */
+  .card {
+    padding: var(--mobile-padding);
+    margin: var(--mobile-gap) 0;
+    border-radius: 16px;
+  }
+
+  section {
+    padding: var(--mobile-padding);
+  }
+
+  /* Tables responsive */
+  .table-wrap {
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+    margin: 0 calc(var(--mobile-padding) * -1);
+    padding: 0 var(--mobile-padding);
+  }
+
+  table {
+    min-width: 100%;
+    font-size: 14px;
+  }
+
+  th, td {
+    padding: 10px 8px !important;
+    white-space: nowrap;
+  }
+
+  /* Navigation mobile */
+  .top {
+    padding: 12px var(--mobile-padding);
+    position: sticky;
+    top: 0;
+    z-index: 100;
+  }
+
+  .brand-title h1 {
+    font-size: 16px !important;
+  }
+
+  .logo {
+    width: 36px !important;
+    height: 36px !important;
+  }
+
+  /* Grilles responsive */
+  .grid-two {
+    display: flex;
+    flex-direction: column;
+    gap: var(--mobile-gap);
+  }
+
+  .division {
+    min-width: unset !important;
+    flex: 1 1 100%;
+  }
+
+  /* Daybar vertical sur mobile */
+  .daybar {
+    display: flex;
+    flex-direction: column;
+    gap: var(--mobile-gap);
+    align-items: stretch;
+  }
+
+  .daybar input,
+  .daybar select,
+  .daybar button {
+    width: 100%;
+  }
+
+  .daybar .spacer {
+    display: none;
+  }
+
+  /* Items de liste plus espacés */
+  .item {
+    padding: 14px 12px;
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 8px;
+  }
+
+  .item .btn {
+    margin-top: 8px;
+    align-self: stretch;
+  }
+
+  /* Scores inputs plus grands */
+  .scoresCell input {
+    width: 44px !important;
+    height: 44px !important;
+    font-size: 18px !important;
+  }
+
+  /* Modal responsive */
+  dialog {
+    max-width: calc(100vw - 32px);
+    max-height: calc(100vh - 64px);
+    margin: auto;
+  }
+
+  /* Footer responsive */
+  footer {
+    padding: 20px var(--mobile-padding) !important;
+    font-size: 14px !important;
+  }
+}
+
+/* === TRÈS PETITS ÉCRANS (< 480px) === */
+@media (max-width: 480px) {
+  :root {
+    --mobile-padding: 12px;
+    --mobile-gap: 10px;
+  }
+
+  /* Textes encore plus compacts */
+  p, li, td, th {
+    font-size: 15px !important;
+  }
+
+  h1, .heading {
+    font-size: 22px !important;
+  }
+
+  /* Désactiver vidéo de fond (performance) */
+  .bg-wrap,
+  .overlayGrad {
+    display: none !important;
+  }
+
+  /* Tables ultra-compactes */
+  table {
+    font-size: 13px;
+  }
+
+  th, td {
+    padding: 8px 6px !important;
+  }
+
+  .brand-title h1 {
+    font-size: 14px !important;
+  }
+
+  .logo {
+    width: 32px !important;
+    height: 32px !important;
+  }
+}
+
+/* === PAYSAGE MOBILE === */
+@media (max-height: 500px) and (orientation: landscape) {
+  .top {
+    padding: 8px var(--mobile-padding);
+  }
+
+  .hero {
+    padding-block: 16px;
+  }
+
+  .heading {
+    font-size: 20px !important;
+    margin-bottom: 8px;
+  }
+
+  .sub {
+    font-size: 14px !important;
+  }
+}
+
+/* === AMÉLIORATIONS TACTILES === */
+@media (hover: none) and (pointer: coarse) {
+  /* Meilleur feedback tactile */
+  button, .btn, a {
+    -webkit-tap-highlight-color: rgba(22, 163, 74, 0.2);
+  }
+
+  /* Scroll plus fluide */
+  * {
+    -webkit-overflow-scrolling: touch;
+  }
+
+  /* Inputs plus accessibles */
+  input:focus,
+  select:focus,
+  textarea:focus {
+    transform: scale(1.02);
+    transition: transform 0.15s ease;
+  }
+}
+
+/* === PWA MODE (STANDALONE) === */
+@media (display-mode: standalone) {
+  body {
+    /* Padding supplémentaire pour notch/safe areas */
+    padding-top: max(var(--safe-area-top), 12px);
+    padding-bottom: max(var(--safe-area-bottom), 12px);
+  }
+
+  /* Message d'installation masqué en mode app */
+  .install-prompt {
+    display: none !important;
+  }
+}
+
+/* === SCROLL HORIZONTAL CARDS === */
+.scroll-horizontal {
+  display: flex;
+  gap: 12px;
+  overflow-x: auto;
+  scroll-snap-type: x mandatory;
+  -webkit-overflow-scrolling: touch;
+  scrollbar-width: none;
+  padding: 0 var(--mobile-padding);
+  margin: 0 calc(var(--mobile-padding) * -1);
+}
+
+.scroll-horizontal::-webkit-scrollbar {
+  display: none;
+}
+
+.scroll-horizontal > * {
+  scroll-snap-align: start;
+  flex: 0 0 85%;
+  max-width: 320px;
+}
+
+/* === ACCESSIBILITÉ MOBILE === */
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
+}
+
+@media (prefers-contrast: high) {
+  .card,
+  .btn,
+  input,
+  select {
+    border-width: 2px;
+  }
+}
+
+/* === OPTIMISATIONS PERFORMANCES === */
+@media (max-width: 768px) {
+  /* GPU acceleration pour scroll fluide */
+  .top,
+  .card,
+  .btn {
+    will-change: transform;
+    transform: translateZ(0);
+  }
+
+  /* Images lazy-loading friendly */
+  img {
+    content-visibility: auto;
+  }
+}

@@ -2,11 +2,17 @@
 <html lang="fr">
 <head>
   <meta charset="utf-8"/>
-  <meta name="viewport" content="width=device-width, initial-scale=1"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover"/>
   <title>Panel Membre — GOUZEPE</title>
+
+  <!-- PWA Meta Tags -->
+  <meta name="description" content="Mon espace membre - Statistiques et confrontations" />
+  <meta name="theme-color" content="#16a34a" />
+  <link rel="manifest" href="manifest.json" />
 
   <!-- Styles globaux -->
   <link rel="stylesheet" href="theme.css"/>
+  <link rel="stylesheet" href="mobile.css"/>
   <script src="common.js"></script>
 
   <!-- Styles spécifiques (léger) -->
@@ -777,6 +783,7 @@ bindToggles();
 })();
 </script>
 
+  <script src="pwa-init.js"></script>
 </body>
 </html>
 

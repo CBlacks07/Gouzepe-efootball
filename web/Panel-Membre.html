@@ -321,7 +321,7 @@
       </div>
 
       <div class="h2h-hero">
-        <img id="h2hMePic" src="assets/fond.png" alt="">
+        <img id="h2hMePic" src="assets/icons/apple-touch-icon.png" alt="">
         <div id="h2hNames">Moi vs Adversaire</div>
         <div class="wdl">
           <span class="badge win"  id="h2hW">V 0</span>
@@ -398,7 +398,7 @@ async function safeFetch(url,opt={},ms=12000){
     const dp = await rp.json();
     $('#playerName').textContent = dp.player?.name || '—';
     $('#playerId').textContent   = dp.player?.player_id || '—';
-    $('#avatar').src = dp.player?.profile_pic_url ? (API+dp.player.profile_pic_url) : 'assets/fond.png';
+    $('#avatar').src = dp.player?.profile_pic_url ? (API+dp.player.profile_pic_url) : 'assets/icons/apple-touch-icon.png';
   }catch(e){ console.error(e); }
 
   async function refresh(){
@@ -481,7 +481,7 @@ async function searchPlayers(){
   const d = await r.json();
   (d.players||[]).forEach(p=>{
     const card=document.createElement('div'); card.className='card';
-    const img = p.profile_pic_url ? (API+p.profile_pic_url) : 'assets/fond.png';
+    const img = p.profile_pic_url ? (API+p.profile_pic_url) : 'assets/icons/apple-touch-icon.png';
     card.innerHTML = `
       <div style="display:flex;gap:10px;align-items:center">
         <img src="${img}" style="width:48px;height:48px;border-radius:12px;object-fit:cover;border:1px solid var(--border)">
@@ -504,7 +504,7 @@ async function openPlayerPreview(pid){
     const pd = await pr.json();
     $('#pmName').textContent = pd.player?.name || '—';
     $('#pmId').textContent   = pd.player?.player_id || pid;
-    $('#pmAvatar').src = pd.player?.profile_pic_url ? (API+pd.player.profile_pic_url) : 'assets/fond.png';
+    $('#pmAvatar').src = pd.player?.profile_pic_url ? (API+pd.player.profile_pic_url) : 'assets/icons/apple-touch-icon.png';
 
     const ss=seasonSel.value;
     const sr = await fetch(API+`/players/${pid}/summary?season=${ss}`, { headers:{Authorization:'Bearer '+TOKEN} });
@@ -537,7 +537,7 @@ async function openH2H(oppId){
     const d = await r.json(); if(!r.ok) throw new Error(d.error||('HTTP '+r.status));
     const t = d.totals || {legs:0,wins:0,draws:0,losses:0,gf:0,ga:0};
     $('#h2hTitle').textContent = `Face-à-face : ${(d.me?.name||'Moi')} vs ${(d.opponent?.name||'Adversaire')}`;
-    $('#h2hMePic').src = d.me?.profile_pic_url ? (API+d.me.profile_pic_url) : 'assets/fond.png';
+    $('#h2hMePic').src = d.me?.profile_pic_url ? (API+d.me.profile_pic_url) : 'assets/icons/apple-touch-icon.png';
     $('#h2hW').textContent = `V ${t.wins}`; $('#h2hD').textContent = `N ${t.draws}`; $('#h2hL').textContent = `D ${t.losses}`;
     $('#h2hGFGA').textContent = `${t.gf}-${t.ga}`;
 
@@ -571,7 +571,7 @@ async function loadPlayersList(){
   const d=await r.json();
   (d.players||[]).forEach(p=>{
     NAME_BY_ID.set(p.player_id, p.name||p.player_id);
-    PIC_BY_ID.set(p.player_id, p.profile_pic_url ? (API+p.profile_pic_url) : 'assets/fond.png');
+    PIC_BY_ID.set(p.player_id, p.profile_pic_url ? (API+p.profile_pic_url) : 'assets/icons/apple-touch-icon.png');
   });
 }
 function fillSelectOptions(sel){
@@ -622,7 +622,7 @@ async function getSummary(pid, season){
 }
 function buildCmpCard(pid, data){
   const name = NAME_BY_ID.get(pid)||pid;
-  const pic  = PIC_BY_ID.get(pid)||'assets/fond.png';
+  const pic  = PIC_BY_ID.get(pid)||'assets/icons/apple-touch-icon.png';
   const s = data.sum||{};
   const form = formDotsHTML( last5Form(data.matches||[]) );
 const wonD1 = (typeof s.won_d1 === 'number') ? s.won_d1 : '—';

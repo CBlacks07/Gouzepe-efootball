@@ -10,16 +10,46 @@
   "scope": "/web/",
   "icons": [
     {
-      "src": "assets/fond.png",
-      "sizes": "192x192",
+      "src": "assets/icons/icon-48x48.png",
+      "sizes": "48x48",
       "type": "image/png",
-      "purpose": "any maskable"
+      "purpose": "any"
     },
     {
-      "src": "assets/fond.png",
+      "src": "assets/icons/icon-72x72.png",
+      "sizes": "72x72",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "assets/icons/icon-96x96.png",
+      "sizes": "96x96",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "assets/icons/icon-144x144.png",
+      "sizes": "144x144",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "assets/icons/icon-192x192.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "assets/icons/icon-512x512.png",
       "sizes": "512x512",
       "type": "image/png",
-      "purpose": "any maskable"
+      "purpose": "any"
+    },
+    {
+      "src": "assets/icons/icon-maskable-512x512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "maskable"
     }
   ],
   "categories": ["sports", "games", "entertainment"],
@@ -30,21 +60,21 @@
       "short_name": "Duel",
       "description": "Lancer un duel rapide",
       "url": "/web/Duel.html",
-      "icons": [{ "src": "assets/fond.png", "sizes": "96x96" }]
+      "icons": [{ "src": "assets/icons/icon-96x96.png", "sizes": "96x96" }]
     },
     {
       "name": "Classement",
       "short_name": "Classement",
       "description": "Voir le classement général",
       "url": "/web/Classement-general.html",
-      "icons": [{ "src": "assets/fond.png", "sizes": "96x96" }]
+      "icons": [{ "src": "assets/icons/icon-96x96.png", "sizes": "96x96" }]
     },
     {
       "name": "Mon Espace",
       "short_name": "Profil",
       "description": "Accéder à mon espace membre",
       "url": "/web/Panel-Membre.html",
-      "icons": [{ "src": "assets/fond.png", "sizes": "96x96" }]
+      "icons": [{ "src": "assets/icons/icon-96x96.png", "sizes": "96x96" }]
     }
   ],
   "prefer_related_applications": false

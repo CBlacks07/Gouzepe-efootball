@@ -12,7 +12,7 @@
   <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
   <meta name="apple-mobile-web-app-title" content="GOUZEPE" />
   <link rel="manifest" href="manifest.json" />
-  <link rel="apple-touch-icon" href="assets/fond.png" />
+  <link rel="apple-touch-icon" href="assets/icons/apple-touch-icon.png" />
 
   <link rel="stylesheet" href="theme.css">
   <link rel="stylesheet" href="common.css">
@@ -200,7 +200,7 @@ html.light .bg-video{opacity:.18; filter:contrast(.95) saturate(.85)}
   <!-- ===== TOP ===== -->
   <header class="top" id="topbar">
     <a class="brand" href="./Accueil.html" aria-label="Accueil GOUZEPE">
-      <img id="clubLogo" class="logo" src="assets/fond.png" alt="Logo">
+      <img id="clubLogo" class="logo" src="assets/icons/apple-touch-icon.png" alt="Logo">
       <div class="brand-title">
         <h1>GOUZEPE eFOOTBALL</h1>
         <div class="season-sub"><span id="season-text" style="color: #16a34a; font-weight: bold;">Saison</span></div>
@@ -838,7 +838,7 @@ async function loadNextFixtures(){
         return await new Promise(res=>{ const fr=new FileReader(); fr.onload=()=>res(fr.result); fr.readAsDataURL(b); });
       }catch(_){ return null; }
     };
-    return (await tryFetch('assets/logo.png')) || (await tryFetch('assets/fond.png'));
+    return (await tryFetch('assets/logo.png')) || (await tryFetch('assets/icons/apple-touch-icon.png'));
   }
   async function printDayA4(){
     const date = document.getElementById('dayPicker')?.value || '';

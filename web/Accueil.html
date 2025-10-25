@@ -3,9 +3,20 @@
 <head>
   <meta charset="utf-8" />
   <title>GOUZEPE eFOOTBALL — Accueil</title>
-  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+
+  <!-- PWA Meta Tags -->
+  <meta name="description" content="Championnat eFootball GOUZEPE - Classements, duels et gestion de saisons" />
+  <meta name="theme-color" content="#16a34a" />
+  <meta name="apple-mobile-web-app-capable" content="yes" />
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+  <meta name="apple-mobile-web-app-title" content="GOUZEPE" />
+  <link rel="manifest" href="manifest.json" />
+  <link rel="apple-touch-icon" href="assets/fond.png" />
+
   <link rel="stylesheet" href="theme.css">
   <link rel="stylesheet" href="common.css">
+  <link rel="stylesheet" href="mobile.css">
 
   <style>
     :root{
@@ -1021,5 +1032,8 @@ async function loadNextFixtures(){
     setEditingEnabled(ROLE==='admin');
   })();
   </script>
+
+  <!-- PWA Initialization -->
+  <script src="pwa-init.js"></script>
 </body>
 </html>

@@ -890,26 +890,69 @@ async function loadNextFixtures(){
     document.querySelectorAll('.adminNav,.adminOnly').forEach(x=>x.style.display = enabled? '' : 'none');
   }
 
-  /* ===== Sync 15s: auto-save & auto-refresh ===== */
+  /* ===== Sync 15s: auto-save & auto-refresh (CORRIGÉ) ===== */
   async function syncCycle(){
     const d=$('#dayPicker').value; if(!d) return;
-    const recentlyEditing = (Date.now() - lastEditTs) < 5000;
+
+    // ✅ FIX #1: Augmenter le délai à 20 secondes (au lieu de 5)
+    const recentlyEditing = (Date.now() - lastEditTs) < 20000;
+
+    // Auto-save pour admin si édition récente
     if(ROLE==='admin' && recentlyEditing){
-      try{ await saveDraftAPI(d, payload()); }catch(_){}
+      try{
+        await saveDraftAPI(d, payload());
+        // ✅ FIX #2: Mettre à jour le timestamp local après save réussi
+        const lsData = localLoadDraft(d);
+        if(lsData){ lsData.ts = Date.now(); localStorage.setItem(LSKEY(d), JSON.stringify(lsData)); }
+      }catch(_){}
     }
+
+    // Auto-refresh UNIQUEMENT si pas d'édition récente
     if(!recentlyEditing){
       try{
         const { source, payload:pp } = await fetchDay(d);
-        if(source){
+        if(source && pp){
+          // ✅ FIX #3: Vérifier le localStorage pour la priorité
+          const localData = localLoadDraft(d);
+          const localTs = localData?.ts || 0;
+          const timeSinceLocal = Date.now() - localTs;
+
+          // ✅ FIX #4: Ne pas écraser si données locales < 60 secondes
+          if(timeSinceLocal < 60000){
+            console.log('[Sync] Données locales récentes, conservation.');
+            return;
+          }
+
+          // ✅ FIX #5: Vérifier que les données serveur ne sont pas vides
+          const hasServerData = (pp.d1 && pp.d1.length > 0) || (pp.d2 && pp.d2.length > 0);
+          const hasLocalData = (S.d1 && S.d1.length > 0) || (S.d2 && S.d2.length > 0);
+
+          if(hasLocalData && !hasServerData){
+            console.log('[Sync] Serveur vide, conservation des données locales.');
+            return;
+          }
+
+          // Comparaison de contenu
           const current = JSON.stringify(payload());
           const incoming = JSON.stringify(pp||{});
+
           if(incoming && incoming !== current){
-            S.d1 = (pp?.d1)||[]; S.d2=(pp?.d2)||[]; S.barr=(pp?.barrage)||{};
+            // ✅ FIX #6: Préserver S.champions lors du merge
+            const preservedChampions = S.champions;
+
+            S.d1 = (pp?.d1)||[];
+            S.d2 = (pp?.d2)||[];
+            S.barr = (pp?.barrage)||{};
+            S.champions = (pp?.champions) || preservedChampions || {};
+
             rebuild('d1'); rebuild('d2'); computeBarrageLabel(); validateCross();
             localSaveDraft();
+            console.log('[Sync] Données mises à jour depuis le serveur.');
           }
         }
-      }catch(_){}
+      }catch(e){
+        console.warn('[Sync] Erreur:', e);
+      }
     }
   }
   setInterval(syncCycle, 15000);
@@ -918,10 +961,21 @@ async function loadNextFixtures(){
   $('#dayPicker').addEventListener('change', async e=>{
     const d=e.target.value; if(!d) return;
     const local = localLoadDraft(d);
-    if(local){ S.d1=local.payload.d1||[]; S.d2=local.payload.d2||[]; S.barr=local.payload.barrage||{}; rebuild('d1'); rebuild('d2'); computeBarrageLabel(); validateCross(); }
+    if(local){
+      // ✅ FIX #7: Charger aussi les champions depuis le localStorage
+      S.d1=local.payload.d1||[];
+      S.d2=local.payload.d2||[];
+      S.barr=local.payload.barrage||{};
+      S.champions=local.payload.champions||{};
+      rebuild('d1'); rebuild('d2'); computeBarrageLabel(); validateCross();
+    }
     else{
       const { source, payload:pp } = await fetchDay(d);
-      S.d1=(pp?.d1)||[]; S.d2=(pp?.d2)||[]; S.barr=(pp?.barrage)||{};
+      // ✅ FIX #8: Charger aussi les champions depuis le serveur
+      S.d1=(pp?.d1)||[];
+      S.d2=(pp?.d2)||[];
+      S.barr=(pp?.barrage)||{};
+      S.champions=(pp?.champions)||{};
       rebuild('d1'); rebuild('d2'); computeBarrageLabel(); validateCross();
       localSaveDraft();
       $('#dayInfo').textContent = source==='confirmed' ? ('Journée confirmée • '+d) : (source==='draft'?'Brouillon chargé':'Nouveau brouillon');
@@ -947,10 +1001,20 @@ async function loadNextFixtures(){
 
     const d=$('#dayPicker').value;
     const local = localLoadDraft(d);
-    if(local){ S.d1=local.payload.d1||[]; S.d2=local.payload.d2||[]; S.barr=local.payload.barrage||{}; }
+    if(local){
+      // ✅ FIX #9: Charger tous les champs au démarrage (localStorage)
+      S.d1=local.payload.d1||[];
+      S.d2=local.payload.d2||[];
+      S.barr=local.payload.barrage||{};
+      S.champions=local.payload.champions||{};
+    }
     else{
       const fetched = await fetchDay(d);
-      S.d1=fetched.payload.d1||[]; S.d2=fetched.payload.d2||[]; S.barr=fetched.payload.barrage||{};
+      // ✅ FIX #10: Charger tous les champs au démarrage (serveur)
+      S.d1=fetched.payload.d1||[];
+      S.d2=fetched.payload.d2||[];
+      S.barr=fetched.payload.barrage||{};
+      S.champions=fetched.payload.champions||{};
     }
     rebuild('d1'); rebuild('d2'); computeBarrageLabel(); validateCross();
 

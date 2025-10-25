@@ -708,10 +708,10 @@ async function loadNextFixtures(){
   function autoFillBarrage(force){
     const fld=$('#barrage_ids'); if(!force && (fld.value||'').trim()) return;
     const d2=standings('d2'), d1=standings('d1');
-    // ✅ FIX: Barrage entre DERNIER de D1 et CHAMPION de D2 (pas le 2ème)
-    const d2champion=d2[0]?.id;  // Premier D2 (champion)
-    const d1last=d1[d1.length-1]?.id;  // Dernier D1 (relégable)
-    if(d1last&&d2champion) fld.value=`${d1last} – ${d2champion}`;
+    // ✅ FIX: Barrage entre AVANT-DERNIER de D1 et DEUXIÈME de D2
+    const d2second=d2[1]?.id;  // Deuxième D2
+    const d1avant=d1.length>=2?d1[d1.length-2].id:null;  // Avant-dernier D1
+    if(d1avant&&d2second) fld.value=`${d1avant} – ${d2second}`;
     computeBarrageLabel();
   }
 

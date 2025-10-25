@@ -239,21 +239,32 @@ function goAfterLogin(role){
   location.replace(r==='admin' ? 'Accueil.html' : 'Panel-Membre.html');
 }
 
-/* Bootstrap quand une session existe déjà (NE PLUS rediriger à l’aveugle) */
+/* Bootstrap quand une session existe déjà (NE PLUS rediriger à l'aveugle) */
 (async function bootstrapIfAlreadyLogged(){
+  // Si on vient de se faire rediriger, ne pas essayer de rediriger à nouveau
+  if(sessionStorage.getItem('_redirecting')) return;
+
   const token = localStorage.getItem('efoot.token');
   const expAt = +localStorage.getItem('efoot.expAt') || 0;
-  if(!token || Date.now()>=expAt) return;
+  // Ne rien faire si pas de token ou si expAt invalide/expiré
+  if(!token || expAt <= 0 || Date.now()>=expAt) return;
+
   setBusy(true); showErr(''); showBoot('Préparation…');
 
-  // 1) Attendre /health (serveur prêt)
-  const ok = await waitForHealth(getAPI(), 90000);
+  // 1) Attendre /health (serveur prêt) - timeout réduit
+  const ok = await waitForHealth(getAPI(), 30000);
   if(!ok){ setBusy(false); showBoot(''); return; }
 
   // 2) Valider la session et partir
   const role = await validateSession();
   if(role){ showBoot(''); goAfterLogin(role); }
-  else { setBusy(false); showBoot(''); }
+  else {
+    // Session invalide: nettoyer localStorage
+    localStorage.removeItem('efoot.token');
+    localStorage.removeItem('efoot.expAt');
+    localStorage.removeItem('efoot.role');
+    setBusy(false); showBoot('');
+  }
 })();
 
 /* Afficher/masquer le mot de passe */

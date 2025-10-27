@@ -138,19 +138,20 @@
   })();
 
   // ---------- Auth guard (toutes pages sauf login) ----------
+  // NOTE: login.html ne doit PAS charger common.js pour éviter les boucles
   (function guard() {
-    // Détection plus robuste de la page login
-    const pathname = location.pathname.toLowerCase();
-    const isLogin = pathname === '/' ||
-                    pathname === '' ||
-                    pathname.endsWith('/login.html') ||
-                    pathname.endsWith('/login') ||
-                    pathname === 'login.html';
+    // Protection absolue contre les boucles: vérifier qu'on peut rediriger
+    if (sessionStorage.getItem('_guard_running')) {
+      console.warn('[Guard] Boucle détectée, abandon du guard');
+      return;
+    }
+    sessionStorage.setItem('_guard_running', '1');
+    setTimeout(() => sessionStorage.removeItem('_guard_running'), 500);
 
-    if (isLogin) return;
-
+    // Vérification du token et redirection si nécessaire
     const tok = getTok(), exp = getExp();
-    // Si pas de token OU token expiré (mais pas expAt === 0 qui peut indiquer une erreur)
+
+    // Si pas de token OU token expiré
     if (!tok || (exp > 0 && Date.now() >= exp)) {
       // Éviter les boucles: ne rediriger que si on n'est pas déjà en train de rediriger
       if (!sessionStorage.getItem('_redirecting')) {
@@ -162,10 +163,11 @@
     }
 
     // Pages admin : vérification + redirection si non-admin
-    const here = pathname.split('/').pop() || '';
-    if (here.startsWith('admin-')) {
+    const pathname = location.pathname.toLowerCase();
+    const filename = pathname.split('/').pop() || '';
+    if (filename.startsWith('admin-')) {
       const isAdmin = getRole() === 'admin';
-      const isPlayersAdmin = here === 'admin-joueurs.html';
+      const isPlayersAdmin = filename === 'admin-joueurs.html';
 
       // Admin-Joueurs accessible aux membres, autres pages admin réservées
       if (!isAdmin && !isPlayersAdmin) {

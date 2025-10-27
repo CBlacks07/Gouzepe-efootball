@@ -549,7 +549,10 @@ function renderDayContent(payload){
 
   html += '<div class="sectionTitle" style="margin-top:16px">BARRAGES</div>';
   html += '<table class="tbl"><thead><tr><th>Affiche</th><th>Aller</th><th>Retour</th><th>Match 3</th></tr></thead><tbody>';
-  html += `<tr><td>${escapeHtml((barr.ids?.d1||'—')+' - '+(barr.ids?.d2||'—'))}</td><td>${escapeHtml(mg((payload.barrage||{}).m1||{}))}</td><td>${escapeHtml(mg((payload.barrage||{}).m2||{}))}</td><td>${escapeHtml(mg((payload.barrage||{}).m3||{}))}</td></tr>`;
+  // ✅ FIX: Afficher les noms des joueurs au lieu des IDs
+  const barD1Name = barr.ids?.d1 ? nameOf(barr.ids.d1) : '—';
+  const barD2Name = barr.ids?.d2 ? nameOf(barr.ids.d2) : '—';
+  html += `<tr><td>${escapeHtml(barD1Name+' - '+barD2Name)}</td><td>${escapeHtml(mg((payload.barrage||{}).m1||{}))}</td><td>${escapeHtml(mg((payload.barrage||{}).m2||{}))}</td><td>${escapeHtml(mg((payload.barrage||{}).m3||{}))}</td></tr>`;
   html += '</tbody></table>';
   html += `<div class="verdict" style="margin-top:8px;font-weight:800;color:var(--accent);text-align:center;font-size:16px">*** ${escapeHtml((payload.barrage?.label)||'—')}</div>`;
   if(payload.barrage?.notes){
@@ -729,8 +732,11 @@ $('#printDay').onclick=async ()=>{
   html+= `<h1>${logo?`<img src="${logo}" alt="logo">`:''}GOUZEPE GAMING CLUB — Journée du ${new Date(day).toLocaleDateString('fr-FR')}</h1>`;
   html+= '<h2>SCORES D1</h2>'+tblMatches(payload.d1||[])+`<div class="champ">🏆${esc(c1.id||'—')} — CHAMPION avec ${esc(team1)}</div>`+tblStand('CLASSEMENT D1',main1,inv1);
   html+= '<h2>SCORES D2</h2>'+tblMatches(payload.d2||[])+`<div class="champ">🏆${esc(c2.id||'—')} — CHAMPION avec ${esc(team2)}</div>`+tblStand('CLASSEMENT D2',main2,inv2);
+  // ✅ FIX: Afficher les noms des joueurs au lieu des IDs dans le barrage
+  const printBarD1Name = barr.ids?.d1 ? nameOf(barr.ids.d1) : '—';
+  const printBarD2Name = barr.ids?.d2 ? nameOf(barr.ids.d2) : '—';
   html+= '<h2>BARRAGES</h2><table class="tbl"><thead><tr><th>Affiche</th><th>Aller</th><th>Retour</th><th>Match 3</th></tr></thead><tbody>';
-  html+= `<tr><td>${esc((barr.ids?.d1||'—')+' - '+(barr.ids?.d2||'—'))}</td><td>${esc(mg((payload.barrage||{}).m1||{}))}</td><td>${esc(mg((payload.barrage||{}).m2||{}))}</td><td>${esc(mg((payload.barrage||{}).m3||{}))}</td></tr></tbody></table>`;
+  html+= `<tr><td>${esc(printBarD1Name+' - '+printBarD2Name)}</td><td>${esc(mg((payload.barrage||{}).m1||{}))}</td><td>${esc(mg((payload.barrage||{}).m2||{}))}</td><td>${esc(mg((payload.barrage||{}).m3||{}))}</td></tr></tbody></table>`;
   html+= `<div class="verdict">*** ${esc((payload.barrage?.label)||'—')}</div>`;
   if(payload.barrage?.notes){ html+='<div style="margin-top:8px"><b>Notes :</b><br>'+esc(payload.barrage.notes).replace(/\r?\n/g,'<br>')+'</div>'; }
   html+='</body></html>';

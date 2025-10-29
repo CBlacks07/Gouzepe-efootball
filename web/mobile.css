@@ -1,229 +1,224 @@
 /* ==========================================
-   GOUZEPE eFOOTBALL - Mobile Ultra-Compact
-   Design bord à bord, sans espaces, polices minimales
+   GOUZEPE eFOOTBALL - Mobile Professional
+   Bords à 0, polices minimales, disposition intelligente
    ========================================== */
 
-/* === RESET COMPLET MOBILE === */
+/* === RESET & BASE === */
 @media (max-width: 768px) {
 
-  /* Suppression de TOUS les espaces de bords */
+  /* Bords à zéro, polices petites */
   html, body {
     margin: 0 !important;
     padding: 0 !important;
-    width: 100vw !important;
-    overflow-x: hidden !important;
-    -webkit-text-size-adjust: 100%;
+    width: 100vw;
+    overflow-x: hidden;
+    font-size: 13px;
   }
 
   body {
-    /* Seulement les safe-areas (notch) */
-    padding-top: env(safe-area-inset-top, 0) !important;
-    padding-bottom: env(safe-area-inset-bottom, 0) !important;
+    padding-top: env(safe-area-inset-top, 0);
+    padding-bottom: env(safe-area-inset-bottom, 0);
   }
 
-  /* Suppression padding sur TOUS les conteneurs */
-  .wrap, .container, main, section {
-    padding: 0 !important;
-    margin: 0 !important;
-    width: 100% !important;
-    max-width: 100% !important;
+  /* === TYPOGRAPHIE COMPACTE === */
+  * {
+    font-size: 13px;
+    line-height: 1.4;
   }
 
-  /* Cards = lignes simples sans padding externe */
-  .card {
-    padding: 8px 12px !important;
-    margin: 0 !important;
-    border-radius: 0 !important;
-    border-left: none !important;
-    border-right: none !important;
-    width: 100% !important;
-  }
-
-  /* === TYPOGRAPHIE MINIMALE === */
-
-  /* Texte de base très petit */
-  body, p, li, td, th, span, div {
-    font-size: 13px !important;
-    line-height: 1.4 !important;
-  }
-
-  /* Titres compacts */
   h1, .heading {
     font-size: 16px !important;
-    line-height: 1.3 !important;
-    margin: 0 !important;
-    padding: 8px 12px !important;
+    line-height: 1.3;
   }
 
   h2 {
     font-size: 15px !important;
-    line-height: 1.3 !important;
-    margin: 0 !important;
-    padding: 6px 12px !important;
   }
 
   h3, .sectionTitle {
     font-size: 14px !important;
-    line-height: 1.3 !important;
-    margin: 0 !important;
-    padding: 6px 12px !important;
-    background: var(--panel, #0f1722) !important;
-    border-bottom: 1px solid var(--border, #1f2937) !important;
   }
 
-  /* Texte muted encore plus petit */
-  .muted, .tiny, .hint, .meta, .sub {
+  .muted, .tiny, .hint, .meta {
     font-size: 12px !important;
-    opacity: 0.75 !important;
   }
 
   /* === TOP BAR COMPACT === */
-  .top, header, nav {
-    padding: 6px 12px !important;
-    padding-top: calc(env(safe-area-inset-top, 0px) + 6px) !important;
-    margin: 0 !important;
-    position: sticky;
-    top: 0;
-    z-index: 100;
-    backdrop-filter: blur(10px);
+  .top, header {
+    padding: 6px 10px !important;
+    padding-top: calc(env(safe-area-inset-top, 0) + 6px) !important;
   }
 
   .logo {
     width: 32px !important;
     height: 32px !important;
-    border-radius: 8px !important;
   }
 
   .brand-title h1 {
     font-size: 14px !important;
-    line-height: 1.2 !important;
   }
 
-  .season-sub, .brand-title .muted {
+  .season-sub {
     font-size: 11px !important;
   }
 
-  /* === BOUTONS COMPACTS === */
+  /* === SECTIONS SANS PADDING LATÉRAL === */
+  section, main {
+    padding-left: 0 !important;
+    padding-right: 0 !important;
+  }
+
+  .hero {
+    padding: 10px !important;
+  }
+
+  /* === CONTENEURS === */
+  .wrap, .container {
+    padding: 0 !important;
+    margin: 0 !important;
+    width: 100%;
+  }
+
+  /* Cards avec padding interne seulement */
+  .card {
+    padding: 10px !important;
+    margin: 0 !important;
+    border-radius: 0 !important;
+    border-left: none !important;
+    border-right: none !important;
+  }
+
+  /* === BUTTONS & INPUTS === */
   button, .btn, a.btn {
     min-height: 36px !important;
     font-size: 13px !important;
     padding: 8px 12px !important;
-    border-radius: 8px !important;
-    margin: 0 !important;
   }
 
-  /* Boutons full-width */
-  .actions, .footer, .form-actions, .daybar {
-    display: flex;
-    flex-direction: column;
+  input, select, textarea {
+    min-height: 36px !important;
+    font-size: 13px !important;
+    padding: 8px 10px !important;
+  }
+
+  label {
+    font-size: 13px !important;
+    margin-bottom: 4px;
+  }
+
+  /* === GRILLES INTELLIGENTES === */
+
+  /* Daybar: 2 colonnes pour date+select, boutons en dessous */
+  .daybar {
+    display: grid !important;
+    grid-template-columns: 1fr 1fr;
     gap: 6px;
-    padding: 8px 12px !important;
+    padding: 8px 10px !important;
     margin: 0 !important;
   }
 
-  .actions .btn, .footer .btn, .daybar button {
+  .daybar input[type="date"],
+  .daybar select {
     width: 100%;
+  }
+
+  /* Boutons daybar: 1 par ligne ou 2 par ligne selon importance */
+  .daybar button.primary,
+  .daybar button.save {
+    grid-column: 1 / -1; /* Pleine largeur pour boutons importants */
   }
 
   .daybar .spacer {
     display: none !important;
   }
 
-  /* === INPUTS COMPACTS === */
-  input, select, textarea {
-    min-height: 36px !important;
-    font-size: 13px !important;
+  /* === ACTIONS: MAX 3 BOUTONS PAR LIGNE === */
+  .actions {
+    display: grid !important;
+    grid-template-columns: repeat(auto-fit, minmax(100px, 1fr));
+    gap: 6px;
     padding: 8px 10px !important;
-    border-radius: 6px !important;
-    width: 100% !important;
+    margin: 0 !important;
   }
 
-  label {
-    font-size: 13px !important;
-    margin: 0 0 4px 0 !important;
-    padding: 0 !important;
+  .actions .btn {
+    width: 100%;
   }
 
-  /* === FORMULAIRES === */
+  /* === FORMS INTELLIGENTS === */
   form {
-    width: 100% !important;
-    padding: 12px !important;
+    padding: 10px !important;
   }
 
-  .field {
-    margin-bottom: 10px !important;
+  /* Row de contrôles: 2 colonnes */
+  .row {
+    display: grid !important;
+    grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+    gap: 6px;
+    padding: 8px 10px !important;
+    margin: 0 !important;
   }
 
-  /* === TABLES ULTRA-COMPACTES === */
+  .row input,
+  .row select {
+    width: 100%;
+  }
+
+  /* Boutons row: groupés */
+  .row button {
+    width: 100%;
+  }
+
+  /* === TABLES === */
   .table-wrap {
     overflow-x: auto;
     -webkit-overflow-scrolling: touch;
     margin: 0 !important;
-    padding: 0 !important;
   }
 
   table {
-    width: 100% !important;
     font-size: 12px !important;
-    margin: 0 !important;
-    border-radius: 0 !important;
+    width: 100%;
+    min-width: 600px; /* Force scroll horizontal */
   }
 
   th, td {
     padding: 6px 4px !important;
     font-size: 12px !important;
-    white-space: nowrap;
   }
 
   th {
     font-size: 11px !important;
-    text-transform: uppercase;
-    letter-spacing: 0.3px;
   }
 
-  /* Masquer colonnes non essentielles */
   .hide-mobile, .hid-m {
     display: none !important;
   }
 
-  /* === GRILLES COMPACTES === */
-  .grid, .grid2, .grid-two {
+  /* === GRILLES D1/D2 === */
+  .grid-two, .grid2 {
     display: flex;
     flex-direction: column;
-    gap: 0 !important;
+    gap: 0;
     margin: 0 !important;
     padding: 0 !important;
   }
 
   .division {
-    min-width: unset !important;
-    width: 100% !important;
-    padding: 8px 0 !important;
+    width: 100%;
+    padding: 0 !important;
     margin: 0 !important;
   }
 
   .division h3 {
     font-size: 14px !important;
-    padding: 6px 12px !important;
+    padding: 6px 10px !important;
     margin: 0 !important;
+    background: var(--panel, #0f1722);
+    border-bottom: 1px solid var(--border, #1f2937);
   }
 
-  /* === ITEMS / LISTE === */
-  .list {
-    gap: 0 !important;
-    padding: 0 !important;
-    margin: 0 !important;
-  }
-
-  .item {
-    padding: 10px 12px !important;
-    border-radius: 0 !important;
-    border-left: none !important;
-    border-right: none !important;
-    gap: 6px !important;
-  }
-
-  /* === SCORES (JOURNÉES) === */
+  /* === SCORES INPUT === */
   .scoresCell {
     padding: 4px !important;
   }
@@ -232,38 +227,30 @@
     width: 32px !important;
     height: 32px !important;
     font-size: 14px !important;
-    padding: 0 !important;
-    border-radius: 6px !important;
   }
 
-  /* === BADGES COMPACTS === */
+  /* === BADGES === */
   .badge {
     font-size: 10px !important;
     padding: 2px 6px !important;
-    border-radius: 4px !important;
   }
 
   /* === NAVIGATION MOBILE === */
   #menuToggle, .menu-toggle {
     min-width: 36px !important;
     min-height: 36px !important;
-    padding: 8px !important;
   }
 
-  #menu.open, .menu.open {
+  #menu.open, .menu.open, #mobileMenu {
     position: fixed;
-    top: 0;
-    left: 0;
-    right: 0;
-    bottom: 0;
-    background: var(--panel, #0f1722);
+    inset: 0;
     z-index: 200;
-    padding: 12px !important;
-    padding-top: calc(env(safe-area-inset-top, 0px) + 12px) !important;
-    gap: 8px;
+    background: var(--panel, #0f1722);
+    padding: 10px !important;
+    padding-top: calc(env(safe-area-inset-top, 0) + 10px) !important;
   }
 
-  /* === MODALS COMPACTS === */
+  /* === MODALS === */
   dialog {
     max-width: 100vw !important;
     max-height: 100vh !important;
@@ -272,69 +259,51 @@
     margin: 0 !important;
     padding: 0 !important;
     border-radius: 0 !important;
-    border: none !important;
   }
 
   .day-head, .dlg-h {
-    padding: 10px 12px !important;
+    padding: 10px !important;
     font-size: 14px !important;
-    border-bottom: 1px solid var(--border, #1f2937);
   }
 
   #day-body, .dlg-b {
-    padding: 12px !important;
+    padding: 10px !important;
     font-size: 13px !important;
-    overflow-y: auto;
-    max-height: calc(100vh - 120px);
   }
 
   .dlg-f {
-    padding: 10px 12px !important;
-    border-top: 1px solid var(--border, #1f2937);
+    padding: 10px !important;
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(80px, 1fr));
+    gap: 6px;
   }
 
-  /* === SECTIONS === */
-  section {
-    border-bottom: 1px solid var(--border, #1f2937);
-  }
-
-  .hero {
-    padding: 10px 12px !important;
-  }
-
-  /* === LOGIN PAGE === */
-  .wrap {
-    padding: 0 !important;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    min-height: 100vh;
-  }
-
-  /* === FOOTER === */
-  footer {
-    padding: 12px !important;
-    font-size: 11px !important;
-    text-align: center;
-    border-top: 1px solid var(--border, #1f2937);
-  }
-
-  /* === SUPPRESSION ÉLÉMENTS DÉCORATIFS === */
-  .bg-wrap, .overlayGrad, .bg-video {
-    display: none !important;
-  }
-
-  /* === CARDS MOBILES (ALTERNATIVE TABLE) === */
-  .cards {
-    display: grid !important;
+  /* === ITEMS/LISTE === */
+  .list {
     gap: 0 !important;
     padding: 0 !important;
+  }
+
+  .item {
+    padding: 10px !important;
+    border-radius: 0 !important;
+    border-left: none !important;
+    border-right: none !important;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+  }
+
+  /* === CARDS MOBILES (ALT TABLE) === */
+  .cards {
+    padding: 0 !important;
     margin: 0 !important;
+    gap: 0 !important;
   }
 
   .cards .card {
+    padding: 10px !important;
     border-radius: 0 !important;
-    padding: 10px 12px !important;
     border-left: none !important;
     border-right: none !important;
   }
@@ -346,54 +315,49 @@
     font-size: 12px !important;
   }
 
-  /* === ROW (CONTROLS) === */
-  .row {
-    display: flex;
-    flex-direction: column;
-    gap: 6px;
-    padding: 8px 12px !important;
-    margin: 0 !important;
-  }
-
-  .row input, .row select, .row button {
-    width: 100%;
-    margin: 0 !important;
-  }
-
-  /* === PROGRESS BARS === */
+  /* === PROGRESS === */
   .progress {
-    height: 4px !important;
-    width: 60px !important;
+    height: 4px;
+    width: 60px;
   }
 
-  /* === STATUS / TOAST === */
-  #status, .toast {
-    font-size: 12px !important;
-    padding: 8px 12px !important;
+  /* === FOOTER === */
+  footer {
+    padding: 10px !important;
+    font-size: 11px !important;
   }
 
-  /* === OPTIMISATIONS PERFORMANCE === */
+  /* Login page footer: side by side on mobile > 400px */
+  .footer {
+    display: flex !important;
+    justify-content: space-between;
+    align-items: center;
+    gap: 10px;
+    padding: 10px !important;
+  }
+
+  .footer .btn {
+    flex: 0 0 auto;
+    width: auto !important;
+  }
+
+  /* === SUPPRESSION DÉCORATIONS === */
+  .bg-wrap, .overlayGrad, .bg-video {
+    display: none !important;
+  }
+
+  /* === OPTIMISATIONS === */
   * {
     box-sizing: border-box;
     -webkit-tap-highlight-color: rgba(22, 163, 74, 0.15);
-  }
-
-  /* Scroll fluide */
-  * {
     -webkit-overflow-scrolling: touch;
-  }
-
-  /* GPU acceleration */
-  .top, .btn, button {
-    will-change: transform;
-    transform: translateZ(0);
   }
 }
 
-/* === TRÈS PETITS ÉCRANS (< 375px) === */
-@media (max-width: 374px) {
-  body, p, td, th {
-    font-size: 12px !important;
+/* === TRÈS PETITS ÉCRANS === */
+@media (max-width: 400px) {
+  * {
+    font-size: 12px;
   }
 
   h1 {
@@ -417,39 +381,40 @@
     font-size: 11px !important;
   }
 
-  .scoresCell input {
-    width: 28px !important;
-    height: 28px !important;
-    font-size: 13px !important;
+  /* Sur très petits écrans: boutons en colonne */
+  .daybar {
+    grid-template-columns: 1fr !important;
+  }
+
+  .actions {
+    grid-template-columns: 1fr !important;
+  }
+
+  .row {
+    grid-template-columns: 1fr !important;
+  }
+
+  /* Footer login: vertical sur très petits écrans */
+  .footer {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .footer .btn {
+    width: 100% !important;
   }
 }
 
-/* === LANDSCAPE MODE === */
+/* === LANDSCAPE === */
 @media (max-width: 768px) and (orientation: landscape) {
-  .top {
-    padding: 4px 12px !important;
-  }
-
-  .hero {
-    padding: 6px 12px !important;
-  }
-
-  dialog {
-    max-height: 100vh !important;
-  }
-
-  .grid, .grid2, .grid-two {
+  .grid-two {
+    display: grid;
     grid-template-columns: 1fr 1fr;
   }
 }
 
 /* === PWA STANDALONE === */
 @media (display-mode: standalone) {
-  /* Mode app installée */
-  body {
-    padding-top: max(env(safe-area-inset-top, 0px), 0px) !important;
-  }
-
   .install-prompt {
     display: none !important;
   }
@@ -459,29 +424,18 @@
 @media (prefers-reduced-motion: reduce) {
   * {
     animation-duration: 0.01ms !important;
-    animation-iteration-count: 1 !important;
     transition-duration: 0.01ms !important;
-  }
-}
-
-@media (prefers-contrast: high) {
-  .card, .btn, input, select, table {
-    border-width: 2px !important;
   }
 }
 
 /* === PRINT === */
 @media print {
-  .top, .menu, button, .btn {
+  .top, .menu, button:not(.print-btn), .btn:not(.print-btn) {
     display: none !important;
   }
 
   * {
     color: #000 !important;
     background: #fff !important;
-  }
-
-  body {
-    padding: 0 !important;
   }
 }

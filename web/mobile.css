@@ -150,8 +150,8 @@
     padding: 10px !important;
   }
 
-  /* Row de contrôles: 2 colonnes */
-  .row {
+  /* Row de contrôles: 2 colonnes SAUF si contient des checkboxes */
+  .row:not(:has(input[type="checkbox"])) {
     display: grid !important;
     grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
     gap: 6px;
@@ -159,14 +159,24 @@
     margin: 0 !important;
   }
 
-  .row input,
+  /* Rows avec checkboxes: flex-wrap pour garder la disposition */
+  .row:has(input[type="checkbox"]) {
+    display: flex !important;
+    flex-wrap: wrap !important;
+    gap: 8px !important;
+    padding: 8px 10px !important;
+    align-items: center !important;
+  }
+
+  .row input:not([type="checkbox"]),
   .row select {
     width: 100%;
   }
 
   /* Boutons row: groupés */
   .row button {
-    width: 100%;
+    width: auto !important;
+    white-space: nowrap;
   }
 
   /* === TABLES === */

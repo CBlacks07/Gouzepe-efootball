@@ -95,7 +95,7 @@ html.light .bg-video{opacity:.18; filter:contrast(.95) saturate(.85)}
     .item strong{letter-spacing:.3px}.meta{color:var(--muted);font-size:14px}
 
     /* ===== JOURNÉE ===== */
-    .daybar{display:flex;flex-wrap:wrap;gap:10px;align-items:center;margin-bottom:12px}
+    .daybar{display:grid;grid-template-columns:repeat(auto-fit,minmax(160px,1fr));gap:10px;align-items:center;margin-bottom:12px;padding:10px 0}
     .daybar input[type="date"],.daybar select{padding:8px 10px;border-radius:999px;border:1px solid var(--border);background:transparent;color:inherit}
     .grid-two{display:flex;flex-wrap:wrap;gap:12px}
     .division{flex:1 1 520px;min-width:320px}

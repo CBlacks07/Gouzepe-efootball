@@ -159,10 +159,12 @@
         <button id="reload" class="btn">Rafraîchir</button>
       </div>
     </div>
-    <table style="text-align: center;">
-      <thead><tr><th>ID</th><th>Nom</th><th>Status</th><th>Compte</th><th class="adminOnly">Actions</th></tr></thead>
-      <tbody id="list"></tbody>
-    </table>
+    <div class="table-wrap" style="overflow-x:auto;-webkit-overflow-scrolling:touch">
+      <table style="text-align: center;">
+        <thead><tr><th>ID</th><th>Nom</th><th>Status</th><th>Compte</th><th class="adminOnly">Actions</th></tr></thead>
+        <tbody id="list"></tbody>
+      </table>
+    </div>
   </section>
 </div>
 

@@ -38,19 +38,47 @@
   html.light .top{background:rgba(255,255,255,.7)}
   .nav{display:flex;gap:10px;align-items:center;flex-wrap:wrap}
   .logo{width:52px;height:52px;border-radius:14px;background:url('assets/icons/apple-touch-icon.png') center/cover no-repeat;pointer-events:none}
-  .menu-toggle{display:none}
-  .menu{display:flex;gap:10px;align-items:center;flex-wrap:wrap}
-  @media (max-width: 840px){
-    .menu-toggle{display:inline-flex;align-items:center;justify-content:center;border:1px solid var(--border);border-radius:12px;padding:10px 14px;background:#10192c;color:var(--text);cursor:pointer}
-    html.light .menu-toggle{background:#fff}
-    .menu{
-      position:fixed; right:12px; top:64px; z-index:1000; display:none;
-      flex-direction:column; gap:10px; width:min(88vw,340px); padding:12px;
-      background:var(--panel); border:1px solid var(--border); border-radius:14px;
-      box-shadow:0 20px 40px rgba(0,0,0,.35)
-    }
-    .menu.open{display:flex}
+  .menu-toggle{display:inline-flex;align-items:center;justify-content:center;border:1px solid var(--border);border-radius:12px;padding:10px 14px;background:#10192c;color:var(--text);cursor:pointer}
+  html.light .menu-toggle{background:#fff}
+
+  /* === Menu Mobile Moderne === */
+  #mobileMenu{
+    position:fixed; inset:0; z-index:60;
+    background:rgba(0,0,0,.65); backdrop-filter:blur(4px);
+    display:flex; align-items:flex-start; justify-content:center;
+    padding:0; opacity:0; pointer-events:none;
+    transition:opacity .25s ease;
   }
+  #mobileMenu:not([hidden]){ opacity:1; pointer-events:auto; }
+  #mobileMenu[hidden]{ display:none }
+
+  .mm-panel{
+    width:min(94vw,400px); margin-top:0;
+    background:var(--panel); color:var(--text);
+    border:none; border-bottom-left-radius:16px; border-bottom-right-radius:16px;
+    box-shadow:0 8px 32px rgba(0,0,0,.4);
+    padding:0; max-height:90vh; overflow-y:auto;
+    transform:translateY(-100%); transition:transform .3s cubic-bezier(0.4, 0, 0.2, 1);
+  }
+  #mobileMenu:not([hidden]) .mm-panel{ transform:translateY(0); }
+
+  .mm-title{
+    font-weight:800; text-align:center; padding:16px;
+    border-bottom:1px solid var(--border); margin:0;
+    position:sticky; top:0; background:var(--panel); z-index:1;
+  }
+  .mm-list{display:flex; flex-direction:column; gap:0; padding:8px;}
+  .mm-btn{
+    display:flex; align-items:center; justify-content:flex-start; gap:12px;
+    padding:14px 16px; border-radius:12px; border:none;
+    background:transparent; color:inherit; text-decoration:none; font-weight:600;
+    transition:background .2s ease;
+  }
+  .mm-btn:hover, .mm-btn:active{ background:rgba(255,255,255,.06); }
+  .mm-theme{display:flex; justify-content:center; padding:8px 16px; border-top:1px solid var(--border);}
+  .mm-logout{display:flex; justify-content:center; padding:12px 16px; border-top:1px solid var(--border);}
+  .mm-logout .btn{background:rgba(239,68,68,.12);border-color:#7f1d1d;color:#fca5a5; width:100%;}
+  @media (min-width:841px){ #mobileMenu{ display:none !important } .menu-toggle{ display:none; } }
 
   .btn{border:1px solid var(--border);border-radius:12px;padding:10px 14px;background:#10192c;color:var(--text);cursor:pointer}
   html.light .btn{background:#fff}
@@ -107,14 +135,26 @@
       </div>
       <span id="season-badge" class="season-badge blink-slow" style="display:none;margin-left:8px">Saison : <b id="season-text"></b></span>
     </div>
-    <button id="menuToggle" class="menu-toggle" aria-label="Ouvrir le menu" aria-expanded="false" aria-controls="menu">☰</button>
-    <div id="menu" class="menu top">
-      <a class="btn" href="Accueil.html">🏠 Accueil</a>
-      <a class="btn" id="btnProfile" href="Panel-Membre.html" style="display:none">👤 Mon profil</a>
-      <a class="btn" id="linkMembers" href="Admin-Joueurs.html">👥 Admin-Joueurs</a>
-      <a class="btn adminOnly" href="Admin-Utilisateurs.html">🛡️ Admin-Utilisateurs</a>
-      <button id="theme" class="btn" title="Basculer thème">☀️</button>
-      <button id="logoutBtn" class="btn danger">Déconnexion</button>
+    <button id="menuToggle" class="menu-toggle" aria-label="Ouvrir le menu" aria-expanded="false">☰ Menu</button>
+    <button id="theme" class="btn" title="Basculer thème" style="margin-left:auto">☀️</button>
+  </div>
+
+  <!-- Menu Mobile Moderne -->
+  <div id="mobileMenu" hidden>
+    <div class="mm-panel" role="dialog" aria-modal="true" aria-labelledby="mmTitle">
+      <div id="mmTitle" class="mm-title">
+        <span>Menu</span>
+        <button id="mmClose" class="btn" style="position:absolute;right:12px;top:12px;padding:6px 10px;font-size:18px;line-height:1;background:transparent;border:none" aria-label="Fermer">✕</button>
+      </div>
+      <div class="mm-list">
+        <a class="mm-btn" href="Accueil.html">🏠 Accueil</a>
+        <a class="mm-btn" href="Duel.html">⚔️ Duel</a>
+        <a class="mm-btn" href="Panel-Membre.html">👤 Mon profil</a>
+        <a class="mm-btn adminOnly" id="mmAdminPlayers" href="Admin-Joueurs.html" style="display:none">👥 Admin-Joueurs</a>
+        <a class="mm-btn adminOnly" id="mmAdminUsers" href="Admin-Utilisateurs.html" style="display:none">🛡️ Admin-Utilisateurs</a>
+      </div>
+      <div class="mm-theme"><button id="mmTheme" class="btn">☀️ / 🌙 Thème</button></div>
+      <div class="mm-logout"><button id="mmLogout" class="btn danger">Déconnexion</button></div>
     </div>
   </div>
 
@@ -803,13 +843,29 @@ renderSeason();
   else { if (b){ b.style.display='inline-flex'; b.href='Panel-Membre.html'; if(menu && b.parentNode===menu) menu.insertBefore(b, menu.firstChild); }
          if (lm){ lm.textContent='👥 Liste des membres'; lm.href='Admin-Joueurs.html'; } }
 })();
-(function(){ // menu mobile robuste
-  const menu = $('#menu'); const toggle = $('#menuToggle');
-  if(!menu||!toggle) return;
-  function open(v){ menu.classList.toggle('open',v); toggle.setAttribute('aria-expanded',v?'true':'false'); }
-  toggle.addEventListener('click',(e)=>{ e.stopPropagation(); open(!menu.classList.contains('open')); });
-  document.addEventListener('click',(e)=>{ if(!menu.classList.contains('open')) return; if(e.target===toggle||menu.contains(e.target)) return; open(false); },true);
-  document.addEventListener('keydown',(e)=>{ if(e.key==='Escape') open(false); });
+
+// Menu Mobile Moderne
+(function(){
+  const sheet = $('#mobileMenu');
+  const toggleBtn = $('#menuToggle');
+  const closeBtn = $('#mmClose');
+  if(!sheet||!toggleBtn) return;
+  const open = ()=>{ sheet.hidden=false; document.body.style.overflow='hidden'; };
+  const close= ()=>{ sheet.hidden=true;  document.body.style.overflow=''; };
+
+  toggleBtn.addEventListener('click', (e)=>{ e.preventDefault(); open(); });
+  closeBtn?.addEventListener('click', close);
+  sheet.addEventListener('click', (e)=>{ if(e.target===sheet) close(); });
+  document.addEventListener('keydown', (e)=>{ if(e.key==='Escape' && !sheet.hidden) close(); });
+
+  // Rôle admin -> affiche liens admin
+  const isAdmin = role==='admin';
+  if($('#mmAdminPlayers')) $('#mmAdminPlayers').style.display = isAdmin ? '' : 'none';
+  if($('#mmAdminUsers')) $('#mmAdminUsers').style.display = isAdmin ? '' : 'none';
+
+  // Synchronise avec les contrôles existants
+  $('#mmTheme').onclick = ()=> $('#theme').click();
+  $('#mmLogout').onclick = ()=> $('#logoutBtn').click();
 })();
 
 /* ===== démarrage ===== */

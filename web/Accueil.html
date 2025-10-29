@@ -127,26 +127,43 @@ html.light .bg-video{opacity:.18; filter:contrast(.95) saturate(.85)}
     @media (max-width:480px){.brand-title h1{font-size:16px}.btn{padding:8px 10px}}
     
 
-    /* === Mobile Menu Sheet (style Duel) === */
+    /* === Menu Mobile Moderne === */
 #mobileMenu{
-  position:fixed; inset:0; z-index:60; display:flex; align-items:flex-start; justify-content:center;
-  padding:18px; background:rgba(0,0,0,.55); backdrop-filter:blur(2px);
+  position:fixed; inset:0; z-index:60;
+  background:rgba(0,0,0,.65); backdrop-filter:blur(4px);
+  display:flex; align-items:flex-start; justify-content:center;
+  padding:0; opacity:0; pointer-events:none;
+  transition:opacity .25s ease;
 }
+#mobileMenu:not([hidden]){ opacity:1; pointer-events:auto; }
 #mobileMenu[hidden]{ display:none }
+
 .mm-panel{
-  width:min(92vw,420px); margin-top:68px; background:var(--panel); color:var(--text);
-  border:1px solid var(--border); border-radius:16px; box-shadow:var(--shadow); padding:16px 14px;
+  width:min(94vw,400px); margin-top:0;
+  background:var(--panel); color:var(--text);
+  border:none; border-bottom-left-radius:16px; border-bottom-right-radius:16px;
+  box-shadow:0 8px 32px rgba(0,0,0,.4);
+  padding:0; max-height:90vh; overflow-y:auto;
+  transform:translateY(-100%); transition:transform .3s cubic-bezier(0.4, 0, 0.2, 1);
 }
-.mm-title{font-weight:800;text-align:center;margin:4px 0 12px}
-.mm-list{display:grid;gap:12px}
+#mobileMenu:not([hidden]) .mm-panel{ transform:translateY(0); }
+
+.mm-title{
+  font-weight:800; text-align:center; padding:16px;
+  border-bottom:1px solid var(--border); margin:0;
+  position:sticky; top:0; background:var(--panel); z-index:1;
+}
+.mm-list{display:flex; flex-direction:column; gap:0; padding:8px;}
 .mm-btn{
-  display:flex;align-items:center;justify-content:center;gap:10px;
-  padding:12px 14px;border-radius:14px;border:1px solid var(--border);
-  background:rgba(255,255,255,.02);color:inherit;text-decoration:none;font-weight:700;
+  display:flex; align-items:center; justify-content:flex-start; gap:12px;
+  padding:14px 16px; border-radius:12px; border:none;
+  background:transparent; color:inherit; text-decoration:none; font-weight:600;
+  transition:background .2s ease;
 }
-.mm-theme{display:flex;justify-content:center;margin:8px 0}
-.mm-logout{display:flex;justify-content:center}
-.mm-logout .btn{background:rgba(239,68,68,.1);border-color:#7f1d1d;color:#f87171}
+.mm-btn:hover, .mm-btn:active{ background:rgba(255,255,255,.06); }
+.mm-theme{display:flex; justify-content:center; padding:8px 16px; border-top:1px solid var(--border);}
+.mm-logout{display:flex; justify-content:center; padding:12px 16px; border-top:1px solid var(--border);}
+.mm-logout .btn{background:rgba(239,68,68,.12);border-color:#7f1d1d;color:#fca5a5; width:100%;}
 @media (min-width:901px){ #mobileMenu{ display:none !important } }
 
   </style>
@@ -224,18 +241,21 @@ html.light .bg-video{opacity:.18; filter:contrast(.95) saturate(.85)}
 
     <button id="themeBtn" class="btn ghost" title="Thème clair/sombre">☀️/🌙</button>
 
-    <!-- Menu mobile style "Duel" -->
+    <!-- Menu Mobile Moderne -->
 <div id="mobileMenu" hidden>
   <div class="mm-panel" role="dialog" aria-modal="true" aria-labelledby="mmTitle">
-    <div id="mmTitle" class="mm-title">Menu</div>
+    <div id="mmTitle" class="mm-title">
+      <span>Menu</span>
+      <button id="mmClose" class="btn ghost" style="position:absolute;right:12px;top:12px;padding:6px 10px;font-size:18px;line-height:1" aria-label="Fermer">✕</button>
+    </div>
     <div class="mm-list">
       <a class="mm-btn" href="./Duel.html">💪🏽 Duel</a>
       <a class="mm-btn" href="./Classement-general.html">📊 Classements</a>
       <a class="mm-btn" href="./Panel-Membre.html">👤 Mon espace</a>
       <a class="mm-btn adminOnly" id="mmAdminPlayers" href="./Admin-Joueurs.html" style="display:none">👥 Admin-Joueurs</a>
     </div>
-    <div class="mm-theme"><button id="mmTheme" class="btn">☀️ / 🌙</button></div>
-    <div class="mm-logout"><button id="mmLogout" class="btn">Déconnexion</button></div>
+    <div class="mm-theme"><button id="mmTheme" class="btn ghost">☀️ / 🌙 Thème</button></div>
+    <div class="mm-logout"><button id="mmLogout" class="btn danger">Déconnexion</button></div>
   </div>
 </div>
 
@@ -402,15 +422,17 @@ html.light .bg-video{opacity:.18; filter:contrast(.95) saturate(.85)}
   (function(){ const btn=$('#themeBtn'); if(!btn) return; const apply=m=>{document.documentElement.classList.toggle('light',m==='light');localStorage.setItem('efoot.theme',m);btn.textContent=(m==='light')?'🌙':'☀️'}; apply(localStorage.getItem('efoot.theme')||'dark'); btn.addEventListener('click',()=>apply(document.documentElement.classList.contains('light')?'dark':'light')); })();
 
   // nav responsive
-/* --- Menu mobile type « feuille » (comme Duel) --- */
+/* --- Menu Mobile Moderne --- */
 (function mobileMenu(){
   const sheet = document.getElementById('mobileMenu');
   const toggleBtn = document.getElementById('menuToggle');
+  const closeBtn = document.getElementById('mmClose');
   const open = ()=>{ sheet.hidden=false; document.body.style.overflow='hidden'; };
   const close= ()=>{ sheet.hidden=true;  document.body.style.overflow=''; };
 
   toggleBtn?.addEventListener('click', (e)=>{ e.preventDefault(); open(); });
-  sheet.addEventListener('click', (e)=>{ if(e.target===sheet) close(); });
+  closeBtn?.addEventListener('click', close);
+  sheet?.addEventListener('click', (e)=>{ if(e.target===sheet) close(); });
   document.addEventListener('keydown', (e)=>{ if(e.key==='Escape' && !sheet.hidden) close(); });
 
   // Rôle admin -> affiche liens admin dans le menu mobile

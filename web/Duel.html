@@ -68,8 +68,7 @@
     .title b{font-size:18px}
     .title small{color:var(--muted);margin-top:2px}
     .sp{flex:1}
-    .menu-toggle{display:none;border:1px solid var(--border);background:var(--panel);color:inherit;border-radius:10px;padding:8px 10px}
-    .menu{display:flex;gap:8px;align-items:center}
+    .menu-toggle{display:inline-flex;border:1px solid var(--border);background:var(--panel);color:inherit;border-radius:10px;padding:8px 10px}
     .btn{
       display:inline-flex;align-items:center;gap:8px;
       border:1px solid var(--border);background:var(--panel);color:inherit;
@@ -80,15 +79,45 @@
     .btn.primary{background:var(--chip-win);border-color:#1e3a2f}
     .btn.info{background:var(--chip-lose);border-color:#1e3a8a}
     .btn.danger{background:var(--panel);border-color:#7f1d1d;color:#b91c1c}
-    @media (max-width:900px){
-      .menu-toggle{display:inline-flex}
-      .menu{
-        position:fixed; right:12px; top:64px; display:none; flex-direction:column; gap:10px;
-        width:min(88vw,340px); padding:12px; background:var(--panel); border:1px solid var(--border);
-        border-radius:12px; box-shadow:var(--shadow); z-index:1000
-      }
-      .top.open .menu{display:flex}
+
+    /* === Menu Mobile Moderne === */
+    #mobileMenu{
+      position:fixed; inset:0; z-index:60;
+      background:rgba(0,0,0,.65); backdrop-filter:blur(4px);
+      display:flex; align-items:flex-start; justify-content:center;
+      padding:0; opacity:0; pointer-events:none;
+      transition:opacity .25s ease;
     }
+    #mobileMenu:not([hidden]){ opacity:1; pointer-events:auto; }
+    #mobileMenu[hidden]{ display:none }
+
+    .mm-panel{
+      width:min(94vw,400px); margin-top:0;
+      background:var(--panel); color:var(--text);
+      border:none; border-bottom-left-radius:16px; border-bottom-right-radius:16px;
+      box-shadow:0 8px 32px rgba(0,0,0,.4);
+      padding:0; max-height:90vh; overflow-y:auto;
+      transform:translateY(-100%); transition:transform .3s cubic-bezier(0.4, 0, 0.2, 1);
+    }
+    #mobileMenu:not([hidden]) .mm-panel{ transform:translateY(0); }
+
+    .mm-title{
+      font-weight:800; text-align:center; padding:16px;
+      border-bottom:1px solid var(--border); margin:0;
+      position:sticky; top:0; background:var(--panel); z-index:1;
+    }
+    .mm-list{display:flex; flex-direction:column; gap:0; padding:8px;}
+    .mm-btn{
+      display:flex; align-items:center; justify-content:flex-start; gap:12px;
+      padding:14px 16px; border-radius:12px; border:none;
+      background:transparent; color:inherit; text-decoration:none; font-weight:600;
+      transition:background .2s ease;
+    }
+    .mm-btn:hover, .mm-btn:active{ background:rgba(255,255,255,.06); }
+    .mm-theme{display:flex; justify-content:center; padding:8px 16px; border-top:1px solid var(--border);}
+    .mm-logout{display:flex; justify-content:center; padding:12px 16px; border-top:1px solid var(--border);}
+    .mm-logout .btn{background:rgba(239,68,68,.12);border-color:#7f1d1d;color:#fca5a5; width:100%;}
+    @media (min-width:901px){ #mobileMenu{ display:none !important } .menu-toggle{ display:none; } }
 
     /* Layout */
     .wrap{padding:var(--pad);display:grid;gap:12px;grid-template-columns:1fr;max-width:1200px;margin:auto}
@@ -313,17 +342,28 @@
   <!-- TOP -->
   <div class="top" id="top">
     <a class="brand" href="Accueil.html"><img id="clubLogo" class="logo" src="assets/icons/apple-touch-icon.png" alt="Logo" onerror="this.src='assets/icons/apple-touch-icon.png';">
-      <div class="title"><b>GOUZEPE — Duels</b><small>Matchs d’exhibition (hors championnat)</small></div>
+      <div class="title"><b>GOUZEPE — Duels</b><small>Matchs d'exhibition (hors championnat)</small></div>
     </a>
     <div class="sp"></div>
-    <button id="menuToggle" class="menu-toggle" aria-expanded="false" aria-controls="menu">☰ Menu</button>
-    <div id="menu" class="menu top" role="menu">
-      <a class="btn" href="Accueil.html">🏠 Accueil</a>
-      <a class="btn" href="Classement-general.html">📊 Classements</a>
-      <a class="btn" href="Panel-Membre.html">👤 Mon espace</a>
-      <a class="btn" href="Admin-Joueurs.html" id="linkAdmin">👥 Admin-Joueurs</a>
-      <button id="themeBtn" class="btn" title="Thème">☀️/🌙</button>
-      <button id="logoutBtn" class="btn danger">Déconnexion</button>
+    <button id="menuToggle" class="menu-toggle" aria-expanded="false">☰ Menu</button>
+    <button id="themeBtn" class="btn" title="Thème" style="margin-left:auto">☀️/🌙</button>
+  </div>
+
+  <!-- Menu Mobile Moderne -->
+  <div id="mobileMenu" hidden>
+    <div class="mm-panel" role="dialog" aria-modal="true" aria-labelledby="mmTitle">
+      <div id="mmTitle" class="mm-title">
+        <span>Menu</span>
+        <button id="mmClose" class="btn" style="position:absolute;right:12px;top:12px;padding:6px 10px;font-size:18px;line-height:1;background:transparent;border:none" aria-label="Fermer">✕</button>
+      </div>
+      <div class="mm-list">
+        <a class="mm-btn" href="Accueil.html">🏠 Accueil</a>
+        <a class="mm-btn" href="Classement-general.html">📊 Classements</a>
+        <a class="mm-btn" href="Panel-Membre.html">👤 Mon espace</a>
+        <a class="mm-btn adminOnly" id="mmAdminPlayers" href="Admin-Joueurs.html" style="display:none">👥 Admin-Joueurs</a>
+      </div>
+      <div class="mm-theme"><button id="mmTheme" class="btn">☀️ / 🌙 Thème</button></div>
+      <div class="mm-logout"><button id="mmLogout" class="btn danger">Déconnexion</button></div>
     </div>
   </div>
 
@@ -430,13 +470,26 @@
   const $ = s => document.querySelector(s);
   const esc = t => String(t??'').replace(/[&<>"']/g,m=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[m]));
 
-  // Menu mobile propre (ouvre/ferme + clic extérieur + ESC)
+  // Menu Mobile Moderne
   (function(){
-    const top=$('#top'), btn=$('#menuToggle'), menu=$('#menu');
-    const open = v => { top.classList.toggle('open',v); btn.setAttribute('aria-expanded',v?'true':'false'); }
-    btn?.addEventListener('click',e=>{e.stopPropagation(); open(!top.classList.contains('open'));});
-    document.addEventListener('click',e=>{ if(e.target===btn||menu.contains(e.target)) return; open(false); }, true);
-    document.addEventListener('keydown',e=>{ if(e.key==='Escape') open(false); });
+    const sheet = $('#mobileMenu');
+    const toggleBtn = $('#menuToggle');
+    const closeBtn = $('#mmClose');
+    const open = ()=>{ sheet.hidden=false; document.body.style.overflow='hidden'; };
+    const close= ()=>{ sheet.hidden=true;  document.body.style.overflow=''; };
+
+    toggleBtn?.addEventListener('click', (e)=>{ e.preventDefault(); open(); });
+    closeBtn?.addEventListener('click', close);
+    sheet?.addEventListener('click', (e)=>{ if(e.target===sheet) close(); });
+    document.addEventListener('keydown', (e)=>{ if(e.key==='Escape' && !sheet.hidden) close(); });
+
+    // Rôle admin -> affiche liens admin
+    const isAdmin = (localStorage.getItem('efoot.role')||'member').toLowerCase()==='admin';
+    $('#mmAdminPlayers').style.display = isAdmin ? '' : 'none';
+
+    // Synchronise avec les contrôles existants
+    $('#mmTheme').onclick = ()=> $('#themeBtn').click();
+    $('#mmLogout').onclick = ()=> $('#logoutBtn').click();
   })();
 
   // Thème (clé unifiée 'efoot.theme')

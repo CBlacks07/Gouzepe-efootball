@@ -1,328 +1,463 @@
 /* ==========================================
-   GOUZEPE eFOOTBALL - Mobile Optimizations
-   Progressive Web App - Responsive Design
+   GOUZEPE eFOOTBALL - Mobile Ultra-Compact
+   Design bord à bord, sans espaces, polices minimales
    ========================================== */
 
-/* === VARIABLES MOBILE === */
-:root {
-  --mobile-padding: 16px;
-  --mobile-gap: 12px;
-  --touch-target: 44px;
-  --safe-area-top: env(safe-area-inset-top, 0);
-  --safe-area-bottom: env(safe-area-inset-bottom, 0);
-  --safe-area-left: env(safe-area-inset-left, 0);
-  --safe-area-right: env(safe-area-inset-right, 0);
-}
-
-/* === BASES MOBILE === */
+/* === RESET COMPLET MOBILE === */
 @media (max-width: 768px) {
-  html {
-    font-size: 16px;
+
+  /* Suppression de TOUS les espaces de bords */
+  html, body {
+    margin: 0 !important;
+    padding: 0 !important;
+    width: 100vw !important;
+    overflow-x: hidden !important;
     -webkit-text-size-adjust: 100%;
-    text-size-adjust: 100%;
   }
 
   body {
-    font-size: 16px;
-    line-height: 1.5;
-    padding-top: var(--safe-area-top);
-    padding-bottom: var(--safe-area-bottom);
-    padding-left: var(--safe-area-left);
-    padding-right: var(--safe-area-right);
-    overflow-x: hidden;
+    /* Seulement les safe-areas (notch) */
+    padding-top: env(safe-area-inset-top, 0) !important;
+    padding-bottom: env(safe-area-inset-bottom, 0) !important;
   }
 
-  /* Textes lisibles sur mobile */
-  p, li, td, th, .meta, .sub {
-    font-size: 16px !important;
-    line-height: 1.6 !important;
-    word-wrap: break-word;
-    overflow-wrap: break-word;
-    hyphens: auto;
+  /* Suppression padding sur TOUS les conteneurs */
+  .wrap, .container, main, section {
+    padding: 0 !important;
+    margin: 0 !important;
+    width: 100% !important;
+    max-width: 100% !important;
   }
 
+  /* Cards = lignes simples sans padding externe */
+  .card {
+    padding: 8px 12px !important;
+    margin: 0 !important;
+    border-radius: 0 !important;
+    border-left: none !important;
+    border-right: none !important;
+    width: 100% !important;
+  }
+
+  /* === TYPOGRAPHIE MINIMALE === */
+
+  /* Texte de base très petit */
+  body, p, li, td, th, span, div {
+    font-size: 13px !important;
+    line-height: 1.4 !important;
+  }
+
+  /* Titres compacts */
   h1, .heading {
-    font-size: 24px !important;
+    font-size: 16px !important;
     line-height: 1.3 !important;
-    word-wrap: break-word;
+    margin: 0 !important;
+    padding: 8px 12px !important;
   }
 
   h2 {
-    font-size: 20px !important;
-    line-height: 1.4 !important;
+    font-size: 15px !important;
+    line-height: 1.3 !important;
+    margin: 0 !important;
+    padding: 6px 12px !important;
   }
 
-  h3 {
-    font-size: 18px !important;
-    line-height: 1.4 !important;
-  }
-
-  /* Muted text plus lisible */
-  .muted, .tiny {
+  h3, .sectionTitle {
     font-size: 14px !important;
-    opacity: 0.85 !important;
+    line-height: 1.3 !important;
+    margin: 0 !important;
+    padding: 6px 12px !important;
+    background: var(--panel, #0f1722) !important;
+    border-bottom: 1px solid var(--border, #1f2937) !important;
   }
 
-  /* Inputs et boutons plus grands (touch-friendly) */
-  input, select, textarea, button, .btn {
-    min-height: var(--touch-target);
-    font-size: 16px !important;
-    padding: 12px 16px !important;
-    border-radius: 12px;
+  /* Texte muted encore plus petit */
+  .muted, .tiny, .hint, .meta, .sub {
+    font-size: 12px !important;
+    opacity: 0.75 !important;
   }
 
-  input[type="date"],
-  input[type="datetime-local"] {
-    min-height: var(--touch-target);
-    font-size: 16px !important;
-  }
-
-  /* Boutons full-width sur mobile */
-  .actions {
-    display: flex;
-    flex-direction: column;
-    gap: 12px;
-    width: 100%;
-  }
-
-  .actions .btn {
-    width: 100%;
-    justify-content: center;
-  }
-
-  /* Cards et sections avec padding adapté */
-  .card {
-    padding: var(--mobile-padding);
-    margin: var(--mobile-gap) 0;
-    border-radius: 16px;
-  }
-
-  section {
-    padding: var(--mobile-padding);
-  }
-
-  /* Tables responsive */
-  .table-wrap {
-    overflow-x: auto;
-    -webkit-overflow-scrolling: touch;
-    margin: 0 calc(var(--mobile-padding) * -1);
-    padding: 0 var(--mobile-padding);
-  }
-
-  table {
-    min-width: 100%;
-    font-size: 14px;
-  }
-
-  th, td {
-    padding: 10px 8px !important;
-    white-space: nowrap;
-  }
-
-  /* Navigation mobile */
-  .top {
-    padding: 12px var(--mobile-padding);
+  /* === TOP BAR COMPACT === */
+  .top, header, nav {
+    padding: 6px 12px !important;
+    padding-top: calc(env(safe-area-inset-top, 0px) + 6px) !important;
+    margin: 0 !important;
     position: sticky;
     top: 0;
     z-index: 100;
-  }
-
-  .brand-title h1 {
-    font-size: 16px !important;
-  }
-
-  .logo {
-    width: 36px !important;
-    height: 36px !important;
-  }
-
-  /* Grilles responsive */
-  .grid-two {
-    display: flex;
-    flex-direction: column;
-    gap: var(--mobile-gap);
-  }
-
-  .division {
-    min-width: unset !important;
-    flex: 1 1 100%;
-  }
-
-  /* Daybar vertical sur mobile */
-  .daybar {
-    display: flex;
-    flex-direction: column;
-    gap: var(--mobile-gap);
-    align-items: stretch;
-  }
-
-  .daybar input,
-  .daybar select,
-  .daybar button {
-    width: 100%;
-  }
-
-  .daybar .spacer {
-    display: none;
-  }
-
-  /* Items de liste plus espacés */
-  .item {
-    padding: 14px 12px;
-    flex-direction: column;
-    align-items: flex-start;
-    gap: 8px;
-  }
-
-  .item .btn {
-    margin-top: 8px;
-    align-self: stretch;
-  }
-
-  /* Scores inputs plus grands */
-  .scoresCell input {
-    width: 44px !important;
-    height: 44px !important;
-    font-size: 18px !important;
-  }
-
-  /* Modal responsive */
-  dialog {
-    max-width: calc(100vw - 32px);
-    max-height: calc(100vh - 64px);
-    margin: auto;
-  }
-
-  /* Footer responsive */
-  footer {
-    padding: 20px var(--mobile-padding) !important;
-    font-size: 14px !important;
-  }
-}
-
-/* === TRÈS PETITS ÉCRANS (< 480px) === */
-@media (max-width: 480px) {
-  :root {
-    --mobile-padding: 12px;
-    --mobile-gap: 10px;
-  }
-
-  /* Textes encore plus compacts */
-  p, li, td, th {
-    font-size: 15px !important;
-  }
-
-  h1, .heading {
-    font-size: 22px !important;
-  }
-
-  /* Désactiver vidéo de fond (performance) */
-  .bg-wrap,
-  .overlayGrad {
-    display: none !important;
-  }
-
-  /* Tables ultra-compactes */
-  table {
-    font-size: 13px;
-  }
-
-  th, td {
-    padding: 8px 6px !important;
-  }
-
-  .brand-title h1 {
-    font-size: 14px !important;
+    backdrop-filter: blur(10px);
   }
 
   .logo {
     width: 32px !important;
     height: 32px !important;
+    border-radius: 8px !important;
   }
-}
 
-/* === PAYSAGE MOBILE === */
-@media (max-height: 500px) and (orientation: landscape) {
-  .top {
-    padding: 8px var(--mobile-padding);
+  .brand-title h1 {
+    font-size: 14px !important;
+    line-height: 1.2 !important;
+  }
+
+  .season-sub, .brand-title .muted {
+    font-size: 11px !important;
+  }
+
+  /* === BOUTONS COMPACTS === */
+  button, .btn, a.btn {
+    min-height: 36px !important;
+    font-size: 13px !important;
+    padding: 8px 12px !important;
+    border-radius: 8px !important;
+    margin: 0 !important;
+  }
+
+  /* Boutons full-width */
+  .actions, .footer, .form-actions, .daybar {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+    padding: 8px 12px !important;
+    margin: 0 !important;
+  }
+
+  .actions .btn, .footer .btn, .daybar button {
+    width: 100%;
+  }
+
+  .daybar .spacer {
+    display: none !important;
+  }
+
+  /* === INPUTS COMPACTS === */
+  input, select, textarea {
+    min-height: 36px !important;
+    font-size: 13px !important;
+    padding: 8px 10px !important;
+    border-radius: 6px !important;
+    width: 100% !important;
+  }
+
+  label {
+    font-size: 13px !important;
+    margin: 0 0 4px 0 !important;
+    padding: 0 !important;
+  }
+
+  /* === FORMULAIRES === */
+  form {
+    width: 100% !important;
+    padding: 12px !important;
+  }
+
+  .field {
+    margin-bottom: 10px !important;
+  }
+
+  /* === TABLES ULTRA-COMPACTES === */
+  .table-wrap {
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+    margin: 0 !important;
+    padding: 0 !important;
+  }
+
+  table {
+    width: 100% !important;
+    font-size: 12px !important;
+    margin: 0 !important;
+    border-radius: 0 !important;
+  }
+
+  th, td {
+    padding: 6px 4px !important;
+    font-size: 12px !important;
+    white-space: nowrap;
+  }
+
+  th {
+    font-size: 11px !important;
+    text-transform: uppercase;
+    letter-spacing: 0.3px;
+  }
+
+  /* Masquer colonnes non essentielles */
+  .hide-mobile, .hid-m {
+    display: none !important;
+  }
+
+  /* === GRILLES COMPACTES === */
+  .grid, .grid2, .grid-two {
+    display: flex;
+    flex-direction: column;
+    gap: 0 !important;
+    margin: 0 !important;
+    padding: 0 !important;
+  }
+
+  .division {
+    min-width: unset !important;
+    width: 100% !important;
+    padding: 8px 0 !important;
+    margin: 0 !important;
+  }
+
+  .division h3 {
+    font-size: 14px !important;
+    padding: 6px 12px !important;
+    margin: 0 !important;
+  }
+
+  /* === ITEMS / LISTE === */
+  .list {
+    gap: 0 !important;
+    padding: 0 !important;
+    margin: 0 !important;
+  }
+
+  .item {
+    padding: 10px 12px !important;
+    border-radius: 0 !important;
+    border-left: none !important;
+    border-right: none !important;
+    gap: 6px !important;
+  }
+
+  /* === SCORES (JOURNÉES) === */
+  .scoresCell {
+    padding: 4px !important;
+  }
+
+  .scoresCell input {
+    width: 32px !important;
+    height: 32px !important;
+    font-size: 14px !important;
+    padding: 0 !important;
+    border-radius: 6px !important;
+  }
+
+  /* === BADGES COMPACTS === */
+  .badge {
+    font-size: 10px !important;
+    padding: 2px 6px !important;
+    border-radius: 4px !important;
+  }
+
+  /* === NAVIGATION MOBILE === */
+  #menuToggle, .menu-toggle {
+    min-width: 36px !important;
+    min-height: 36px !important;
+    padding: 8px !important;
+  }
+
+  #menu.open, .menu.open {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: var(--panel, #0f1722);
+    z-index: 200;
+    padding: 12px !important;
+    padding-top: calc(env(safe-area-inset-top, 0px) + 12px) !important;
+    gap: 8px;
+  }
+
+  /* === MODALS COMPACTS === */
+  dialog {
+    max-width: 100vw !important;
+    max-height: 100vh !important;
+    width: 100vw !important;
+    height: 100vh !important;
+    margin: 0 !important;
+    padding: 0 !important;
+    border-radius: 0 !important;
+    border: none !important;
+  }
+
+  .day-head, .dlg-h {
+    padding: 10px 12px !important;
+    font-size: 14px !important;
+    border-bottom: 1px solid var(--border, #1f2937);
+  }
+
+  #day-body, .dlg-b {
+    padding: 12px !important;
+    font-size: 13px !important;
+    overflow-y: auto;
+    max-height: calc(100vh - 120px);
+  }
+
+  .dlg-f {
+    padding: 10px 12px !important;
+    border-top: 1px solid var(--border, #1f2937);
+  }
+
+  /* === SECTIONS === */
+  section {
+    border-bottom: 1px solid var(--border, #1f2937);
   }
 
   .hero {
-    padding-block: 16px;
+    padding: 10px 12px !important;
   }
 
-  .heading {
-    font-size: 20px !important;
-    margin-bottom: 8px;
+  /* === LOGIN PAGE === */
+  .wrap {
+    padding: 0 !important;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    min-height: 100vh;
   }
 
-  .sub {
-    font-size: 14px !important;
-  }
-}
-
-/* === AMÉLIORATIONS TACTILES === */
-@media (hover: none) and (pointer: coarse) {
-  /* Meilleur feedback tactile */
-  button, .btn, a {
-    -webkit-tap-highlight-color: rgba(22, 163, 74, 0.2);
+  /* === FOOTER === */
+  footer {
+    padding: 12px !important;
+    font-size: 11px !important;
+    text-align: center;
+    border-top: 1px solid var(--border, #1f2937);
   }
 
-  /* Scroll plus fluide */
+  /* === SUPPRESSION ÉLÉMENTS DÉCORATIFS === */
+  .bg-wrap, .overlayGrad, .bg-video {
+    display: none !important;
+  }
+
+  /* === CARDS MOBILES (ALTERNATIVE TABLE) === */
+  .cards {
+    display: grid !important;
+    gap: 0 !important;
+    padding: 0 !important;
+    margin: 0 !important;
+  }
+
+  .cards .card {
+    border-radius: 0 !important;
+    padding: 10px 12px !important;
+    border-left: none !important;
+    border-right: none !important;
+  }
+
+  .cards .grid2 {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 8px;
+    font-size: 12px !important;
+  }
+
+  /* === ROW (CONTROLS) === */
+  .row {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+    padding: 8px 12px !important;
+    margin: 0 !important;
+  }
+
+  .row input, .row select, .row button {
+    width: 100%;
+    margin: 0 !important;
+  }
+
+  /* === PROGRESS BARS === */
+  .progress {
+    height: 4px !important;
+    width: 60px !important;
+  }
+
+  /* === STATUS / TOAST === */
+  #status, .toast {
+    font-size: 12px !important;
+    padding: 8px 12px !important;
+  }
+
+  /* === OPTIMISATIONS PERFORMANCE === */
+  * {
+    box-sizing: border-box;
+    -webkit-tap-highlight-color: rgba(22, 163, 74, 0.15);
+  }
+
+  /* Scroll fluide */
   * {
     -webkit-overflow-scrolling: touch;
   }
 
-  /* Inputs plus accessibles */
-  input:focus,
-  select:focus,
-  textarea:focus {
-    transform: scale(1.02);
-    transition: transform 0.15s ease;
+  /* GPU acceleration */
+  .top, .btn, button {
+    will-change: transform;
+    transform: translateZ(0);
   }
 }
 
-/* === PWA MODE (STANDALONE) === */
-@media (display-mode: standalone) {
-  body {
-    /* Padding supplémentaire pour notch/safe areas */
-    padding-top: max(var(--safe-area-top), 12px);
-    padding-bottom: max(var(--safe-area-bottom), 12px);
+/* === TRÈS PETITS ÉCRANS (< 375px) === */
+@media (max-width: 374px) {
+  body, p, td, th {
+    font-size: 12px !important;
   }
 
-  /* Message d'installation masqué en mode app */
+  h1 {
+    font-size: 15px !important;
+  }
+
+  h2 {
+    font-size: 14px !important;
+  }
+
+  h3 {
+    font-size: 13px !important;
+  }
+
+  table {
+    font-size: 11px !important;
+  }
+
+  th, td {
+    padding: 4px 3px !important;
+    font-size: 11px !important;
+  }
+
+  .scoresCell input {
+    width: 28px !important;
+    height: 28px !important;
+    font-size: 13px !important;
+  }
+}
+
+/* === LANDSCAPE MODE === */
+@media (max-width: 768px) and (orientation: landscape) {
+  .top {
+    padding: 4px 12px !important;
+  }
+
+  .hero {
+    padding: 6px 12px !important;
+  }
+
+  dialog {
+    max-height: 100vh !important;
+  }
+
+  .grid, .grid2, .grid-two {
+    grid-template-columns: 1fr 1fr;
+  }
+}
+
+/* === PWA STANDALONE === */
+@media (display-mode: standalone) {
+  /* Mode app installée */
+  body {
+    padding-top: max(env(safe-area-inset-top, 0px), 0px) !important;
+  }
+
   .install-prompt {
     display: none !important;
   }
 }
 
-/* === SCROLL HORIZONTAL CARDS === */
-.scroll-horizontal {
-  display: flex;
-  gap: 12px;
-  overflow-x: auto;
-  scroll-snap-type: x mandatory;
-  -webkit-overflow-scrolling: touch;
-  scrollbar-width: none;
-  padding: 0 var(--mobile-padding);
-  margin: 0 calc(var(--mobile-padding) * -1);
-}
-
-.scroll-horizontal::-webkit-scrollbar {
-  display: none;
-}
-
-.scroll-horizontal > * {
-  scroll-snap-align: start;
-  flex: 0 0 85%;
-  max-width: 320px;
-}
-
-/* === ACCESSIBILITÉ MOBILE === */
+/* === ACCESSIBILITÉ === */
 @media (prefers-reduced-motion: reduce) {
-  *,
-  *::before,
-  *::after {
+  * {
     animation-duration: 0.01ms !important;
     animation-iteration-count: 1 !important;
     transition-duration: 0.01ms !important;
@@ -330,26 +465,23 @@
 }
 
 @media (prefers-contrast: high) {
-  .card,
-  .btn,
-  input,
-  select {
-    border-width: 2px;
+  .card, .btn, input, select, table {
+    border-width: 2px !important;
   }
 }
 
-/* === OPTIMISATIONS PERFORMANCES === */
-@media (max-width: 768px) {
-  /* GPU acceleration pour scroll fluide */
-  .top,
-  .card,
-  .btn {
-    will-change: transform;
-    transform: translateZ(0);
+/* === PRINT === */
+@media print {
+  .top, .menu, button, .btn {
+    display: none !important;
   }
 
-  /* Images lazy-loading friendly */
-  img {
-    content-visibility: auto;
+  * {
+    color: #000 !important;
+    background: #fff !important;
+  }
+
+  body {
+    padding: 0 !important;
   }
 }

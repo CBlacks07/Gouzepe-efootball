@@ -1,21 +1,24 @@
 // GOUZEPE eFOOTBALL - Service Worker PWA
-const CACHE_NAME = 'gouzepe-efoot-v1.0.0';
+const CACHE_NAME = 'gouzepe-efoot-v1.1.0';
 const API_CACHE = 'gouzepe-api-cache-v1';
 
-// Fichiers essentiels à mettre en cache
+// Fichiers essentiels à mettre en cache (chemins relatifs)
 const STATIC_ASSETS = [
-  '/web/Accueil.html',
-  '/web/login.html',
-  '/web/Duel.html',
-  '/web/Classement-general.html',
-  '/web/Panel-Membre.html',
-  '/web/Admin-Joueurs.html',
-  '/web/Admin-Utilisateurs.html',
-  '/web/common.js',
-  '/web/theme.css',
-  '/web/common.css',
-  '/web/manifest.json',
-  '/web/assets/fond.png'
+  './',
+  './Accueil.html',
+  './login.html',
+  './Duel.html',
+  './Classement-general.html',
+  './Panel-Membre.html',
+  './Admin-Joueurs.html',
+  './Admin-Utilisateurs.html',
+  './common.js',
+  './theme.css',
+  './common.css',
+  './mobile.css',
+  './manifest.json',
+  './assets/fond.png',
+  './assets/icons/apple-touch-icon.png'
 ];
 
 // Installation du service worker
@@ -119,34 +122,37 @@ async function cacheFirstThenNetwork(request) {
         <html lang="fr">
         <head>
           <meta charset="utf-8">
-          <meta name="viewport" content="width=device-width, initial-scale=1">
+          <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
           <title>Offline - GOUZEPE</title>
           <style>
+            * { margin: 0; padding: 0; box-sizing: border-box; }
             body {
-              font-family: system-ui;
+              font-family: system-ui, -apple-system, sans-serif;
               display: flex;
               align-items: center;
               justify-content: center;
-              height: 100vh;
-              margin: 0;
+              min-height: 100vh;
               background: linear-gradient(135deg, #0b1119 0%, #1a2332 100%);
               color: #e5e7eb;
               text-align: center;
-              padding: 20px;
+              padding: env(safe-area-inset-top, 20px) env(safe-area-inset-right, 20px) env(safe-area-inset-bottom, 20px) env(safe-area-inset-left, 20px);
             }
-            .container { max-width: 400px; }
-            h1 { font-size: 48px; margin: 0 0 20px; }
-            p { font-size: 18px; line-height: 1.6; opacity: 0.9; }
+            .container { max-width: 400px; padding: 20px; }
+            h1 { font-size: 64px; margin: 0 0 20px; }
+            h2 { font-size: 24px; margin: 0 0 12px; font-weight: 700; }
+            p { font-size: 16px; line-height: 1.6; opacity: 0.9; margin: 0 0 24px; }
             .btn {
               display: inline-block;
-              margin-top: 20px;
-              padding: 12px 24px;
+              padding: 14px 28px;
               background: #16a34a;
               color: white;
-              border-radius: 8px;
+              border-radius: 12px;
               text-decoration: none;
               font-weight: 600;
+              font-size: 16px;
+              transition: transform 0.2s;
             }
+            .btn:active { transform: scale(0.95); }
           </style>
         </head>
         <body>
@@ -154,7 +160,7 @@ async function cacheFirstThenNetwork(request) {
             <h1>⚽</h1>
             <h2>Vous êtes hors ligne</h2>
             <p>Impossible de charger cette page. Vérifiez votre connexion Internet.</p>
-            <a href="/web/Accueil.html" class="btn">Réessayer</a>
+            <a href="./login.html" class="btn">Réessayer</a>
           </div>
         </body>
         </html>

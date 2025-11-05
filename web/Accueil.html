@@ -347,18 +347,26 @@ html.light .bg-video{opacity:.18; filter:contrast(.95) saturate(.85)}
       </div>
 
       <div class="division" style="margin-top:12px">
-        <h3>Barrage D2 ↔ D1 (Best of 3) — Les INVITÉS sont exclus</h3>
+        <h3>Barrage D2 ↔ D1 (Sélection du gagnant) — Les INVITÉS sont exclus</h3>
         <div class="row" style="display:flex;gap:10px;align-items:center;margin:8px 0">
           <label>Affiche</label>
           <input id="barrage_ids" list="players" placeholder="ID_D1 – ID_D2" />
           <button id="b_auto" class="btn ghost adminOnly" style="display:none">↺ Proposer</button>
         </div>
-        <div class="grid-two" style="gap:10px">
-          <div><div class="muted">Match 1</div><div class="score"><input id="b1_a" inputmode="numeric" maxlength="2"><span class="dash">–</span><input id="b1_b" inputmode="numeric" maxlength="2"></div></div>
-          <div><div class="muted">Match 2</div><div class="score"><input id="b2_a" inputmode="numeric" maxlength="2"><span class="dash">–</span><input id="b2_b" inputmode="numeric" maxlength="2"></div></div>
-          <div><div class="muted">Match 3</div><div class="score"><input id="b3_a" inputmode="numeric" maxlength="2"><span class="dash">–</span><input id="b3_b" inputmode="numeric" maxlength="2"></div></div>
+        <div style="margin:16px 0;padding:16px;background:var(--panel);border:1px solid var(--border);border-radius:12px">
+          <div class="muted" style="margin-bottom:12px;font-weight:600">Cocher le gagnant :</div>
+          <div style="display:flex;flex-direction:column;gap:12px">
+            <label style="display:flex;align-items:center;gap:12px;cursor:pointer;padding:12px;border:1px solid var(--border);border-radius:8px;transition:background 0.2s" id="barrage_player1_label">
+              <input type="checkbox" id="barrage_winner1" name="barrage_winner" style="width:20px;height:20px;cursor:pointer">
+              <span id="barrage_player1_name" style="font-weight:600;flex:1">Joueur 1 (D1)</span>
+            </label>
+            <label style="display:flex;align-items:center;gap:12px;cursor:pointer;padding:12px;border:1px solid var(--border);border-radius:8px;transition:background 0.2s" id="barrage_player2_label">
+              <input type="checkbox" id="barrage_winner2" name="barrage_winner" style="width:20px;height:20px;cursor:pointer">
+              <span id="barrage_player2_name" style="font-weight:600;flex:1">Joueur 2 (D2)</span>
+            </label>
+          </div>
         </div>
-        <div id="b_label" class="muted" style="margin-top:8px">—</div>
+        <div id="b_label" style="margin-top:8px;font-weight:700;font-size:15px;color:var(--accent);text-align:center">—</div>
         <div class="row" style="margin-top:10px">
           <label>Notes / commentaires</label>
           <textarea id="notes" style="width:100%;min-height:90px"></textarea>
@@ -716,16 +724,86 @@ async function loadNextFixtures(){
   $('#clearD2').onclick=()=>{ if(ROLE!=='admin')return; if(!confirm('Effacer tous les scores D2 ?'))return; document.querySelectorAll('#d2_matches .scoresCell input').forEach(i=>i.value=''); readFromDOM('d2'); calculateAndRender(); lastEditTs=Date.now(); localSaveDraft(); };
 
   /* ===== Barrage ===== */
-  function toIntPair(a,b){ const A=toInt($(a).value), B=toInt($(b).value); return (A!=null&&B!=null)?{A,B}:null }
-  function computeBarrageLabel(){
-    const ids=($('#barrage_ids').value||''); const parts=ids.split(/[-–]/).map(s=>s.trim()); const id1=parts[0], id2=parts[1];
-    const m1=toIntPair('#b1_a','#b1_b'), m2=toIntPair('#b2_a','#b2_b'), m3=toIntPair('#b3_a','#b3_b');
-    let w1=0,w2=0; const add=m=>{ if(!m)return; if(m.A>m.B)w1++; else if(m.A<m.B)w2++; };
-    add(m1); add(m2); add(m3);
-    let label='—'; if(id1&&id2){ if(w1>=2) label=`${id1} se maintient en D1 · ${id2} reste en D2`; else if(w2>=2) label=`${id2} monte en D1 · ${id1} est relégué en D2`; else label=`Affiche : ${id1} – ${id2}`; }
-    S.barr={ ids:ids.trim(), m1:m1||{}, m2:m2||{}, m3:m3||{}, label, notes:$('#notes').value||'' }; $('#b_label').textContent=label;
+  function updateBarragePlayerNames(){
+    const ids=($('#barrage_ids').value||'');
+    const parts=ids.split(/[-–]/).map(s=>s.trim());
+    const id1=parts[0]||'', id2=parts[1]||'';
+    $('#barrage_player1_name').textContent = id1 ? `${id1} (D1)` : 'Joueur 1 (D1)';
+    $('#barrage_player2_name').textContent = id2 ? `${id2} (D2)` : 'Joueur 2 (D2)';
   }
-  ['#barrage_ids','#b1_a','#b1_b','#b2_a','#b2_b','#b3_a','#b3_b','#notes'].forEach(sel=>$(sel).addEventListener('input',()=>{ if(ROLE!=='admin') return; computeBarrageLabel(); lastEditTs=Date.now(); localSaveDraft(); }));
+
+  function computeBarrageLabel(){
+    const ids=($('#barrage_ids').value||'');
+    const parts=ids.split(/[-–]/).map(s=>s.trim());
+    const id1=parts[0]||'', id2=parts[1]||'';
+
+    // Vérifier quelle checkbox est cochée
+    const winner1Checked = $('#barrage_winner1')?.checked || false;
+    const winner2Checked = $('#barrage_winner2')?.checked || false;
+
+    let winner = null;
+    let label = '—';
+
+    if(id1 && id2){
+      if(winner1Checked){
+        winner = id1;
+        label = `🏆 ${id1} se maintient en D1 · ${id2} reste en D2`;
+      } else if(winner2Checked){
+        winner = id2;
+        label = `🏆 ${id2} monte en D1 · ${id1} est relégué en D2`;
+      } else {
+        label = `Affiche : ${id1} – ${id2}`;
+      }
+    }
+
+    S.barr={
+      ids: ids.trim(),
+      winner: winner,
+      label: label,
+      notes: $('#notes').value||'',
+      // Garder m1, m2, m3 vides pour compatibilité avec anciennes données
+      m1: {}, m2: {}, m3: {}
+    };
+
+    $('#b_label').textContent = label;
+    updateBarragePlayerNames();
+  }
+
+  // Event listeners pour le champ affiche et notes
+  $('#barrage_ids').addEventListener('input', ()=>{
+    if(ROLE!=='admin') return;
+    computeBarrageLabel();
+    lastEditTs=Date.now();
+    localSaveDraft();
+  });
+
+  $('#notes').addEventListener('input', ()=>{
+    if(ROLE!=='admin') return;
+    computeBarrageLabel();
+    lastEditTs=Date.now();
+    localSaveDraft();
+  });
+
+  // Event listeners pour les checkboxes - décochage mutuel
+  $('#barrage_winner1').addEventListener('change', (e)=>{
+    if(ROLE!=='admin') return;
+    if(e.target.checked){
+      $('#barrage_winner2').checked = false;
+    }
+    computeBarrageLabel();
+    lastEditTs=Date.now();
+    localSaveDraft();
+  });
+
+  $('#barrage_winner2').addEventListener('change', (e)=>{
+    if(ROLE!=='admin') return;
+    if(e.target.checked){
+      $('#barrage_winner1').checked = false;
+    }
+    computeBarrageLabel();
+    lastEditTs=Date.now();
+    localSaveDraft();
+  });
 
   function autoFillBarrage(force){
     const fld=$('#barrage_ids'); if(!force && (fld.value||'').trim()) return;
@@ -734,6 +812,38 @@ async function loadNextFixtures(){
     const d2second=d2[1]?.id;  // Deuxième D2
     const d1avant=d1.length>=2?d1[d1.length-2].id:null;  // Avant-dernier D1
     if(d1avant&&d2second) fld.value=`${d1avant} – ${d2second}`;
+    computeBarrageLabel();
+  }
+
+  // Restaurer l'état des checkboxes depuis les données chargées
+  function restoreBarrageState(){
+    if(!S.barr) return;
+
+    // Remplir l'affiche
+    if(S.barr.ids){
+      $('#barrage_ids').value = S.barr.ids;
+    }
+
+    // Remplir les notes
+    if(S.barr.notes){
+      $('#notes').value = S.barr.notes;
+    }
+
+    // Cocher la bonne checkbox si un gagnant existe
+    if(S.barr.winner){
+      const ids = (S.barr.ids||'').split(/[-–]/).map(s=>s.trim());
+      const id1 = ids[0]||'';
+      const id2 = ids[1]||'';
+
+      if(S.barr.winner === id1){
+        $('#barrage_winner1').checked = true;
+        $('#barrage_winner2').checked = false;
+      } else if(S.barr.winner === id2){
+        $('#barrage_winner1').checked = false;
+        $('#barrage_winner2').checked = true;
+      }
+    }
+
     computeBarrageLabel();
   }
 
@@ -899,8 +1009,8 @@ async function loadNextFixtures(){
     html+= `<h1>${logo?`<img src="${logo}" alt="logo">`:''}GOUZEPE GAMING CLUB — Journée du ${new Date(date).toLocaleDateString('fr-FR')}</h1>`;
     html+= '<h2>SCORES D1</h2>'+tblMatches(payload.d1||[])+`<div class="champ">🏆 ${esc(c1.id||'—')} — CHAMPION avec ${esc(team1)}</div>`+tblStand('CLASSEMENT D1',main1,inv1);
     html+= '<h2>SCORES D2</h2>'+tblMatches(payload.d2||[])+`<div class="champ">🏆 ${esc(c2.id||'—')} — CHAMPION avec ${esc(team2)}</div>`+tblStand('CLASSEMENT D2',main2,inv2);
-    html+= '<h2>BARRAGES</h2><table class="tbl"><thead><tr><th>Affiche</th><th>Aller</th><th>Retour</th><th>Match 3</th></tr></thead><tbody>';
-    html+= `<tr><td>${esc(barr?.ids||'—')}</td><td>${esc(mg(barr?.m1||{}))}</td><td>${esc(mg(barr?.m2||{}))}</td><td>${esc(mg(barr?.m3||{}))}</td></tr></tbody></table>`;
+    html+= '<h2>BARRAGES</h2><table class="tbl"><thead><tr><th>Affiche</th><th>Gagnant</th></tr></thead><tbody>';
+    html+= `<tr><td>${esc(barr?.ids||'—')}</td><td style="font-weight:700;color:#16a34a">${esc(barr?.winner||'—')}</td></tr></tbody></table>`;
     html+= `<div class="verdict">*** ${esc(barr?.label||'—')}</div>`;
     if(barr?.notes){ html+='<div style="margin-top:8px"><i>Notes :</i> '+esc(barr.notes).replace(/\r?\n/g,'<br>')+'</div>'; }
     html+='</body></html>';
@@ -925,7 +1035,7 @@ async function loadNextFixtures(){
 
   /* ===== ÉDITION selon rôle ===== */
   function setEditingEnabled(enabled){
-    document.querySelectorAll('#d1_matches input, #d2_matches input, #barrage_ids, #b1_a,#b1_b,#b2_a,#b2_b,#b3_a,#b3_b,#notes')
+    document.querySelectorAll('#d1_matches input, #d2_matches input, #barrage_ids, #barrage_winner1, #barrage_winner2, #notes')
       .forEach(i=> i.disabled = !enabled);
     document.querySelectorAll('.adminNav,.adminOnly').forEach(x=>x.style.display = enabled? '' : 'none');
   }
@@ -985,7 +1095,7 @@ async function loadNextFixtures(){
             S.barr = (pp?.barrage)||{};
             S.champions = (pp?.champions) || preservedChampions || {};
 
-            rebuild('d1'); rebuild('d2'); computeBarrageLabel(); validateCross();
+            rebuild('d1'); rebuild('d2'); restoreBarrageState(); validateCross();
             localSaveDraft();
             console.log('[Sync] Données mises à jour depuis le serveur.');
           }
@@ -1007,7 +1117,7 @@ async function loadNextFixtures(){
       S.d2=local.payload.d2||[];
       S.barr=local.payload.barrage||{};
       S.champions=local.payload.champions||{};
-      rebuild('d1'); rebuild('d2'); computeBarrageLabel(); validateCross();
+      rebuild('d1'); rebuild('d2'); restoreBarrageState(); validateCross();
     }
     else{
       const { source, payload:pp } = await fetchDay(d);
@@ -1016,7 +1126,7 @@ async function loadNextFixtures(){
       S.d2=(pp?.d2)||[];
       S.barr=(pp?.barrage)||{};
       S.champions=(pp?.champions)||{};
-      rebuild('d1'); rebuild('d2'); computeBarrageLabel(); validateCross();
+      rebuild('d1'); rebuild('d2'); restoreBarrageState(); validateCross();
       localSaveDraft();
       $('#dayInfo').textContent = source==='confirmed' ? ('Journée confirmée • '+d) : (source==='draft'?'Brouillon chargé':'Nouveau brouillon');
     }
@@ -1056,7 +1166,7 @@ async function loadNextFixtures(){
       S.barr=fetched.payload.barrage||{};
       S.champions=fetched.payload.champions||{};
     }
-    rebuild('d1'); rebuild('d2'); computeBarrageLabel(); validateCross();
+    rebuild('d1'); rebuild('d2'); restoreBarrageState(); validateCross();
 
     setEditingEnabled(ROLE==='admin');
   })();

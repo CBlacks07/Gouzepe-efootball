@@ -31,7 +31,7 @@
       linear-gradient(180deg, rgba(255,255,255,.86), rgba(245,247,251,.92)),
       url('assets/icons/apple-touch-icon.png') center/cover fixed no-repeat;
   }
-  .wrap{max-width:1200px;margin:auto;padding:12px}
+  .wrap{max-width:1400px;margin:auto;padding:12px}
 
   .top{position:sticky;top:0;z-index:50;display:flex;align-items:center;justify-content:space-between;gap:12px;padding:8px 6px;background:rgba(12,18,32,.55);backdrop-filter:blur(6px);border-radius:14px;margin-bottom:16px}
   html.light .top{background:rgba(255,255,255,.7)}
@@ -66,21 +66,11 @@
   .accordion-icon{transition:transform 0.3s;font-weight:900}
   .accordion-icon.open{transform:rotate(180deg)}
   .accordion-content{max-height:0;overflow:hidden;transition:max-height 0.3s ease}
-  .accordion-content.open{max-height:2000px}
+  .accordion-content.open{max-height:4000px}
   .accordion-body{padding:16px;border-top:1px solid var(--border)}
 
-  .participant-list{display:flex;flex-direction:column;gap:8px}
-  .participant-item{display:flex;align-items:center;justify-content:space-between;padding:10px;background:var(--panel);border:1px solid var(--border);border-radius:8px}
-
-  .match-list{display:flex;flex-direction:column;gap:12px}
-  .match-item{background:var(--panel);border:1px solid var(--border);border-radius:12px;padding:16px}
-  .match-header{font-size:12px;color:var(--muted);margin-bottom:8px;font-weight:700}
-  .match-players{display:flex;align-items:center;justify-content:space-between;gap:16px}
-  .match-player{flex:1;text-align:center;font-weight:700;padding:12px;background:var(--card);border-radius:8px;transition:all 0.2s}
-  .match-player.winner{border:2px solid var(--ok);background:rgba(34,197,94,.1);transform:scale(1.02)}
-  .match-vs{font-weight:900;color:var(--accent)}
-  .match-scores{display:grid;grid-template-columns:1fr auto 1fr;gap:8px;align-items:center;margin-top:12px}
-  .match-scores input{width:80px;text-align:center;font-weight:700;font-size:16px}
+  .participants-inline{padding:12px;background:var(--card);border:1px solid var(--border);border-radius:8px;color:var(--text);line-height:1.6}
+  .participants-inline .participant-tag{display:inline-block;background:rgba(37,99,235,.15);padding:4px 10px;border-radius:6px;margin:2px 4px;font-size:13px;font-weight:600}
 
   .form-group{margin-bottom:16px}
   .form-group label{display:block;margin-bottom:6px;font-weight:600;font-size:14px;color:var(--muted)}
@@ -109,11 +99,34 @@
   .info-label{font-size:12px;color:var(--muted);margin-bottom:4px}
   .info-value{font-size:16px;font-weight:700}
 
+  /* BRACKET VISUEL STYLE CHALLONGE */
+  .bracket-container{overflow-x:auto;padding:20px 0}
+  .bracket{display:flex;gap:80px;min-width:min-content;position:relative}
+  .bracket-round{display:flex;flex-direction:column;justify-content:space-around;min-width:180px}
+  .bracket-round-title{text-align:center;font-weight:800;font-size:14px;color:var(--accent);margin-bottom:16px;text-transform:uppercase;letter-spacing:0.5px}
+  .bracket-match{background:var(--panel);border:1px solid var(--border);border-radius:8px;margin:12px 0;position:relative;overflow:hidden;min-height:80px;display:flex;flex-direction:column}
+  .bracket-player{padding:10px 12px;border-bottom:1px solid var(--border);display:flex;justify-content:space-between;align-items:center;font-size:13px;transition:all 0.2s}
+  .bracket-player:last-child{border-bottom:none}
+  .bracket-player.winner{background:rgba(34,197,94,.15);font-weight:700;color:var(--ok)}
+  .bracket-player.loser{opacity:0.5}
+  .bracket-player-name{flex:1;font-weight:600}
+  .bracket-player-score{font-weight:900;font-size:15px;min-width:30px;text-align:right}
+  .bracket-connector{position:absolute;top:50%;right:-40px;width:40px;height:2px;background:var(--border);z-index:1}
+  .bracket-connector-v{position:absolute;right:-40px;width:2px;background:var(--border);z-index:1}
+
+  /* Match input pour admin */
+  .match-edit{padding:12px;background:var(--card);border-top:1px solid var(--border)}
+  .match-input{display:grid;grid-template-columns:1fr auto 1fr;gap:8px;align-items:center;margin-bottom:8px}
+  .match-input input{width:60px;text-align:center;font-weight:700;font-size:14px;padding:8px}
+
   @media (max-width: 760px){
     .tournament-grid{grid-template-columns:1fr}
-    .match-players{flex-direction:column}
     .admin-actions .btn-group{flex-direction:column}
     .admin-actions .btn{width:100%}
+    .bracket{gap:40px}
+    .bracket-round{min-width:140px}
+    .bracket-connector{right:-20px;width:20px}
+    .bracket-connector-v{right:-20px}
   }
 </style>
 </head>
@@ -420,7 +433,6 @@ function renderTournamentDetails(data) {
       <div class="admin-actions">
         <h5>Actions Admin</h5>
         <div class="btn-group">
-          <button class="btn" onclick="toggleParticipants()">👥 Gérer participants</button>
           <button class="btn success" onclick="generateBracket(${tournament.id})">🎯 Générer bracket</button>
           <button class="btn primary" onclick="startTournament(${tournament.id})">▶️ Démarrer tournoi</button>
           <button class="btn danger" onclick="deleteTournament(${tournament.id})">🗑️ Supprimer</button>
@@ -435,12 +447,25 @@ function renderTournamentDetails(data) {
         <h5>Actions Admin</h5>
         <div class="btn-group">
           <button class="btn success" onclick="closeTournament(${tournament.id})">🏁 Clôturer tournoi</button>
+          <button class="btn danger" onclick="deleteTournament(${tournament.id})">🗑️ Supprimer</button>
         </div>
       </div>
     `;
   }
 
-  // Accordion Participants
+  // Permettre la suppression même pour les tournois clôturés
+  if (role === 'admin' && tournament.status === 'closed') {
+    html += `
+      <div class="admin-actions">
+        <h5>Actions Admin</h5>
+        <div class="btn-group">
+          <button class="btn danger" onclick="deleteTournament(${tournament.id})">🗑️ Supprimer ce tournoi</button>
+        </div>
+      </div>
+    `;
+  }
+
+  // Participants (inline avec virgules)
   html += `
     <div class="accordion">
       <div class="accordion-header" onclick="toggleAccordion(this)">
@@ -457,15 +482,18 @@ function renderTournamentDetails(data) {
           ` : ''}
 
           ${participants.length > 0 ? `
-            <div class="participant-list">
-              ${participants.map(p => `
-                <div class="participant-item">
-                  <span>${escapeHtml(p.participant_name)}</span>
-                  ${role === 'admin' && tournament.status === 'draft' ? `
-                    <button class="btn danger" style="padding:6px 12px" onclick="removeParticipant(${tournament.id}, ${p.id})">Retirer</button>
-                  ` : ''}
+            <div class="participants-inline">
+              ${participants.map(p => `<span class="participant-tag">${escapeHtml(p.participant_name)}</span>`).join('')}
+              ${role === 'admin' && tournament.status === 'draft' ? `
+                <div style="margin-top:12px;padding-top:12px;border-top:1px solid var(--border)">
+                  ${participants.map(p => `
+                    <div style="display:inline-flex;align-items:center;gap:6px;margin:4px">
+                      <span style="font-size:13px">${escapeHtml(p.participant_name)}</span>
+                      <button class="btn danger" style="padding:4px 8px;font-size:11px" onclick="removeParticipant(${tournament.id}, ${p.id})">✕</button>
+                    </div>
+                  `).join('')}
                 </div>
-              `).join('')}
+              ` : ''}
             </div>
           ` : '<p style="color:var(--muted)">Aucun participant</p>'}
         </div>
@@ -473,32 +501,11 @@ function renderTournamentDetails(data) {
     </div>
   `;
 
-  // Matchs
-  if (matches.length > 0) {
-    // Grouper par round
-    const rounds = {};
-    matches.forEach(m => {
-      if (!rounds[m.round_number]) rounds[m.round_number] = [];
-      rounds[m.round_number].push(m);
-    });
-
-    Object.keys(rounds).sort((a, b) => a - b).forEach(roundNum => {
-      html += `
-        <div class="accordion">
-          <div class="accordion-header" onclick="toggleAccordion(this)">
-            <span>⚔️ Tour ${roundNum} (${rounds[roundNum].length} matchs)</span>
-            <span class="accordion-icon">▼</span>
-          </div>
-          <div class="accordion-content">
-            <div class="accordion-body">
-              <div class="match-list">
-                ${rounds[roundNum].map(m => renderMatch(m, tournament)).join('')}
-              </div>
-            </div>
-          </div>
-        </div>
-      `;
-    });
+  // Bracket visuel
+  if (matches.length > 0 && (tournament.format === 'single_elimination' || tournament.format === 'double_elimination')) {
+    html += renderBracketView(matches, tournament);
+  } else if (matches.length > 0 && tournament.format === 'round_robin') {
+    html += renderRoundRobinMatches(matches, tournament);
   } else if (participants.length >= 2 && role === 'admin' && tournament.status === 'draft') {
     html += `<p style="color:var(--muted);text-align:center;padding:20px">Générez le bracket pour créer les matchs</p>`;
   }
@@ -511,55 +518,154 @@ function renderTournamentDetails(data) {
   $('#tournamentDetails').innerHTML = html;
 }
 
-function renderMatch(m, tournament) {
-  const isPlayed = m.winner_id !== null;
-  const canEdit = role === 'admin' && tournament.status === 'active' && !isPlayed;
-  const isHomeAway = tournament.match_format === 'home_away';
+// Affichage bracket visuel style Challonge
+function renderBracketView(matches, tournament) {
+  // Grouper par round
+  const rounds = {};
+  matches.forEach(m => {
+    if (!rounds[m.round_number]) rounds[m.round_number] = [];
+    rounds[m.round_number].push(m);
+  });
 
-  return `
-    <div class="match-item">
-      <div class="match-header">Match ${m.match_number}</div>
-      <div class="match-players">
-        <div class="match-player ${m.winner_id === m.participant1_id ? 'winner' : ''}">${escapeHtml(m.p1_name || 'TBD')}</div>
-        <div class="match-vs">VS</div>
-        <div class="match-player ${m.winner_id === m.participant2_id ? 'winner' : ''}">${escapeHtml(m.p2_name || 'TBD')}</div>
-      </div>
+  const roundNumbers = Object.keys(rounds).sort((a, b) => a - b);
+  const roundLabels = ['8èmes', 'Quarts', 'Demi-finales', 'Finale'];
 
-      ${isPlayed ? `
-        <div style="margin-top:12px;text-align:center;font-weight:700;color:var(--ok)">
-          🏆 Gagnant: ${escapeHtml(m.winner_name)}
-          ${isHomeAway ?
-            `<br><small style="color:var(--muted)">Aller: ${m.score1_home || 0} - ${m.score2_home || 0} | Retour: ${m.score1_away || 0} - ${m.score2_away || 0}</small>` :
-            `<br><small style="color:var(--muted)">Score: ${m.score1_home || 0} - ${m.score2_home || 0}</small>`
-          }
-        </div>
-      ` : ''}
+  let html = `
+    <div class="card">
+      <h3>🏆 Bracket du tournoi</h3>
+      <div class="bracket-container">
+        <div class="bracket">
+  `;
 
-      ${canEdit ? `
-        <div style="margin-top:12px">
-          <div class="match-scores">
-            <input type="number" min="0" placeholder="Score ${m.p1_name || 'J1'}" id="score_${m.id}_1" style="width:100%">
-            <span style="font-weight:900;color:var(--accent)">-</span>
-            <input type="number" min="0" placeholder="Score ${m.p2_name || 'J2'}" id="score_${m.id}_2" style="width:100%">
+  roundNumbers.forEach((roundNum, idx) => {
+    const label = roundLabels[roundLabels.length - roundNumbers.length + idx] || `Tour ${roundNum}`;
+
+    html += `
+      <div class="bracket-round">
+        <div class="bracket-round-title">${label}</div>
+    `;
+
+    rounds[roundNum].forEach(m => {
+      const isPlayed = m.winner_id !== null;
+      const canEdit = role === 'admin' && tournament.status === 'active' && !isPlayed;
+      const isHomeAway = tournament.match_format === 'home_away';
+
+      const p1Score = isHomeAway ?
+        ((m.score1_home || 0) + (m.score1_away || 0)) :
+        (m.score1_home || 0);
+      const p2Score = isHomeAway ?
+        ((m.score2_home || 0) + (m.score2_away || 0)) :
+        (m.score2_home || 0);
+
+      html += `
+        <div class="bracket-match">
+          <div class="bracket-player ${m.winner_id === m.participant1_id ? 'winner' : isPlayed ? 'loser' : ''}">
+            <span class="bracket-player-name">${escapeHtml(m.p1_name || 'TBD')}</span>
+            ${isPlayed ? `<span class="bracket-player-score">${p1Score}</span>` : ''}
           </div>
-          ${isHomeAway ? `
-            <div class="match-scores" style="margin-top:8px">
-              <input type="number" min="0" placeholder="Retour ${m.p1_name || 'J1'}" id="score_${m.id}_1_away" style="width:100%">
-              <span style="font-weight:900;color:var(--accent)">-</span>
-              <input type="number" min="0" placeholder="Retour ${m.p2_name || 'J2'}" id="score_${m.id}_2_away" style="width:100%">
+          <div class="bracket-player ${m.winner_id === m.participant2_id ? 'winner' : isPlayed ? 'loser' : ''}">
+            <span class="bracket-player-name">${escapeHtml(m.p2_name || 'TBD')}</span>
+            ${isPlayed ? `<span class="bracket-player-score">${p2Score}</span>` : ''}
+          </div>
+
+          ${canEdit ? `
+            <div class="match-edit">
+              <div class="match-input">
+                <input type="number" min="0" placeholder="${m.p1_name || 'J1'}" id="score_${m.id}_1">
+                <span style="font-weight:900;color:var(--accent)">-</span>
+                <input type="number" min="0" placeholder="${m.p2_name || 'J2'}" id="score_${m.id}_2">
+              </div>
+              ${isHomeAway ? `
+                <div class="match-input">
+                  <input type="number" min="0" placeholder="Retour" id="score_${m.id}_1_away">
+                  <span style="font-weight:900;color:var(--accent)">-</span>
+                  <input type="number" min="0" placeholder="Retour" id="score_${m.id}_2_away">
+                </div>
+              ` : ''}
+              <button class="btn primary" style="width:100%;padding:6px;font-size:12px" onclick="saveMatchResult(${tournament.id}, ${m.id}, ${m.participant1_id}, ${m.participant2_id}, ${isHomeAway})">
+                💾 Sauver
+              </button>
             </div>
           ` : ''}
-          <button class="btn primary" style="width:100%;margin-top:8px" onclick="saveMatchResult(${tournament.id}, ${m.id}, ${m.participant1_id}, ${m.participant2_id}, ${isHomeAway})">
-            💾 Enregistrer résultat
-          </button>
         </div>
-      ` : ''}
+      `;
+    });
+
+    html += `</div>`;
+  });
+
+  html += `
+        </div>
+      </div>
     </div>
   `;
+
+  return html;
+}
+
+// Round-robin : affichage simple des matchs
+function renderRoundRobinMatches(matches, tournament) {
+  let html = `
+    <div class="accordion">
+      <div class="accordion-header" onclick="toggleAccordion(this)">
+        <span>⚔️ Tous les matchs (${matches.length})</span>
+        <span class="accordion-icon">▼</span>
+      </div>
+      <div class="accordion-content">
+        <div class="accordion-body">
+          <div style="display:grid;gap:12px">
+  `;
+
+  matches.forEach(m => {
+    const isPlayed = m.winner_id !== null;
+    const canEdit = role === 'admin' && tournament.status === 'active' && !isPlayed;
+    const isHomeAway = tournament.match_format === 'home_away';
+
+    html += `
+      <div class="bracket-match">
+        <div class="bracket-player ${m.winner_id === m.participant1_id ? 'winner' : isPlayed ? 'loser' : ''}">
+          <span class="bracket-player-name">${escapeHtml(m.p1_name || 'TBD')}</span>
+          ${isPlayed ? `<span class="bracket-player-score">${isHomeAway ? ((m.score1_home||0) + (m.score1_away||0)) : (m.score1_home||0)}</span>` : ''}
+        </div>
+        <div class="bracket-player ${m.winner_id === m.participant2_id ? 'winner' : isPlayed ? 'loser' : ''}">
+          <span class="bracket-player-name">${escapeHtml(m.p2_name || 'TBD')}</span>
+          ${isPlayed ? `<span class="bracket-player-score">${isHomeAway ? ((m.score2_home||0) + (m.score2_away||0)) : (m.score2_home||0)}</span>` : ''}
+        </div>
+
+        ${canEdit ? `
+          <div class="match-edit">
+            <div class="match-input">
+              <input type="number" min="0" placeholder="${m.p1_name || 'J1'}" id="score_${m.id}_1">
+              <span style="font-weight:900;color:var(--accent)">-</span>
+              <input type="number" min="0" placeholder="${m.p2_name || 'J2'}" id="score_${m.id}_2">
+            </div>
+            ${isHomeAway ? `
+              <div class="match-input">
+                <input type="number" min="0" placeholder="Retour" id="score_${m.id}_1_away">
+                <span style="font-weight:900;color:var(--accent)">-</span>
+                <input type="number" min="0" placeholder="Retour" id="score_${m.id}_2_away">
+              </div>
+            ` : ''}
+            <button class="btn primary" style="width:100%;padding:6px;font-size:12px" onclick="saveMatchResult(${tournament.id}, ${m.id}, ${m.participant1_id}, ${m.participant2_id}, ${isHomeAway})">
+              💾 Sauver
+            </button>
+          </div>
+        ` : ''}
+      </div>
+    `;
+  });
+
+  html += `
+          </div>
+        </div>
+      </div>
+    </div>
+  `;
+
+  return html;
 }
 
 function renderFinalStandings(tournamentId) {
-  // Ceci sera chargé de manière async
   setTimeout(async () => {
     try {
       const standingsData = await apiCall(`/tournaments/${tournamentId}/standings`);

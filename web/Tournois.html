@@ -31,17 +31,18 @@
       linear-gradient(180deg, rgba(255,255,255,.86), rgba(245,247,251,.92)),
       url('assets/icons/apple-touch-icon.png') center/cover fixed no-repeat;
   }
-  .wrap{max-width:1200px;margin:auto;padding:12px}
+  .wrap{max-width:1400px;margin:auto;padding:12px}
 
   .top{position:sticky;top:0;z-index:50;display:flex;align-items:center;justify-content:space-between;gap:12px;padding:8px 6px;background:rgba(12,18,32,.55);backdrop-filter:blur(6px);border-radius:14px;margin-bottom:16px}
   html.light .top{background:rgba(255,255,255,.7)}
 
-  .btn{border:1px solid var(--border);border-radius:12px;padding:10px 14px;background:#10192c;color:var(--text);cursor:pointer;font-size:14px;font-weight:600;transition:all 0.2s}
+  .btn{border:1px solid var(--border);border-radius:12px;padding:10px 14px;background:#10192c;color:var(--text);cursor:pointer;font-size:14px;font-weight:600;transition:all 0.2s;display:inline-flex;align-items:center;gap:6px}
   html.light .btn{background:#fff}
   .btn:hover{background:var(--accent);border-color:var(--accent);color:#fff}
   .btn.primary{background:var(--accent);border-color:var(--accent);color:#fff}
   .btn.danger{background:#7f1d1d;border-color:#7f1d1d;color:#fecaca}
   .btn.success{background:#14532d;border-color:#14532d;color:#d1fae5}
+  .btn.ghost{background:transparent}
 
   input,select,textarea{border:1px solid var(--border);border-radius:12px;padding:10px 12px;background:#0b1020;color:var(--text);font-size:14px;width:100%}
   html.light input,html.light select,html.light textarea{background:#fff}
@@ -59,30 +60,22 @@
   .status.active{background:rgba(34,197,94,.2);color:var(--ok)}
   .status.closed{background:rgba(239,68,68,.2);color:var(--ko)}
 
-  .participant-list{display:flex;flex-direction:column;gap:8px;margin-top:12px}
-  .participant-item{display:flex;align-items:center;justify-content:space-between;padding:10px;background:var(--card);border:1px solid var(--border);border-radius:8px}
+  .accordion{background:var(--card);border:1px solid var(--border);border-radius:12px;margin-bottom:16px;overflow:hidden}
+  .accordion-header{padding:16px;cursor:pointer;display:flex;justify-content:space-between;align-items:center;font-weight:700;transition:background 0.2s}
+  .accordion-header:hover{background:rgba(37,99,235,.1)}
+  .accordion-icon{transition:transform 0.3s;font-weight:900}
+  .accordion-icon.open{transform:rotate(180deg)}
+  .accordion-content{max-height:0;overflow:hidden;transition:max-height 0.3s ease}
+  .accordion-content.open{max-height:4000px}
+  .accordion-body{padding:16px;border-top:1px solid var(--border)}
 
-  .match-list{display:flex;flex-direction:column;gap:12px;margin-top:16px}
-  .match-item{background:var(--card);border:1px solid var(--border);border-radius:12px;padding:16px}
-  .match-header{font-size:12px;color:var(--muted);margin-bottom:8px;font-weight:700}
-  .match-players{display:flex;align-items:center;justify-content:space-between;gap:16px}
-  .match-player{flex:1;text-align:center;font-weight:700;padding:12px;background:var(--panel);border-radius:8px}
-  .match-vs{font-weight:900;color:var(--accent)}
-  .match-scores{display:grid;grid-template-columns:1fr auto 1fr;gap:8px;align-items:center;margin-top:12px}
-  .match-scores input{width:60px;text-align:center}
-
-  .modal{position:fixed;inset:0;z-index:100;background:rgba(0,0,0,.75);display:none;align-items:center;justify-content:center;padding:20px}
-  .modal.active{display:flex}
-  .modal-content{background:var(--panel);border-radius:16px;max-width:800px;width:100%;max-height:90vh;overflow-y:auto;box-shadow:0 20px 60px rgba(0,0,0,.5)}
-  .modal-header{padding:20px;border-bottom:1px solid var(--border);display:flex;justify-content:space-between;align-items:center}
-  .modal-header h3{margin:0;font-size:20px;font-weight:800}
-  .modal-body{padding:20px}
-  .modal-footer{padding:20px;border-top:1px solid var(--border);display:flex;gap:12px;justify-content:flex-end}
+  .participants-inline{padding:12px;background:var(--card);border:1px solid var(--border);border-radius:8px;color:var(--text);line-height:1.6}
+  .participants-inline .participant-tag{display:inline-block;background:rgba(37,99,235,.15);padding:4px 10px;border-radius:6px;margin:2px 4px;font-size:13px;font-weight:600}
 
   .form-group{margin-bottom:16px}
   .form-group label{display:block;margin-bottom:6px;font-weight:600;font-size:14px;color:var(--muted)}
 
-  .tabs{display:flex;gap:8px;margin-bottom:20px;border-bottom:2px solid var(--border)}
+  .tabs{display:flex;gap:8px;margin-bottom:20px;border-bottom:2px solid var(--border);flex-wrap:wrap}
   .tab{padding:12px 20px;cursor:pointer;font-weight:700;border-bottom:2px solid transparent;margin-bottom:-2px;transition:all 0.2s}
   .tab.active{border-bottom-color:var(--accent);color:var(--accent)}
   .tab:hover{color:var(--accent)}
@@ -92,9 +85,48 @@
   .winner-banner .name{font-size:32px;font-weight:900;color:var(--ok);margin-bottom:8px}
   .winner-banner .subtitle{font-size:16px;color:var(--muted)}
 
+  .view{display:none}
+  .view.active{display:block}
+
+  .back-button{margin-bottom:16px}
+
+  .admin-actions{background:var(--card);border:1px solid var(--border);border-radius:12px;padding:16px;margin-bottom:16px}
+  .admin-actions h5{margin:0 0 12px;font-size:14px;font-weight:700;color:var(--muted);text-transform:uppercase}
+  .admin-actions .btn-group{display:flex;gap:8px;flex-wrap:wrap}
+
+  .info-grid{display:grid;grid-template-columns:repeat(auto-fit, minmax(200px, 1fr));gap:12px;margin-bottom:20px}
+  .info-item{background:var(--card);border:1px solid var(--border);border-radius:12px;padding:12px}
+  .info-label{font-size:12px;color:var(--muted);margin-bottom:4px}
+  .info-value{font-size:16px;font-weight:700}
+
+  /* BRACKET VISUEL STYLE CHALLONGE */
+  .bracket-container{overflow-x:auto;padding:20px 0}
+  .bracket{display:flex;gap:80px;min-width:min-content;position:relative}
+  .bracket-round{display:flex;flex-direction:column;justify-content:space-around;min-width:180px}
+  .bracket-round-title{text-align:center;font-weight:800;font-size:14px;color:var(--accent);margin-bottom:16px;text-transform:uppercase;letter-spacing:0.5px}
+  .bracket-match{background:var(--panel);border:1px solid var(--border);border-radius:8px;margin:12px 0;position:relative;overflow:hidden;min-height:80px;display:flex;flex-direction:column}
+  .bracket-player{padding:10px 12px;border-bottom:1px solid var(--border);display:flex;justify-content:space-between;align-items:center;font-size:13px;transition:all 0.2s}
+  .bracket-player:last-child{border-bottom:none}
+  .bracket-player.winner{background:rgba(34,197,94,.15);font-weight:700;color:var(--ok)}
+  .bracket-player.loser{opacity:0.5}
+  .bracket-player-name{flex:1;font-weight:600}
+  .bracket-player-score{font-weight:900;font-size:15px;min-width:30px;text-align:right}
+  .bracket-connector{position:absolute;top:50%;right:-40px;width:40px;height:2px;background:var(--border);z-index:1}
+  .bracket-connector-v{position:absolute;right:-40px;width:2px;background:var(--border);z-index:1}
+
+  /* Match input pour admin */
+  .match-edit{padding:12px;background:var(--card);border-top:1px solid var(--border)}
+  .match-input{display:grid;grid-template-columns:1fr auto 1fr;gap:8px;align-items:center;margin-bottom:8px}
+  .match-input input{width:60px;text-align:center;font-weight:700;font-size:14px;padding:8px}
+
   @media (max-width: 760px){
     .tournament-grid{grid-template-columns:1fr}
-    .match-players{flex-direction:column}
+    .admin-actions .btn-group{flex-direction:column}
+    .admin-actions .btn{width:100%}
+    .bracket{gap:40px}
+    .bracket-round{min-width:140px}
+    .bracket-connector{right:-20px;width:20px}
+    .bracket-connector-v{right:-20px}
   }
 </style>
 </head>
@@ -112,89 +144,106 @@
     </a>
 
     <div style="display:flex;gap:10px;align-items:center">
-      <button id="theme" class="btn" title="Thème">☀️</button>
+      <button id="theme" class="btn ghost" title="Thème">☀️</button>
       <button id="logoutBtn" class="btn danger">Déconnexion</button>
     </div>
   </header>
 
   <!-- MAIN CONTENT -->
   <main>
-    <!-- Onglets -->
-    <div class="tabs">
-      <div class="tab active" data-tab="list">📋 Tous les tournois</div>
-      <div class="tab adminOnly" data-tab="create" style="display:none">➕ Créer un tournoi</div>
-    </div>
+    <!-- VIEW: Liste des tournois -->
+    <div id="listView" class="view active">
+      <div class="tabs">
+        <div class="tab active" data-tab="all">📋 Tous les tournois</div>
+        <div class="tab adminOnly" data-tab="create" style="display:none">➕ Créer un tournoi</div>
+      </div>
 
-    <!-- TAB: Liste des tournois -->
-    <div class="tab-content" data-content="list">
-      <div class="card">
-        <h3>Tournois</h3>
-        <div id="tournamentList" class="tournament-grid">
-          <p style="color:var(--muted)">Chargement...</p>
+      <!-- TAB: Liste -->
+      <div class="tab-content" data-content="all">
+        <div class="card">
+          <h3>Tournois disponibles</h3>
+          <div id="tournamentList" class="tournament-grid">
+            <p style="color:var(--muted)">Chargement...</p>
+          </div>
+        </div>
+      </div>
+
+      <!-- TAB: Créer (admin) -->
+      <div class="tab-content adminOnly" data-content="create" style="display:none">
+        <div class="card">
+          <h3>Créer un nouveau tournoi</h3>
+          <form id="createTournamentForm">
+            <div class="form-group">
+              <label>Nom du tournoi *</label>
+              <input type="text" id="tournamentName" required placeholder="Gouzepe Cup">
+            </div>
+
+            <div class="form-group">
+              <label>Type de jeu *</label>
+              <input type="text" id="gameType" required placeholder="Ex: eFootball, Tekken 8, Street Fighter 6...">
+            </div>
+
+            <div class="form-group">
+              <label>Format du tournoi *</label>
+              <select id="tournamentFormat" required onchange="toggleFormatOptions()">
+                <option value="">-- Choisir --</option>
+                <option value="single_elimination">🏆 Simple élimination</option>
+                <option value="double_elimination">🏅 Double élimination</option>
+                <option value="round_robin">🔄 Round-Robin (tous contre tous)</option>
+                <option value="groups">⚽ Poules + Élimination directe</option>
+              </select>
+            </div>
+
+            <div class="form-group" id="loserBracketOption" style="display:none">
+              <label style="display:flex;align-items:center;gap:8px;cursor:pointer">
+                <input type="checkbox" id="hasLoserBracket">
+                <span>🏅 Activer le Loser Bracket (comme sur Challonge)</span>
+              </label>
+              <p style="font-size:12px;color:var(--muted);margin-top:6px">
+                Les perdants auront une seconde chance dans un bracket séparé. Le gagnant du loser bracket affrontera le gagnant du winner bracket en grande finale.
+              </p>
+            </div>
+
+            <div class="form-group" id="groupsOption" style="display:none">
+              <label>Nombre de poules</label>
+              <select id="numGroups">
+                <option value="2">2 poules</option>
+                <option value="4" selected>4 poules</option>
+                <option value="6">6 poules</option>
+                <option value="8">8 poules</option>
+              </select>
+              <p style="font-size:12px;color:var(--muted);margin-top:6px">
+                💡 Phase de poules (round-robin dans chaque poule) puis phase à élimination directe avec les meilleurs.
+              </p>
+            </div>
+
+            <div class="form-group">
+              <label>Format des matchs *</label>
+              <select id="matchFormat" required>
+                <option value="simple">⚡ Score simple (un match)</option>
+                <option value="home_away">🔄 Aller-Retour (deux matchs)</option>
+              </select>
+            </div>
+
+            <div class="form-group">
+              <label>Description (optionnel)</label>
+              <textarea id="tournamentDescription" rows="3" placeholder="Détails sur le tournoi..."></textarea>
+            </div>
+
+            <button type="submit" class="btn primary">✨ Créer le tournoi</button>
+          </form>
         </div>
       </div>
     </div>
 
-    <!-- TAB: Créer un tournoi (admin) -->
-    <div class="tab-content adminOnly" data-content="create" style="display:none">
-      <div class="card">
-        <h3>Créer un nouveau tournoi</h3>
-        <form id="createTournamentForm">
-          <div class="form-group">
-            <label>Nom du tournoi *</label>
-            <input type="text" id="tournamentName" required placeholder="Ex: Coupe d'Automne 2025">
-          </div>
+    <!-- VIEW: Détails du tournoi -->
+    <div id="detailView" class="view">
+      <button class="btn back-button" onclick="backToList()">← Retour à la liste</button>
 
-          <div class="form-group">
-            <label>Type de jeu *</label>
-            <input type="text" id="gameType" required placeholder="Ex: eFootball, Tekken 8, Street Fighter 6...">
-          </div>
-
-          <div class="form-group">
-            <label>Format du tournoi *</label>
-            <select id="tournamentFormat" required>
-              <option value="">-- Choisir --</option>
-              <option value="single_elimination">🏆 Simple élimination</option>
-              <option value="double_elimination">🏅 Double élimination</option>
-              <option value="round_robin">🔄 Round-Robin (tous contre tous)</option>
-            </select>
-          </div>
-
-          <div class="form-group">
-            <label>Format des matchs *</label>
-            <select id="matchFormat" required>
-              <option value="simple">⚡ Score simple (un match)</option>
-              <option value="home_away">🔄 Aller-Retour (deux matchs)</option>
-            </select>
-          </div>
-
-          <div class="form-group">
-            <label>Description (optionnel)</label>
-            <textarea id="tournamentDescription" rows="3" placeholder="Détails sur le tournoi..."></textarea>
-          </div>
-
-          <button type="submit" class="btn primary">Créer le tournoi</button>
-        </form>
-      </div>
+      <div id="tournamentDetails"></div>
     </div>
   </main>
 
-</div>
-
-<!-- MODAL: Détails du tournoi -->
-<div id="tournamentModal" class="modal">
-  <div class="modal-content">
-    <div class="modal-header">
-      <h3 id="modalTitle">Tournoi</h3>
-      <button class="btn" onclick="closeTournamentModal()">✕</button>
-    </div>
-    <div class="modal-body">
-      <div id="modalTournamentDetails"></div>
-    </div>
-    <div class="modal-footer">
-      <button class="btn" onclick="closeTournamentModal()">Fermer</button>
-    </div>
-  </div>
 </div>
 
 <script>
@@ -233,12 +282,13 @@ $('#logoutBtn')?.addEventListener('click', () => {
 $$('.tab').forEach(tab => {
   tab.addEventListener('click', () => {
     const target = tab.dataset.tab;
-
-    $$('.tab').forEach(t => t.classList.remove('active'));
+    const parent = tab.closest('.tabs');
+    parent.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
     tab.classList.add('active');
 
-    $$('.tab-content').forEach(c => c.style.display = 'none');
-    $(`[data-content="${target}"]`).style.display = 'block';
+    const container = parent.nextElementSibling.parentElement;
+    container.querySelectorAll('.tab-content').forEach(c => c.style.display = 'none');
+    container.querySelector(`[data-content="${target}"]`).style.display = 'block';
   });
 });
 
@@ -259,6 +309,50 @@ async function apiCall(url, options = {}) {
   }
 
   return response.json();
+}
+
+function escapeHtml(str) {
+  const div = document.createElement('div');
+  div.textContent = str || '';
+  return div.innerHTML;
+}
+
+function formatTypeLabel(format) {
+  const labels = {
+    'single_elimination': 'Simple élimination',
+    'double_elimination': 'Double élimination',
+    'round_robin': 'Round-Robin'
+  };
+  return labels[format] || format;
+}
+
+// Navigation
+function backToList() {
+  $('#listView').classList.add('active');
+  $('#detailView').classList.remove('active');
+  loadTournaments();
+}
+
+// Afficher/masquer options selon le format
+function toggleFormatOptions() {
+  const format = $('#tournamentFormat').value;
+  const loserOption = $('#loserBracketOption');
+  const groupsOption = $('#groupsOption');
+
+  // Loser bracket pour double elimination
+  if (format === 'double_elimination') {
+    loserOption.style.display = 'block';
+  } else {
+    loserOption.style.display = 'none';
+    $('#hasLoserBracket').checked = false;
+  }
+
+  // Options de poules
+  if (format === 'groups') {
+    groupsOption.style.display = 'block';
+  } else {
+    groupsOption.style.display = 'none';
+  }
 }
 
 // Charger les tournois
@@ -296,21 +390,6 @@ async function loadTournaments() {
   }
 }
 
-function formatTypeLabel(format) {
-  const labels = {
-    'single_elimination': 'Simple élimination',
-    'double_elimination': 'Double élimination',
-    'round_robin': 'Round-Robin'
-  };
-  return labels[format] || format;
-}
-
-function escapeHtml(str) {
-  const div = document.createElement('div');
-  div.textContent = str || '';
-  return div.innerHTML;
-}
-
 // Créer un tournoi
 $('#createTournamentForm')?.addEventListener('submit', async (e) => {
   e.preventDefault();
@@ -320,6 +399,7 @@ $('#createTournamentForm')?.addEventListener('submit', async (e) => {
   const format = $('#tournamentFormat').value;
   const match_format = $('#matchFormat').value;
   const description = $('#tournamentDescription').value.trim();
+  const has_loser_bracket = (format === 'double_elimination') && $('#hasLoserBracket').checked;
 
   if (!name || !game_type || !format || !match_format) {
     alert('Veuillez remplir tous les champs obligatoires');
@@ -329,125 +409,459 @@ $('#createTournamentForm')?.addEventListener('submit', async (e) => {
   try {
     await apiCall('/tournaments', {
       method: 'POST',
-      body: JSON.stringify({ name, game_type, format, match_format, description })
+      body: JSON.stringify({ name, game_type, format, match_format, description, has_loser_bracket })
     });
 
-    alert('Tournoi créé avec succès !');
+    alert('✅ Tournoi créé avec succès !');
     $('#createTournamentForm').reset();
+    toggleFormatOptions(); // Reset l'affichage
 
     // Retour à la liste
-    $('.tab[data-tab="list"]').click();
+    $('.tab[data-tab="all"]').click();
     loadTournaments();
   } catch (err) {
     console.error(err);
-    alert('Erreur lors de la création du tournoi: ' + err.message);
+    alert('❌ Erreur: ' + err.message);
   }
 });
 
 // Voir les détails d'un tournoi
+let currentTournament = null;
+
 async function viewTournament(id) {
   try {
     const data = await apiCall(`/tournaments/${id}`);
-    const { tournament, participants, matches } = data;
+    currentTournament = data;
 
-    let html = `
-      <div style="margin-bottom:20px">
-        <h4 style="margin:0 0 8px">${escapeHtml(tournament.name)}</h4>
-        <div style="font-size:14px;color:var(--muted)">
-          <div><strong>Jeu:</strong> ${escapeHtml(tournament.game_type)}</div>
-          <div><strong>Format:</strong> ${formatTypeLabel(tournament.format)}</div>
-          <div><strong>Type de match:</strong> ${tournament.match_format === 'home_away' ? 'Aller-Retour' : 'Score simple'}</div>
-          <div><strong>Statut:</strong> ${tournament.status === 'active' ? '🟢 En cours' : tournament.status === 'closed' ? '🔴 Terminé' : '⚪ Brouillon'}</div>
+    renderTournamentDetails(data);
+
+    $('#listView').classList.remove('active');
+    $('#detailView').classList.add('active');
+  } catch (err) {
+    console.error(err);
+    alert('Erreur lors du chargement du tournoi');
+  }
+}
+
+function renderTournamentDetails(data) {
+  const { tournament, participants, matches } = data;
+
+  let html = `
+    <div class="card">
+      <h3>${escapeHtml(tournament.name)}</h3>
+
+      <div class="info-grid">
+        <div class="info-item">
+          <div class="info-label">Jeu</div>
+          <div class="info-value">${escapeHtml(tournament.game_type)}</div>
+        </div>
+        <div class="info-item">
+          <div class="info-label">Format</div>
+          <div class="info-value">${formatTypeLabel(tournament.format)}</div>
+        </div>
+        <div class="info-item">
+          <div class="info-label">Type de match</div>
+          <div class="info-value">${tournament.match_format === 'home_away' ? 'Aller-Retour' : 'Score simple'}</div>
+        </div>
+        <div class="info-item">
+          <div class="info-label">Statut</div>
+          <div class="info-value">
+            <span class="status ${tournament.status}">${tournament.status === 'active' ? 'En cours' : tournament.status === 'closed' ? 'Terminé' : 'Brouillon'}</span>
+          </div>
+        </div>
+      </div>
+
+      ${tournament.description ? `<p style="color:var(--muted);margin-top:12px">${escapeHtml(tournament.description)}</p>` : ''}
+    </div>
+  `;
+
+  // Admin actions
+  if (role === 'admin' && tournament.status === 'draft') {
+    html += `
+      <div class="admin-actions">
+        <h5>Actions Admin</h5>
+        <div class="btn-group">
+          ${participants.length >= 2 ? `<button class="btn" style="background:#7c3aed;border-color:#7c3aed;color:#fff" onclick="shuffleParticipants(${tournament.id})">🔀 Mélanger participants</button>` : ''}
+          <button class="btn success" onclick="generateBracket(${tournament.id})">🎯 Générer bracket</button>
+          <button class="btn primary" onclick="startTournament(${tournament.id})">▶️ Démarrer tournoi</button>
+          <button class="btn danger" onclick="deleteTournament(${tournament.id})">🗑️ Supprimer</button>
         </div>
       </div>
     `;
+  }
 
-    if (tournament.description) {
-      html += `<div style="margin-bottom:20px;padding:12px;background:var(--card);border-radius:8px">${escapeHtml(tournament.description)}</div>`;
-    }
-
-    // Admin actions
-    if (role === 'admin' && tournament.status === 'draft') {
-      html += `
-        <div style="margin-bottom:20px;padding:16px;background:var(--card);border:1px solid var(--border);border-radius:12px">
-          <h5 style="margin:0 0 12px">Actions Admin</h5>
-          <div style="display:flex;gap:8px;flex-wrap:wrap">
-            <button class="btn" onclick="manageParticipants(${id})">👥 Gérer participants</button>
-            <button class="btn success" onclick="generateBracket(${id})">🎯 Générer bracket</button>
-            <button class="btn primary" onclick="startTournament(${id})">▶️ Démarrer tournoi</button>
-            <button class="btn danger" onclick="deleteTournament(${id})">🗑️ Supprimer</button>
-          </div>
+  if (role === 'admin' && tournament.status === 'active') {
+    html += `
+      <div class="admin-actions">
+        <h5>Actions Admin</h5>
+        <div class="btn-group">
+          <button class="btn success" onclick="closeTournament(${tournament.id})">🏁 Clôturer tournoi</button>
+          <button class="btn danger" onclick="deleteTournament(${tournament.id})">🗑️ Supprimer</button>
         </div>
-      `;
-    }
+      </div>
+    `;
+  }
 
-    if (role === 'admin' && tournament.status === 'active') {
-      html += `
-        <div style="margin-bottom:20px;padding:16px;background:var(--card);border:1px solid var(--border);border-radius:12px">
-          <h5 style="margin:0 0 12px">Actions Admin</h5>
-          <div style="display:flex;gap:8px;flex-wrap:wrap">
-            <button class="btn success" onclick="closeTournament(${id})">🏁 Clôturer tournoi</button>
-          </div>
+  // Permettre la suppression même pour les tournois clôturés
+  if (role === 'admin' && tournament.status === 'closed') {
+    html += `
+      <div class="admin-actions">
+        <h5>Actions Admin</h5>
+        <div class="btn-group">
+          <button class="btn danger" onclick="deleteTournament(${tournament.id})">🗑️ Supprimer ce tournoi</button>
         </div>
-      `;
-    }
+      </div>
+    `;
+  }
 
-    // Participants
-    html += `<h5 style="margin:20px 0 12px">Participants (${participants.length})</h5>`;
-    if (participants.length > 0) {
-      html += '<div class="participant-list">';
-      participants.forEach(p => {
-        html += `<div class="participant-item"><span>${escapeHtml(p.participant_name)}</span></div>`;
-      });
-      html += '</div>';
-    } else {
-      html += '<p style="color:var(--muted)">Aucun participant pour le moment</p>';
-    }
-
-    // Matchs
-    if (matches.length > 0) {
-      html += `<h5 style="margin:20px 0 12px">Matchs</h5>`;
-      html += '<div class="match-list">';
-
-      matches.forEach(m => {
-        const isPlayed = m.winner_id !== null;
-        const canEdit = role === 'admin' && tournament.status === 'active';
-
-        html += `
-          <div class="match-item">
-            <div class="match-header">Tour ${m.round_number} - Match ${m.match_number}</div>
-            <div class="match-players">
-              <div class="match-player" style="${m.winner_id === m.participant1_id ? 'border:2px solid var(--ok);background:rgba(34,197,94,.1)' : ''}">${escapeHtml(m.p1_name || 'TBD')}</div>
-              <div class="match-vs">VS</div>
-              <div class="match-player" style="${m.winner_id === m.participant2_id ? 'border:2px solid var(--ok);background:rgba(34,197,94,.1)' : ''}">${escapeHtml(m.p2_name || 'TBD')}</div>
+  // Participants (inline avec virgules)
+  html += `
+    <div class="accordion">
+      <div class="accordion-header" onclick="toggleAccordion(this)">
+        <span>👥 Participants (${participants.length})</span>
+        <span class="accordion-icon">▼</span>
+      </div>
+      <div class="accordion-content">
+        <div class="accordion-body">
+          ${role === 'admin' && tournament.status === 'draft' ? `
+            <div style="margin-bottom:16px">
+              <div style="display:flex;gap:8px">
+                <input type="text" id="newParticipantName" placeholder="Noms (séparez par des virgules pour ajouter plusieurs)" style="flex:1">
+                <button class="btn primary" onclick="addParticipant(${tournament.id})">Ajouter</button>
+              </div>
+              <p style="font-size:11px;color:var(--muted);margin-top:4px">💡 Astuce : Ajoutez plusieurs participants d'un coup en les séparant par des virgules (ex: "Joueur1, Joueur2, Joueur3")</p>
             </div>
-            ${isPlayed ? `
-              <div style="margin-top:12px;text-align:center;font-weight:700;color:var(--ok)">
-                Gagnant: ${escapeHtml(m.winner_name)}
-                ${tournament.match_format === 'home_away' ?
-                  `<br><small>Aller: ${m.score1_home || 0} - ${m.score2_home || 0} | Retour: ${m.score1_away || 0} - ${m.score2_away || 0}</small>` :
-                  `<br><small>Score: ${m.score1_home || 0} - ${m.score2_home || 0}</small>`
-                }
-              </div>
-            ` : ''}
-            ${canEdit && !isPlayed ? `
-              <div style="margin-top:12px">
-                <button class="btn primary" style="width:100%" onclick="enterMatchResult(${tournament.id}, ${m.id}, '${tournament.match_format}')">Saisir résultat</button>
-              </div>
-            ` : ''}
+          ` : ''}
+
+          ${participants.length > 0 ? `
+            <div class="participants-inline">
+              ${participants.map(p => `<span class="participant-tag">${escapeHtml(p.participant_name)}</span>`).join('')}
+              ${role === 'admin' && tournament.status === 'draft' ? `
+                <div style="margin-top:12px;padding-top:12px;border-top:1px solid var(--border)">
+                  ${participants.map(p => `
+                    <div style="display:inline-flex;align-items:center;gap:6px;margin:4px">
+                      <span style="font-size:13px">${escapeHtml(p.participant_name)}</span>
+                      <button class="btn danger" style="padding:4px 8px;font-size:11px" onclick="removeParticipant(${tournament.id}, ${p.id})">✕</button>
+                    </div>
+                  `).join('')}
+                </div>
+              ` : ''}
+            </div>
+          ` : '<p style="color:var(--muted)">Aucun participant</p>'}
+        </div>
+      </div>
+    </div>
+  `;
+
+  // Bracket visuel
+  if (matches.length > 0 && (tournament.format === 'single_elimination' || tournament.format === 'double_elimination')) {
+    html += renderBracketView(matches, tournament);
+  } else if (matches.length > 0 && tournament.format === 'round_robin') {
+    html += renderRoundRobinMatches(matches, tournament);
+  } else if (matches.length > 0 && tournament.format === 'groups') {
+    html += renderGroupsMatches(matches, participants, tournament);
+  } else if (participants.length >= 2 && role === 'admin' && tournament.status === 'draft') {
+    html += `<p style="color:var(--muted);text-align:center;padding:20px">Générez le bracket pour créer les matchs</p>`;
+  }
+
+  // Classement final
+  if (tournament.status === 'closed') {
+    html += renderFinalStandings(tournament.id);
+  }
+
+  $('#tournamentDetails').innerHTML = html;
+}
+
+// Affichage bracket visuel style Challonge
+function renderBracketView(matches, tournament) {
+  // Séparer par type de bracket
+  const winnerMatches = matches.filter(m => m.bracket_type === 'winner' || !m.bracket_type);
+  const loserMatches = matches.filter(m => m.bracket_type === 'loser');
+  const grandFinalMatches = matches.filter(m => m.bracket_type === 'grand_final');
+
+  let html = '';
+
+  // === WINNER BRACKET ===
+  if (winnerMatches.length > 0) {
+    html += renderSingleBracket(winnerMatches, tournament, '🏆 Winner Bracket');
+  }
+
+  // === LOSER BRACKET ===
+  if (loserMatches.length > 0) {
+    html += renderSingleBracket(loserMatches, tournament, '🥈 Loser Bracket (Seconde Chance)');
+  }
+
+  // === GRAND FINAL ===
+  if (grandFinalMatches.length > 0) {
+    html += renderSingleBracket(grandFinalMatches, tournament, '👑 Grande Finale');
+  }
+
+  return html;
+}
+
+// Affichage d'un bracket (winner, loser, ou grand final)
+function renderSingleBracket(matches, tournament, title) {
+  // Grouper par round
+  const rounds = {};
+  matches.forEach(m => {
+    if (!rounds[m.round_number]) rounds[m.round_number] = [];
+    rounds[m.round_number].push(m);
+  });
+
+  const roundNumbers = Object.keys(rounds).sort((a, b) => a - b);
+  const roundLabels = ['8èmes', 'Quarts', 'Demi-finales', 'Finale'];
+
+  let html = `
+    <div class="card">
+      <h3>${title}</h3>
+      <div class="bracket-container">
+        <div class="bracket">
+  `;
+
+  roundNumbers.forEach((roundNum, idx) => {
+    const label = roundLabels[roundLabels.length - roundNumbers.length + idx] || `Tour ${roundNum}`;
+
+    html += `
+      <div class="bracket-round">
+        <div class="bracket-round-title">${label}</div>
+    `;
+
+    rounds[roundNum].forEach(m => {
+      // Ne pas afficher les matchs où les deux participants sont TBD (encore vides)
+      if (!m.participant1_id && !m.participant2_id) return;
+
+      const isPlayed = m.winner_id !== null;
+      const canEdit = role === 'admin' && tournament.status === 'active' && !isPlayed && m.participant1_id && m.participant2_id;
+      const isHomeAway = tournament.match_format === 'home_away';
+
+      const p1Score = isHomeAway ?
+        ((m.score1_home || 0) + (m.score1_away || 0)) :
+        (m.score1_home || 0);
+      const p2Score = isHomeAway ?
+        ((m.score2_home || 0) + (m.score2_away || 0)) :
+        (m.score2_home || 0);
+
+      html += `
+        <div class="bracket-match">
+          <div class="bracket-player ${m.winner_id === m.participant1_id ? 'winner' : isPlayed ? 'loser' : ''}">
+            <span class="bracket-player-name">${escapeHtml(m.p1_name || 'TBD')}</span>
+            ${isPlayed ? `<span class="bracket-player-score">${p1Score}</span>` : ''}
           </div>
-        `;
-      });
+          <div class="bracket-player ${m.winner_id === m.participant2_id ? 'winner' : isPlayed ? 'loser' : ''}">
+            <span class="bracket-player-name">${escapeHtml(m.p2_name || 'TBD')}</span>
+            ${isPlayed ? `<span class="bracket-player-score">${p2Score}</span>` : ''}
+          </div>
 
-      html += '</div>';
+          ${canEdit ? `
+            <div class="match-edit">
+              <div class="match-input">
+                <input type="number" min="0" placeholder="${m.p1_name || 'J1'}" id="score_${m.id}_1">
+                <span style="font-weight:900;color:var(--accent)">-</span>
+                <input type="number" min="0" placeholder="${m.p2_name || 'J2'}" id="score_${m.id}_2">
+              </div>
+              ${isHomeAway ? `
+                <div class="match-input">
+                  <input type="number" min="0" placeholder="Retour" id="score_${m.id}_1_away">
+                  <span style="font-weight:900;color:var(--accent)">-</span>
+                  <input type="number" min="0" placeholder="Retour" id="score_${m.id}_2_away">
+                </div>
+              ` : ''}
+              <button class="btn primary" style="width:100%;padding:6px;font-size:12px" onclick="saveMatchResult(${tournament.id}, ${m.id}, ${m.participant1_id}, ${m.participant2_id}, ${isHomeAway})">
+                💾 Sauver
+              </button>
+            </div>
+          ` : ''}
+        </div>
+      `;
+    });
+
+    html += `</div>`;
+  });
+
+  html += `
+        </div>
+      </div>
+    </div>
+  `;
+
+  return html;
+}
+
+// Round-robin : affichage simple des matchs
+function renderRoundRobinMatches(matches, tournament) {
+  let html = `
+    <div class="accordion">
+      <div class="accordion-header" onclick="toggleAccordion(this)">
+        <span>⚔️ Tous les matchs (${matches.length})</span>
+        <span class="accordion-icon">▼</span>
+      </div>
+      <div class="accordion-content">
+        <div class="accordion-body">
+          <div style="display:grid;gap:12px">
+  `;
+
+  matches.forEach(m => {
+    const isPlayed = m.winner_id !== null;
+    const canEdit = role === 'admin' && tournament.status === 'active' && !isPlayed;
+    const isHomeAway = tournament.match_format === 'home_away';
+
+    html += `
+      <div class="bracket-match">
+        <div class="bracket-player ${m.winner_id === m.participant1_id ? 'winner' : isPlayed ? 'loser' : ''}">
+          <span class="bracket-player-name">${escapeHtml(m.p1_name || 'TBD')}</span>
+          ${isPlayed ? `<span class="bracket-player-score">${isHomeAway ? ((m.score1_home||0) + (m.score1_away||0)) : (m.score1_home||0)}</span>` : ''}
+        </div>
+        <div class="bracket-player ${m.winner_id === m.participant2_id ? 'winner' : isPlayed ? 'loser' : ''}">
+          <span class="bracket-player-name">${escapeHtml(m.p2_name || 'TBD')}</span>
+          ${isPlayed ? `<span class="bracket-player-score">${isHomeAway ? ((m.score2_home||0) + (m.score2_away||0)) : (m.score2_home||0)}</span>` : ''}
+        </div>
+
+        ${canEdit ? `
+          <div class="match-edit">
+            <div class="match-input">
+              <input type="number" min="0" placeholder="${m.p1_name || 'J1'}" id="score_${m.id}_1">
+              <span style="font-weight:900;color:var(--accent)">-</span>
+              <input type="number" min="0" placeholder="${m.p2_name || 'J2'}" id="score_${m.id}_2">
+            </div>
+            ${isHomeAway ? `
+              <div class="match-input">
+                <input type="number" min="0" placeholder="Retour" id="score_${m.id}_1_away">
+                <span style="font-weight:900;color:var(--accent)">-</span>
+                <input type="number" min="0" placeholder="Retour" id="score_${m.id}_2_away">
+              </div>
+            ` : ''}
+            <button class="btn primary" style="width:100%;padding:6px;font-size:12px" onclick="saveMatchResult(${tournament.id}, ${m.id}, ${m.participant1_id}, ${m.participant2_id}, ${isHomeAway})">
+              💾 Sauver
+            </button>
+          </div>
+        ` : ''}
+      </div>
+    `;
+  });
+
+  html += `
+          </div>
+        </div>
+      </div>
+    </div>
+  `;
+
+  return html;
+}
+
+// Affichage des matchs par poules (groups)
+function renderGroupsMatches(matches, participants, tournament) {
+  // Grouper les participants par groupe
+  const groups = {};
+  participants.forEach(p => {
+    if (p.group_id) {
+      if (!groups[p.group_id]) {
+        groups[p.group_id] = { participants: [], matches: [], name: `Groupe ${Object.keys(groups).length + 1}` };
+      }
+      groups[p.group_id].participants.push(p);
     }
+  });
 
-    // Classement final (si terminé)
-    if (tournament.status === 'closed') {
-      const standingsData = await apiCall(`/tournaments/${id}/standings`);
+  // Grouper les matchs par groupe
+  matches.forEach(m => {
+    if (m.group_id && groups[m.group_id] && !m.is_knockout) {
+      groups[m.group_id].matches.push(m);
+    }
+  });
+
+  // Matchs de knockout (phase finale)
+  const knockoutMatches = matches.filter(m => m.is_knockout);
+
+  let html = '<div class="card"><h3>⚽ Phase de Poules</h3>';
+
+  // Afficher chaque poule
+  Object.values(groups).forEach((group, idx) => {
+    const groupLetter = String.fromCharCode(65 + idx); // A, B, C, D...
+
+    html += `
+      <div class="accordion">
+        <div class="accordion-header" onclick="toggleAccordion(this)">
+          <span>Groupe ${groupLetter} (${group.participants.length} participants)</span>
+          <span class="accordion-icon">▼</span>
+        </div>
+        <div class="accordion-content">
+          <div class="accordion-body">
+            <div style="margin-bottom:16px">
+              <strong>Participants:</strong>
+              <div class="participants-inline">
+                ${group.participants.map(p => `<span class="participant-tag">${escapeHtml(p.participant_name)}</span>`).join('')}
+              </div>
+            </div>
+
+            <div style="display:grid;gap:12px">
+    `;
+
+    group.matches.forEach(m => {
+      const isPlayed = m.winner_id !== null;
+      const canEdit = role === 'admin' && tournament.status === 'active' && !isPlayed;
+      const isHomeAway = tournament.match_format === 'home_away';
+
+      html += `
+        <div class="bracket-match">
+          <div class="bracket-player ${m.winner_id === m.participant1_id ? 'winner' : isPlayed ? 'loser' : ''}">
+            <span class="bracket-player-name">${escapeHtml(m.p1_name || 'TBD')}</span>
+            ${isPlayed ? `<span class="bracket-player-score">${isHomeAway ? ((m.score1_home||0) + (m.score1_away||0)) : (m.score1_home||0)}</span>` : ''}
+          </div>
+          <div class="bracket-player ${m.winner_id === m.participant2_id ? 'winner' : isPlayed ? 'loser' : ''}">
+            <span class="bracket-player-name">${escapeHtml(m.p2_name || 'TBD')}</span>
+            ${isPlayed ? `<span class="bracket-player-score">${isHomeAway ? ((m.score2_home||0) + (m.score2_away||0)) : (m.score2_home||0)}</span>` : ''}
+          </div>
+
+          ${canEdit ? `
+            <div class="match-edit">
+              <div class="match-input">
+                <input type="number" min="0" placeholder="${m.p1_name || 'J1'}" id="score_${m.id}_1">
+                <span style="font-weight:900;color:var(--accent)">-</span>
+                <input type="number" min="0" placeholder="${m.p2_name || 'J2'}" id="score_${m.id}_2">
+              </div>
+              ${isHomeAway ? `
+                <div class="match-input">
+                  <input type="number" min="0" placeholder="Retour" id="score_${m.id}_1_away">
+                  <span style="font-weight:900;color:var(--accent)">-</span>
+                  <input type="number" min="0" placeholder="Retour" id="score_${m.id}_2_away">
+                </div>
+              ` : ''}
+              <button class="btn primary" style="width:100%;padding:6px;font-size:12px" onclick="saveMatchResult(${tournament.id}, ${m.id}, ${m.participant1_id}, ${m.participant2_id}, ${isHomeAway})">
+                💾 Sauver
+              </button>
+            </div>
+          ` : ''}
+        </div>
+      `;
+    });
+
+    html += `
+            </div>
+          </div>
+        </div>
+      </div>
+    `;
+  });
+
+  html += '</div>';
+
+  // Phase à élimination directe (si matchs knockout générés)
+  if (knockoutMatches.length > 0) {
+    html += renderBracketView(knockoutMatches, tournament);
+  }
+
+  return html;
+}
+
+function renderFinalStandings(tournamentId) {
+  setTimeout(async () => {
+    try {
+      const standingsData = await apiCall(`/tournaments/${tournamentId}/standings`);
+      const tournament = currentTournament.tournament;
+
+      let html = '';
 
       if (tournament.format === 'round_robin' && standingsData.standings) {
-        html += `<h5 style="margin:20px 0 12px">Classement Final</h5>`;
         if (standingsData.standings[0]) {
           html += `
             <div class="winner-banner">
@@ -458,11 +872,33 @@ async function viewTournament(id) {
           `;
         }
 
-        html += '<table style="width:100%;border-collapse:collapse;margin-top:16px"><thead><tr><th>Rang</th><th>Participant</th><th>Victoires</th><th>Défaites</th><th>Points</th></tr></thead><tbody>';
-        standingsData.standings.forEach((s, i) => {
-          html += `<tr style="border-bottom:1px solid var(--border)"><td style="padding:10px;text-align:center">${i + 1}</td><td style="padding:10px">${escapeHtml(s.participant_name)}</td><td style="padding:10px;text-align:center">${s.wins}</td><td style="padding:10px;text-align:center">${s.losses}</td><td style="padding:10px;text-align:center;font-weight:700">${s.points}</td></tr>`;
-        });
-        html += '</tbody></table>';
+        html += `
+          <div class="card" style="margin-top:16px">
+            <h3>Classement Final</h3>
+            <table style="width:100%;border-collapse:collapse">
+              <thead>
+                <tr style="border-bottom:2px solid var(--border)">
+                  <th style="padding:10px;text-align:left">Rang</th>
+                  <th style="padding:10px;text-align:left">Participant</th>
+                  <th style="padding:10px;text-align:center">V</th>
+                  <th style="padding:10px;text-align:center">D</th>
+                  <th style="padding:10px;text-align:center;font-weight:900">Points</th>
+                </tr>
+              </thead>
+              <tbody>
+                ${standingsData.standings.map((s, i) => `
+                  <tr style="border-bottom:1px solid var(--border)">
+                    <td style="padding:10px;font-weight:700">${i === 0 ? '🥇' : i === 1 ? '🥈' : i === 2 ? '🥉' : i + 1}</td>
+                    <td style="padding:10px;font-weight:700">${escapeHtml(s.participant_name)}</td>
+                    <td style="padding:10px;text-align:center;color:var(--ok)">${s.wins}</td>
+                    <td style="padding:10px;text-align:center;color:var(--ko)">${s.losses}</td>
+                    <td style="padding:10px;text-align:center;font-weight:900;font-size:18px;color:var(--accent)">${s.points}</td>
+                  </tr>
+                `).join('')}
+              </tbody>
+            </table>
+          </div>
+        `;
       } else if (standingsData.winner) {
         html += `
           <div class="winner-banner">
@@ -472,86 +908,59 @@ async function viewTournament(id) {
           </div>
         `;
       }
+
+      if (html) {
+        $('#tournamentDetails').insertAdjacentHTML('beforeend', html);
+      }
+    } catch (err) {
+      console.error(err);
     }
+  }, 100);
 
-    $('#modalTournamentDetails').innerHTML = html;
-    $('#modalTitle').textContent = tournament.name;
-    $('#tournamentModal').classList.add('active');
-  } catch (err) {
-    console.error(err);
-    alert('Erreur lors du chargement du tournoi');
-  }
+  return '';
 }
 
-function closeTournamentModal() {
-  $('#tournamentModal').classList.remove('active');
+// Accordéon
+function toggleAccordion(header) {
+  const content = header.nextElementSibling;
+  const icon = header.querySelector('.accordion-icon');
+
+  content.classList.toggle('open');
+  icon.classList.toggle('open');
 }
 
-// Gérer les participants
-function manageParticipants(tournamentId) {
-  closeTournamentModal();
-
-  const modal = document.createElement('div');
-  modal.className = 'modal active';
-  modal.innerHTML = `
-    <div class="modal-content">
-      <div class="modal-header">
-        <h3>Gérer les participants</h3>
-        <button class="btn" onclick="this.closest('.modal').remove()">✕</button>
-      </div>
-      <div class="modal-body">
-        <div class="form-group">
-          <label>Nom du participant</label>
-          <input type="text" id="newParticipantName" placeholder="Entrer le nom">
-        </div>
-        <button class="btn primary" onclick="addParticipant(${tournamentId})">Ajouter</button>
-
-        <h5 style="margin-top:24px">Participants actuels</h5>
-        <div id="currentParticipants">Chargement...</div>
-      </div>
-    </div>
-  `;
-  document.body.appendChild(modal);
-
-  loadParticipantsForManagement(tournamentId);
-}
-
-async function loadParticipantsForManagement(tournamentId) {
-  try {
-    const data = await apiCall(`/tournaments/${tournamentId}`);
-    const container = $('#currentParticipants');
-
-    if (data.participants.length === 0) {
-      container.innerHTML = '<p style="color:var(--muted)">Aucun participant</p>';
-      return;
-    }
-
-    container.innerHTML = data.participants.map(p => `
-      <div class="participant-item">
-        <span>${escapeHtml(p.participant_name)}</span>
-        <button class="btn danger" style="padding:6px 12px" onclick="removeParticipant(${tournamentId}, ${p.id})">Retirer</button>
-      </div>
-    `).join('');
-  } catch (err) {
-    console.error(err);
-  }
-}
-
+// Gestion participants (supporte l'ajout multiple séparé par virgules)
 async function addParticipant(tournamentId) {
-  const name = $('#newParticipantName').value.trim();
-  if (!name) {
-    alert('Veuillez entrer un nom');
+  const input = $('#newParticipantName').value.trim();
+  if (!input) {
+    alert('Veuillez entrer au moins un nom');
+    return;
+  }
+
+  // Séparer par virgules et nettoyer
+  const names = input.split(',').map(n => n.trim()).filter(n => n.length > 0);
+
+  if (names.length === 0) {
+    alert('Veuillez entrer au moins un nom valide');
     return;
   }
 
   try {
-    await apiCall(`/tournaments/${tournamentId}/participants`, {
-      method: 'POST',
-      body: JSON.stringify({ participant_name: name })
-    });
+    // Ajouter tous les participants en parallèle
+    const promises = names.map(name =>
+      apiCall(`/tournaments/${tournamentId}/participants`, {
+        method: 'POST',
+        body: JSON.stringify({ participant_name: name })
+      })
+    );
+
+    await Promise.all(promises);
+
+    const count = names.length;
+    alert(`✅ ${count} participant${count > 1 ? 's ajoutés' : ' ajouté'} avec succès !`);
 
     $('#newParticipantName').value = '';
-    loadParticipantsForManagement(tournamentId);
+    viewTournament(tournamentId);
   } catch (err) {
     alert('Erreur: ' + err.message);
   }
@@ -565,28 +974,127 @@ async function removeParticipant(tournamentId, participantId) {
       method: 'DELETE'
     });
 
-    loadParticipantsForManagement(tournamentId);
-  } catch (err) {
-    alert('Erreur: ' + err.message);
-  }
-}
-
-async function generateBracket(tournamentId) {
-  if (!confirm('Générer le bracket ? Cela supprimera tous les matchs existants.')) return;
-
-  try {
-    await apiCall(`/tournaments/${tournamentId}/generate-bracket`, {
-      method: 'POST'
-    });
-
-    alert('Bracket généré avec succès !');
-    closeTournamentModal();
     viewTournament(tournamentId);
   } catch (err) {
     alert('Erreur: ' + err.message);
   }
 }
 
+// Mélanger les participants (shuffle)
+async function shuffleParticipants(tournamentId) {
+  if (!confirm('🔀 Mélanger aléatoirement l\'ordre des participants ?')) return;
+
+  try {
+    await apiCall(`/tournaments/${tournamentId}/shuffle-participants`, {
+      method: 'POST'
+    });
+
+    alert('✅ Participants mélangés avec succès !');
+    viewTournament(tournamentId);
+  } catch (err) {
+    alert('❌ Erreur: ' + err.message);
+  }
+}
+
+// Bracket
+async function generateBracket(tournamentId) {
+  const tournament = currentTournament?.tournament;
+  if (!tournament) return;
+
+  // Pour le format groups, demander le nombre de poules
+  let body = {};
+  if (tournament.format === 'groups') {
+    const numGroups = prompt('Combien de poules ? (2-8)', '4');
+    if (!numGroups) return;
+
+    const knockoutFormat = confirm('Phase à élimination :\nOK = Simple élimination\nAnnuler = Double élimination')
+      ? 'single_elimination'
+      : 'double_elimination';
+
+    body = {
+      num_groups: parseInt(numGroups),
+      knockout_format: knockoutFormat
+    };
+  }
+
+  if (!confirm('Générer le bracket ? Cela supprimera tous les matchs existants.')) return;
+
+  try {
+    await apiCall(`/tournaments/${tournamentId}/generate-bracket`, {
+      method: 'POST',
+      body: JSON.stringify(body)
+    });
+
+    alert('✅ Bracket généré avec succès !');
+    viewTournament(tournamentId);
+  } catch (err) {
+    alert('❌ Erreur: ' + err.message);
+  }
+}
+
+// Saisir résultat (avec détection automatique du gagnant)
+async function saveMatchResult(tournamentId, matchId, p1Id, p2Id, isHomeAway) {
+  // ✅ FIX: Permettre 0 comme score valide
+  const val1 = $(`#score_${matchId}_1`).value;
+  const val2 = $(`#score_${matchId}_2`).value;
+  const val1_away = isHomeAway ? $(`#score_${matchId}_1_away`).value : null;
+  const val2_away = isHomeAway ? $(`#score_${matchId}_2_away`).value : null;
+
+  const score1_home = val1 !== '' ? parseInt(val1) : null;
+  const score2_home = val2 !== '' ? parseInt(val2) : null;
+  const score1_away = isHomeAway && val1_away !== '' ? parseInt(val1_away) : null;
+  const score2_away = isHomeAway && val2_away !== '' ? parseInt(val2_away) : null;
+
+  if (score1_home === null || score2_home === null || isNaN(score1_home) || isNaN(score2_home)) {
+    alert('Veuillez saisir les scores (0 est un score valide)');
+    return;
+  }
+
+  if (isHomeAway && (score1_away === null || score2_away === null || isNaN(score1_away) || isNaN(score2_away))) {
+    alert('Veuillez saisir les scores aller ET retour (0 est un score valide)');
+    return;
+  }
+
+  // Déterminer automatiquement le gagnant
+  let winner_id = null;
+
+  if (isHomeAway) {
+    const totalP1 = score1_home + score1_away;
+    const totalP2 = score2_home + score2_away;
+
+    if (totalP1 > totalP2) {
+      winner_id = p1Id;
+    } else if (totalP2 > totalP1) {
+      winner_id = p2Id;
+    } else {
+      alert('⚠️ Match nul ! Le système ne gère pas encore les prolongations. Veuillez rejouer le match.');
+      return;
+    }
+  } else {
+    if (score1_home > score2_home) {
+      winner_id = p1Id;
+    } else if (score2_home > score1_home) {
+      winner_id = p2Id;
+    } else {
+      alert('⚠️ Match nul ! Le système ne gère pas encore les prolongations. Veuillez rejouer le match.');
+      return;
+    }
+  }
+
+  try {
+    await apiCall(`/tournaments/${tournamentId}/matches/${matchId}`, {
+      method: 'PUT',
+      body: JSON.stringify({ score1_home, score2_home, score1_away, score2_away, winner_id })
+    });
+
+    alert('✅ Résultat enregistré !');
+    viewTournament(tournamentId);
+  } catch (err) {
+    alert('❌ Erreur: ' + err.message);
+  }
+}
+
+// Actions tournoi
 async function startTournament(tournamentId) {
   if (!confirm('Démarrer le tournoi ? Il passera en mode actif.')) return;
 
@@ -596,12 +1104,10 @@ async function startTournament(tournamentId) {
       body: JSON.stringify({ status: 'active' })
     });
 
-    alert('Tournoi démarré !');
-    closeTournamentModal();
-    loadTournaments();
+    alert('✅ Tournoi démarré !');
     viewTournament(tournamentId);
   } catch (err) {
-    alert('Erreur: ' + err.message);
+    alert('❌ Erreur: ' + err.message);
   }
 }
 
@@ -614,12 +1120,10 @@ async function closeTournament(tournamentId) {
       body: JSON.stringify({ status: 'closed' })
     });
 
-    alert('Tournoi clôturé !');
-    closeTournamentModal();
-    loadTournaments();
+    alert('✅ Tournoi clôturé !');
     viewTournament(tournamentId);
   } catch (err) {
-    alert('Erreur: ' + err.message);
+    alert('❌ Erreur: ' + err.message);
   }
 }
 
@@ -631,94 +1135,10 @@ async function deleteTournament(tournamentId) {
       method: 'DELETE'
     });
 
-    alert('Tournoi supprimé');
-    closeTournamentModal();
-    loadTournaments();
+    alert('✅ Tournoi supprimé');
+    backToList();
   } catch (err) {
-    alert('Erreur: ' + err.message);
-  }
-}
-
-// Saisir résultat de match
-function enterMatchResult(tournamentId, matchId, matchFormat) {
-  closeTournamentModal();
-
-  const modal = document.createElement('div');
-  modal.className = 'modal active';
-
-  const isHomeAway = matchFormat === 'home_away';
-
-  modal.innerHTML = `
-    <div class="modal-content">
-      <div class="modal-header">
-        <h3>Saisir le résultat</h3>
-        <button class="btn" onclick="this.closest('.modal').remove()">✕</button>
-      </div>
-      <div class="modal-body">
-        ${isHomeAway ? `
-          <div class="form-group">
-            <label>Score ALLER (Joueur 1 - Joueur 2)</label>
-            <div style="display:flex;gap:12px;align-items:center">
-              <input type="number" id="score1_home" min="0" placeholder="0" style="width:80px">
-              <span>-</span>
-              <input type="number" id="score2_home" min="0" placeholder="0" style="width:80px">
-            </div>
-          </div>
-
-          <div class="form-group">
-            <label>Score RETOUR (Joueur 1 - Joueur 2)</label>
-            <div style="display:flex;gap:12px;align-items:center">
-              <input type="number" id="score1_away" min="0" placeholder="0" style="width:80px">
-              <span>-</span>
-              <input type="number" id="score2_away" min="0" placeholder="0" style="width:80px">
-            </div>
-          </div>
-        ` : `
-          <div class="form-group">
-            <label>Score (Joueur 1 - Joueur 2)</label>
-            <div style="display:flex;gap:12px;align-items:center">
-              <input type="number" id="score1_home" min="0" placeholder="0" style="width:80px">
-              <span>-</span>
-              <input type="number" id="score2_home" min="0" placeholder="0" style="width:80px">
-            </div>
-          </div>
-        `}
-
-        <div class="form-group">
-          <label>ID du gagnant *</label>
-          <input type="number" id="winnerId" placeholder="ID du participant gagnant" required>
-        </div>
-
-        <button class="btn primary" onclick="saveMatchResult(${tournamentId}, ${matchId}, ${isHomeAway})">Enregistrer</button>
-      </div>
-    </div>
-  `;
-  document.body.appendChild(modal);
-}
-
-async function saveMatchResult(tournamentId, matchId, isHomeAway) {
-  const score1_home = parseInt($('#score1_home').value) || null;
-  const score2_home = parseInt($('#score2_home').value) || null;
-  const score1_away = isHomeAway ? (parseInt($('#score1_away').value) || null) : null;
-  const score2_away = isHomeAway ? (parseInt($('#score2_away').value) || null) : null;
-  const winner_id = parseInt($('#winnerId').value) || null;
-
-  if (winner_id === null) {
-    alert('Veuillez entrer l\'ID du gagnant');
-    return;
-  }
-
-  try {
-    await apiCall(`/tournaments/${tournamentId}/matches/${matchId}`, {
-      method: 'PUT',
-      body: JSON.stringify({ score1_home, score2_home, score1_away, score2_away, winner_id })
-    });
-
-    alert('Résultat enregistré !');
-    document.querySelector('.modal.active').remove();
-    viewTournament(tournamentId);
-  } catch (err) {
-    alert('Erreur: ' + err.message);
+    alert('❌ Erreur: ' + err.message);
   }
 }
 

@@ -278,6 +278,25 @@ async function ensureSchema(){
   await q(`CREATE INDEX IF NOT EXISTS idx_tournament_matches_tournament ON tournament_matches(tournament_id)`);
   await q(`CREATE INDEX IF NOT EXISTS idx_tournament_participants_tournament ON tournament_participants(tournament_id)`);
 
+  /* Migrations pour nouvelles colonnes tournois */
+  await q(`ALTER TABLE tournaments ADD COLUMN IF NOT EXISTS has_loser_bracket BOOLEAN DEFAULT false`);
+  await q(`ALTER TABLE tournament_matches ADD COLUMN IF NOT EXISTS bracket_type TEXT DEFAULT 'winner'`);
+  await q(`ALTER TABLE tournament_matches ADD COLUMN IF NOT EXISTS next_match_winner_id INTEGER`);
+  await q(`ALTER TABLE tournament_matches ADD COLUMN IF NOT EXISTS next_match_loser_id INTEGER`);
+
+  /* Table pour les poules (groupes) */
+  await q(`CREATE TABLE IF NOT EXISTS tournament_groups(
+    id SERIAL PRIMARY KEY,
+    tournament_id INTEGER NOT NULL REFERENCES tournaments(id) ON DELETE CASCADE,
+    group_name TEXT NOT NULL,
+    group_number INTEGER NOT NULL,
+    created_at TIMESTAMPTZ DEFAULT now()
+  )`);
+
+  await q(`ALTER TABLE tournament_participants ADD COLUMN IF NOT EXISTS group_id INTEGER`);
+  await q(`ALTER TABLE tournament_matches ADD COLUMN IF NOT EXISTS group_id INTEGER`);
+  await q(`ALTER TABLE tournament_matches ADD COLUMN IF NOT EXISTS is_knockout BOOLEAN DEFAULT false`);
+
   /* seed admin */
   const adminEmail = process.env.ADMIN_EMAIL || 'admin@gz.local';
   const adminPass  = process.env.ADMIN_PASSWORD || 'admin';
@@ -1117,9 +1136,9 @@ app.post('/tournaments', auth, adminOnly, async (req, res) => {
     }
 
     // Valider le format
-    const validFormats = ['single_elimination', 'double_elimination', 'round_robin'];
+    const validFormats = ['single_elimination', 'double_elimination', 'round_robin', 'groups'];
     if (!validFormats.includes(format)) {
-      return bad(res, 400, 'Invalid format. Must be: single_elimination, double_elimination, or round_robin');
+      return bad(res, 400, 'Invalid format. Must be: single_elimination, double_elimination, round_robin, or groups');
     }
 
     // Valider le match_format
@@ -1252,10 +1271,44 @@ app.delete('/tournaments/:id/participants/:pid', auth, adminOnly, async (req, re
   }
 });
 
+// Mélanger les participants (shuffle) - admin seulement
+app.post('/tournaments/:id/shuffle-participants', auth, adminOnly, async (req, res) => {
+  try {
+    const { id } = req.params;
+
+    // Récupérer tous les participants
+    const pResult = await q(`SELECT id FROM tournament_participants WHERE tournament_id=$1 ORDER BY id`, [id]);
+    const participants = pResult.rows;
+
+    if (participants.length < 2) {
+      return bad(res, 400, 'Need at least 2 participants to shuffle');
+    }
+
+    // Mélanger l'ordre (Fisher-Yates shuffle)
+    const shuffled = [...participants];
+    for (let i = shuffled.length - 1; i > 0; i--) {
+      const j = Math.floor(Math.random() * (i + 1));
+      [shuffled[i], shuffled[j]] = [shuffled[j], shuffled[i]];
+    }
+
+    // Mettre à jour le seed de chaque participant
+    for (let i = 0; i < shuffled.length; i++) {
+      await q(`UPDATE tournament_participants SET seed=$1 WHERE id=$2`, [i + 1, shuffled[i].id]);
+    }
+
+    io.emit('tournament:participants_shuffled', { tournament_id: parseInt(id) });
+    ok(res, { message: 'Participants shuffled successfully' });
+  } catch (err) {
+    console.error(err);
+    bad(res, 500, 'Failed to shuffle participants');
+  }
+});
+
 // Générer le bracket (admin seulement)
 app.post('/tournaments/:id/generate-bracket', auth, adminOnly, async (req, res) => {
   try {
     const { id } = req.params;
+    const { num_groups, knockout_format } = req.body; // Pour le format groups
 
     const tResult = await q(`SELECT * FROM tournaments WHERE id=$1`, [id]);
     if (tResult.rowCount === 0) return bad(res, 404, 'Tournament not found');
@@ -1270,8 +1323,10 @@ app.post('/tournaments/:id/generate-bracket', auth, adminOnly, async (req, res) 
       return bad(res, 400, 'Need at least 2 participants');
     }
 
-    // Supprimer les matchs existants
+    // Supprimer les matchs et groupes existants
     await q(`DELETE FROM tournament_matches WHERE tournament_id=$1`, [id]);
+    await q(`DELETE FROM tournament_groups WHERE tournament_id=$1`, [id]);
+    await q(`UPDATE tournament_participants SET group_id=NULL WHERE tournament_id=$1`, [id]);
 
     // Générer le bracket selon le format
     if (tournament.format === 'single_elimination') {
@@ -1280,6 +1335,10 @@ app.post('/tournaments/:id/generate-bracket', auth, adminOnly, async (req, res) 
       await generateDoubleElimination(id, participants, tournament.has_loser_bracket);
     } else if (tournament.format === 'round_robin') {
       await generateRoundRobin(id, participants);
+    } else if (tournament.format === 'groups') {
+      const numGroups = parseInt(num_groups) || 4;
+      const knockoutFmt = knockout_format || 'single_elimination';
+      await generateGroups(id, participants, tournament.match_format, numGroups, knockoutFmt);
     }
 
     io.emit('tournament:bracket_generated', { tournament_id: parseInt(id) });
@@ -1486,6 +1545,62 @@ async function generateRoundRobin(tournamentId, participants) {
   }
 }
 
+// Générer des poules (groupes) + phase à élimination
+async function generateGroups(tournamentId, participants, matchFormat, numGroups, knockoutFormat) {
+  const n = participants.length;
+
+  // Limiter le nombre de groupes
+  const actualNumGroups = Math.min(numGroups, Math.floor(n / 2));
+  const groupSize = Math.ceil(n / actualNumGroups);
+
+  // Créer les groupes
+  const groupNames = ['A', 'B', 'C', 'D', 'E', 'F', 'G', 'H'];
+  const groups = [];
+
+  for (let i = 0; i < actualNumGroups; i++) {
+    const result = await q(`
+      INSERT INTO tournament_groups(tournament_id, group_name, group_number)
+      VALUES ($1, $2, $3)
+      RETURNING id
+    `, [tournamentId, `Groupe ${groupNames[i]}`, i + 1]);
+
+    groups.push({ id: result.rows[0].id, name: groupNames[i], participants: [] });
+  }
+
+  // Répartir les participants dans les groupes (serpent)
+  for (let i = 0; i < participants.length; i++) {
+    const groupIndex = i % actualNumGroups;
+    groups[groupIndex].participants.push(participants[i]);
+
+    // Mettre à jour le participant
+    await q(`UPDATE tournament_participants SET group_id=$1 WHERE id=$2`,
+      [groups[groupIndex].id, participants[i].id]);
+  }
+
+  // Générer les matchs de poule (round-robin dans chaque groupe)
+  let globalMatchNumber = 1;
+  for (const group of groups) {
+    const groupParticipants = group.participants;
+
+    // Round-robin complet dans chaque groupe
+    for (let i = 0; i < groupParticipants.length; i++) {
+      for (let j = i + 1; j < groupParticipants.length; j++) {
+        await q(`
+          INSERT INTO tournament_matches(
+            tournament_id, group_id, round_number, match_number,
+            participant1_id, participant2_id, is_knockout
+          )
+          VALUES ($1, $2, 1, $3, $4, $5, false)
+        `, [tournamentId, group.id, globalMatchNumber++,
+            groupParticipants[i].id, groupParticipants[j].id]);
+      }
+    }
+  }
+
+  // Note : La phase à élimination directe sera générée après que les poules soient terminées
+  // Pour l'instant on génère juste les matchs de poule
+}
+
 // Mettre à jour un match (résultat) avec progression automatique
 app.put('/tournaments/:id/matches/:mid', auth, adminOnly, async (req, res) => {
   try {
@@ -1538,35 +1653,52 @@ app.put('/tournaments/:id/matches/:mid', auth, adminOnly, async (req, res) => {
     const updatedMatch = result.rows[0];
 
     // === PROGRESSION AUTOMATIQUE ===
-    if (winner_id && updatedMatch.next_match_winner_id) {
-      const nextMatchId = updatedMatch.next_match_winner_id;
+    // Utiliser currentMatch car il contient next_match_winner_id et next_match_loser_id
+    if (winner_id && currentMatch.next_match_winner_id) {
+      const nextMatchId = currentMatch.next_match_winner_id;
+
+      console.log(`[PROGRESSION] Match ${mid} terminé, gagnant ${winner_id} -> next match ${nextMatchId}`);
 
       // Récupérer le match suivant
       const nextMatchResult = await q(`SELECT * FROM tournament_matches WHERE id=$1`, [nextMatchId]);
-      const nextMatch = nextMatchResult.rows[0];
+      if (nextMatchResult.rowCount > 0) {
+        const nextMatch = nextMatchResult.rows[0];
 
-      // Déterminer quelle position remplir (participant1 ou participant2)
-      if (!nextMatch.participant1_id) {
-        await q(`UPDATE tournament_matches SET participant1_id=$1 WHERE id=$2`, [winner_id, nextMatchId]);
-      } else if (!nextMatch.participant2_id) {
-        await q(`UPDATE tournament_matches SET participant2_id=$1 WHERE id=$2`, [winner_id, nextMatchId]);
+        // Déterminer quelle position remplir (participant1 ou participant2)
+        if (!nextMatch.participant1_id) {
+          console.log(`[PROGRESSION] Placement du gagnant ${winner_id} dans next match ${nextMatchId} position 1`);
+          await q(`UPDATE tournament_matches SET participant1_id=$1 WHERE id=$2`, [winner_id, nextMatchId]);
+        } else if (!nextMatch.participant2_id) {
+          console.log(`[PROGRESSION] Placement du gagnant ${winner_id} dans next match ${nextMatchId} position 2`);
+          await q(`UPDATE tournament_matches SET participant2_id=$1 WHERE id=$2`, [winner_id, nextMatchId]);
+        } else {
+          console.log(`[PROGRESSION] WARN: next match ${nextMatchId} déjà rempli!`);
+        }
       }
     }
 
     // Progression des perdants vers le loser bracket (si applicable)
-    if (winner_id && updatedMatch.next_match_loser_id) {
-      const loser_id = (winner_id === updatedMatch.participant1_id) ? updatedMatch.participant2_id : updatedMatch.participant1_id;
+    if (winner_id && currentMatch.next_match_loser_id) {
+      const loser_id = (winner_id === currentMatch.participant1_id) ? currentMatch.participant2_id : currentMatch.participant1_id;
 
       if (loser_id) {
-        const nextLoserMatchId = updatedMatch.next_match_loser_id;
+        const nextLoserMatchId = currentMatch.next_match_loser_id;
+
+        console.log(`[PROGRESSION LOSER] Match ${mid}, perdant ${loser_id} -> loser match ${nextLoserMatchId}`);
 
         const nextLoserMatchResult = await q(`SELECT * FROM tournament_matches WHERE id=$1`, [nextLoserMatchId]);
-        const nextLoserMatch = nextLoserMatchResult.rows[0];
+        if (nextLoserMatchResult.rowCount > 0) {
+          const nextLoserMatch = nextLoserMatchResult.rows[0];
 
-        if (!nextLoserMatch.participant1_id) {
-          await q(`UPDATE tournament_matches SET participant1_id=$1 WHERE id=$2`, [loser_id, nextLoserMatchId]);
-        } else if (!nextLoserMatch.participant2_id) {
-          await q(`UPDATE tournament_matches SET participant2_id=$1 WHERE id=$2`, [loser_id, nextLoserMatchId]);
+          if (!nextLoserMatch.participant1_id) {
+            console.log(`[PROGRESSION LOSER] Placement du perdant ${loser_id} dans loser match ${nextLoserMatchId} position 1`);
+            await q(`UPDATE tournament_matches SET participant1_id=$1 WHERE id=$2`, [loser_id, nextLoserMatchId]);
+          } else if (!nextLoserMatch.participant2_id) {
+            console.log(`[PROGRESSION LOSER] Placement du perdant ${loser_id} dans loser match ${nextLoserMatchId} position 2`);
+            await q(`UPDATE tournament_matches SET participant2_id=$1 WHERE id=$2`, [loser_id, nextLoserMatchId]);
+          } else {
+            console.log(`[PROGRESSION LOSER] WARN: loser match ${nextLoserMatchId} déjà rempli!`);
+          }
         }
       }
     }

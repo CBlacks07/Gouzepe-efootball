@@ -185,12 +185,22 @@
 
             <div class="form-group">
               <label>Format du tournoi *</label>
-              <select id="tournamentFormat" required>
+              <select id="tournamentFormat" required onchange="toggleLoserBracketOption()">
                 <option value="">-- Choisir --</option>
                 <option value="single_elimination">🏆 Simple élimination</option>
                 <option value="double_elimination">🏅 Double élimination</option>
                 <option value="round_robin">🔄 Round-Robin (tous contre tous)</option>
               </select>
+            </div>
+
+            <div class="form-group" id="loserBracketOption" style="display:none">
+              <label style="display:flex;align-items:center;gap:8px;cursor:pointer">
+                <input type="checkbox" id="hasLoserBracket">
+                <span>🏅 Activer le Loser Bracket (comme sur Challonge)</span>
+              </label>
+              <p style="font-size:12px;color:var(--muted);margin-top:6px">
+                Les perdants auront une seconde chance dans un bracket séparé. Le gagnant du loser bracket affrontera le gagnant du winner bracket en grande finale.
+              </p>
             </div>
 
             <div class="form-group">
@@ -309,6 +319,19 @@ function backToList() {
   loadTournaments();
 }
 
+// Afficher/masquer option loser bracket
+function toggleLoserBracketOption() {
+  const format = $('#tournamentFormat').value;
+  const loserOption = $('#loserBracketOption');
+
+  if (format === 'double_elimination') {
+    loserOption.style.display = 'block';
+  } else {
+    loserOption.style.display = 'none';
+    $('#hasLoserBracket').checked = false;
+  }
+}
+
 // Charger les tournois
 async function loadTournaments() {
   try {
@@ -353,6 +376,7 @@ $('#createTournamentForm')?.addEventListener('submit', async (e) => {
   const format = $('#tournamentFormat').value;
   const match_format = $('#matchFormat').value;
   const description = $('#tournamentDescription').value.trim();
+  const has_loser_bracket = (format === 'double_elimination') && $('#hasLoserBracket').checked;
 
   if (!name || !game_type || !format || !match_format) {
     alert('Veuillez remplir tous les champs obligatoires');
@@ -362,11 +386,12 @@ $('#createTournamentForm')?.addEventListener('submit', async (e) => {
   try {
     await apiCall('/tournaments', {
       method: 'POST',
-      body: JSON.stringify({ name, game_type, format, match_format, description })
+      body: JSON.stringify({ name, game_type, format, match_format, description, has_loser_bracket })
     });
 
     alert('✅ Tournoi créé avec succès !');
     $('#createTournamentForm').reset();
+    toggleLoserBracketOption(); // Reset l'affichage
 
     // Retour à la liste
     $('.tab[data-tab="all"]').click();
@@ -475,9 +500,12 @@ function renderTournamentDetails(data) {
       <div class="accordion-content">
         <div class="accordion-body">
           ${role === 'admin' && tournament.status === 'draft' ? `
-            <div style="margin-bottom:16px;display:flex;gap:8px">
-              <input type="text" id="newParticipantName" placeholder="Nom du participant" style="flex:1">
-              <button class="btn primary" onclick="addParticipant(${tournament.id})">Ajouter</button>
+            <div style="margin-bottom:16px">
+              <div style="display:flex;gap:8px">
+                <input type="text" id="newParticipantName" placeholder="Noms (séparez par des virgules pour ajouter plusieurs)" style="flex:1">
+                <button class="btn primary" onclick="addParticipant(${tournament.id})">Ajouter</button>
+              </div>
+              <p style="font-size:11px;color:var(--muted);margin-top:4px">💡 Astuce : Ajoutez plusieurs participants d'un coup en les séparant par des virgules (ex: "Joueur1, Joueur2, Joueur3")</p>
             </div>
           ` : ''}
 
@@ -520,6 +548,33 @@ function renderTournamentDetails(data) {
 
 // Affichage bracket visuel style Challonge
 function renderBracketView(matches, tournament) {
+  // Séparer par type de bracket
+  const winnerMatches = matches.filter(m => m.bracket_type === 'winner' || !m.bracket_type);
+  const loserMatches = matches.filter(m => m.bracket_type === 'loser');
+  const grandFinalMatches = matches.filter(m => m.bracket_type === 'grand_final');
+
+  let html = '';
+
+  // === WINNER BRACKET ===
+  if (winnerMatches.length > 0) {
+    html += renderSingleBracket(winnerMatches, tournament, '🏆 Winner Bracket');
+  }
+
+  // === LOSER BRACKET ===
+  if (loserMatches.length > 0) {
+    html += renderSingleBracket(loserMatches, tournament, '🥈 Loser Bracket (Seconde Chance)');
+  }
+
+  // === GRAND FINAL ===
+  if (grandFinalMatches.length > 0) {
+    html += renderSingleBracket(grandFinalMatches, tournament, '👑 Grande Finale');
+  }
+
+  return html;
+}
+
+// Affichage d'un bracket (winner, loser, ou grand final)
+function renderSingleBracket(matches, tournament, title) {
   // Grouper par round
   const rounds = {};
   matches.forEach(m => {
@@ -532,7 +587,7 @@ function renderBracketView(matches, tournament) {
 
   let html = `
     <div class="card">
-      <h3>🏆 Bracket du tournoi</h3>
+      <h3>${title}</h3>
       <div class="bracket-container">
         <div class="bracket">
   `;
@@ -546,8 +601,11 @@ function renderBracketView(matches, tournament) {
     `;
 
     rounds[roundNum].forEach(m => {
+      // Ne pas afficher les matchs où les deux participants sont TBD (encore vides)
+      if (!m.participant1_id && !m.participant2_id) return;
+
       const isPlayed = m.winner_id !== null;
-      const canEdit = role === 'admin' && tournament.status === 'active' && !isPlayed;
+      const canEdit = role === 'admin' && tournament.status === 'active' && !isPlayed && m.participant1_id && m.participant2_id;
       const isHomeAway = tournament.match_format === 'home_away';
 
       const p1Score = isHomeAway ?
@@ -741,19 +799,35 @@ function toggleAccordion(header) {
   icon.classList.toggle('open');
 }
 
-// Gestion participants
+// Gestion participants (supporte l'ajout multiple séparé par virgules)
 async function addParticipant(tournamentId) {
-  const name = $('#newParticipantName').value.trim();
-  if (!name) {
-    alert('Veuillez entrer un nom');
+  const input = $('#newParticipantName').value.trim();
+  if (!input) {
+    alert('Veuillez entrer au moins un nom');
+    return;
+  }
+
+  // Séparer par virgules et nettoyer
+  const names = input.split(',').map(n => n.trim()).filter(n => n.length > 0);
+
+  if (names.length === 0) {
+    alert('Veuillez entrer au moins un nom valide');
     return;
   }
 
   try {
-    await apiCall(`/tournaments/${tournamentId}/participants`, {
-      method: 'POST',
-      body: JSON.stringify({ participant_name: name })
-    });
+    // Ajouter tous les participants en parallèle
+    const promises = names.map(name =>
+      apiCall(`/tournaments/${tournamentId}/participants`, {
+        method: 'POST',
+        body: JSON.stringify({ participant_name: name })
+      })
+    );
+
+    await Promise.all(promises);
+
+    const count = names.length;
+    alert(`✅ ${count} participant${count > 1 ? 's ajoutés' : ' ajouté'} avec succès !`);
 
     $('#newParticipantName').value = '';
     viewTournament(tournamentId);
@@ -794,18 +868,24 @@ async function generateBracket(tournamentId) {
 
 // Saisir résultat (avec détection automatique du gagnant)
 async function saveMatchResult(tournamentId, matchId, p1Id, p2Id, isHomeAway) {
-  const score1_home = parseInt($(`#score_${matchId}_1`).value) || null;
-  const score2_home = parseInt($(`#score_${matchId}_2`).value) || null;
-  const score1_away = isHomeAway ? (parseInt($(`#score_${matchId}_1_away`).value) || null) : null;
-  const score2_away = isHomeAway ? (parseInt($(`#score_${matchId}_2_away`).value) || null) : null;
+  // ✅ FIX: Permettre 0 comme score valide
+  const val1 = $(`#score_${matchId}_1`).value;
+  const val2 = $(`#score_${matchId}_2`).value;
+  const val1_away = isHomeAway ? $(`#score_${matchId}_1_away`).value : null;
+  const val2_away = isHomeAway ? $(`#score_${matchId}_2_away`).value : null;
 
-  if (score1_home === null || score2_home === null) {
-    alert('Veuillez saisir les scores');
+  const score1_home = val1 !== '' ? parseInt(val1) : null;
+  const score2_home = val2 !== '' ? parseInt(val2) : null;
+  const score1_away = isHomeAway && val1_away !== '' ? parseInt(val1_away) : null;
+  const score2_away = isHomeAway && val2_away !== '' ? parseInt(val2_away) : null;
+
+  if (score1_home === null || score2_home === null || isNaN(score1_home) || isNaN(score2_home)) {
+    alert('Veuillez saisir les scores (0 est un score valide)');
     return;
   }
 
-  if (isHomeAway && (score1_away === null || score2_away === null)) {
-    alert('Veuillez saisir les scores aller ET retour');
+  if (isHomeAway && (score1_away === null || score2_away === null || isNaN(score1_away) || isNaN(score2_away))) {
+    alert('Veuillez saisir les scores aller ET retour (0 est un score valide)');
     return;
   }
 

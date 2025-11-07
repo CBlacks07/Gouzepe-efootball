@@ -237,6 +237,7 @@ async function ensureSchema(){
     match_format TEXT NOT NULL DEFAULT 'simple',
     status TEXT NOT NULL DEFAULT 'draft',
     description TEXT,
+    has_loser_bracket BOOLEAN DEFAULT false,
     created_by_user_id INTEGER,
     created_at TIMESTAMPTZ DEFAULT now(),
     started_at TIMESTAMPTZ,
@@ -260,6 +261,7 @@ async function ensureSchema(){
     tournament_id INTEGER NOT NULL REFERENCES tournaments(id) ON DELETE CASCADE,
     round_number INTEGER NOT NULL,
     match_number INTEGER NOT NULL,
+    bracket_type TEXT DEFAULT 'winner',
     participant1_id INTEGER REFERENCES tournament_participants(id),
     participant2_id INTEGER REFERENCES tournament_participants(id),
     score1_home INTEGER,
@@ -267,6 +269,8 @@ async function ensureSchema(){
     score1_away INTEGER,
     score2_away INTEGER,
     winner_id INTEGER REFERENCES tournament_participants(id),
+    next_match_winner_id INTEGER REFERENCES tournament_matches(id),
+    next_match_loser_id INTEGER REFERENCES tournament_matches(id),
     played_at TIMESTAMPTZ,
     created_at TIMESTAMPTZ DEFAULT now()
   )`);
@@ -1106,7 +1110,7 @@ app.get('/tournaments/:id', auth, async (req, res) => {
 // Créer un nouveau tournoi (admin seulement)
 app.post('/tournaments', auth, adminOnly, async (req, res) => {
   try {
-    const { name, game_type, format, match_format, description } = req.body;
+    const { name, game_type, format, match_format, description, has_loser_bracket } = req.body;
 
     if (!name || !game_type || !format) {
       return bad(res, 400, 'Missing required fields: name, game_type, format');
@@ -1124,11 +1128,14 @@ app.post('/tournaments', auth, adminOnly, async (req, res) => {
       return bad(res, 400, 'Invalid match_format. Must be: simple or home_away');
     }
 
+    // Loser bracket seulement pour double elimination
+    const loserBracket = (format === 'double_elimination' && has_loser_bracket === true);
+
     const result = await q(`
-      INSERT INTO tournaments(name, game_type, format, match_format, description, created_by_user_id, status)
-      VALUES ($1, $2, $3, $4, $5, $6, 'draft')
+      INSERT INTO tournaments(name, game_type, format, match_format, description, has_loser_bracket, created_by_user_id, status)
+      VALUES ($1, $2, $3, $4, $5, $6, $7, 'draft')
       RETURNING *
-    `, [name, game_type, format, match_format || 'simple', description || '', req.user.id]);
+    `, [name, game_type, format, match_format || 'simple', description || '', loserBracket, req.user.id]);
 
     io.emit('tournament:created', { tournament: result.rows[0] });
     ok(res, { tournament: result.rows[0] });
@@ -1270,7 +1277,7 @@ app.post('/tournaments/:id/generate-bracket', auth, adminOnly, async (req, res) 
     if (tournament.format === 'single_elimination') {
       await generateSingleElimination(id, participants);
     } else if (tournament.format === 'double_elimination') {
-      await generateDoubleElimination(id, participants);
+      await generateDoubleElimination(id, participants, tournament.has_loser_bracket);
     } else if (tournament.format === 'round_robin') {
       await generateRoundRobin(id, participants);
     }
@@ -1289,23 +1296,179 @@ async function generateSingleElimination(tournamentId, participants) {
   const rounds = Math.ceil(Math.log2(n));
   const totalSlots = Math.pow(2, rounds);
 
-  // Créer le premier tour
-  let matchNumber = 1;
-  for (let i = 0; i < totalSlots; i += 2) {
-    const p1 = participants[i] || null;
-    const p2 = participants[i + 1] || null;
+  // Créer tous les rounds à l'avance avec références next_match
+  const matchesByRound = [];
+
+  // Génération des rounds en partant de la fin (finale -> premier tour)
+  for (let round = rounds; round >= 1; round--) {
+    const matchesInRound = Math.pow(2, round - 1);
+    const roundMatches = [];
+
+    for (let i = 0; i < matchesInRound; i++) {
+      // Insérer le match
+      const result = await q(`
+        INSERT INTO tournament_matches(tournament_id, round_number, match_number, bracket_type, participant1_id, participant2_id)
+        VALUES ($1, $2, $3, 'winner', NULL, NULL)
+        RETURNING id
+      `, [tournamentId, round, i + 1]);
+
+      roundMatches.push(result.rows[0].id);
+    }
+
+    matchesByRound.unshift(roundMatches);
+  }
+
+  // Relier les matchs entre eux (next_match_winner_id)
+  for (let round = 0; round < rounds - 1; round++) {
+    const currentRoundMatches = matchesByRound[round];
+    const nextRoundMatches = matchesByRound[round + 1];
+
+    for (let i = 0; i < currentRoundMatches.length; i++) {
+      const nextMatchIndex = Math.floor(i / 2);
+      await q(`
+        UPDATE tournament_matches
+        SET next_match_winner_id = $1
+        WHERE id = $2
+      `, [nextRoundMatches[nextMatchIndex], currentRoundMatches[i]]);
+    }
+  }
+
+  // Remplir le premier tour avec les participants
+  const firstRoundMatches = matchesByRound[0];
+  for (let i = 0; i < firstRoundMatches.length; i++) {
+    const p1 = participants[i * 2] || null;
+    const p2 = participants[i * 2 + 1] || null;
 
     await q(`
-      INSERT INTO tournament_matches(tournament_id, round_number, match_number, participant1_id, participant2_id)
-      VALUES ($1, 1, $2, $3, $4)
-    `, [tournamentId, matchNumber++, p1?.id || null, p2?.id || null]);
+      UPDATE tournament_matches
+      SET participant1_id = $1, participant2_id = $2
+      WHERE id = $3
+    `, [p1?.id || null, p2?.id || null, firstRoundMatches[i]]);
   }
 }
 
-async function generateDoubleElimination(tournamentId, participants) {
-  // Pour simplifier, on génère d'abord le winner bracket comme single elimination
-  await generateSingleElimination(tournamentId, participants);
-  // Le loser bracket sera généré dynamiquement quand les perdants descendent
+async function generateDoubleElimination(tournamentId, participants, hasLoserBracket = false) {
+  if (!hasLoserBracket) {
+    // Simple elimination déguisée
+    await generateSingleElimination(tournamentId, participants);
+    return;
+  }
+
+  const n = participants.length;
+  const rounds = Math.ceil(Math.log2(n));
+  const totalSlots = Math.pow(2, rounds);
+
+  // === WINNER BRACKET ===
+  const winnerMatchesByRound = [];
+
+  for (let round = rounds; round >= 1; round--) {
+    const matchesInRound = Math.pow(2, round - 1);
+    const roundMatches = [];
+
+    for (let i = 0; i < matchesInRound; i++) {
+      const result = await q(`
+        INSERT INTO tournament_matches(tournament_id, round_number, match_number, bracket_type, participant1_id, participant2_id)
+        VALUES ($1, $2, $3, 'winner', NULL, NULL)
+        RETURNING id
+      `, [tournamentId, round, i + 1]);
+
+      roundMatches.push(result.rows[0].id);
+    }
+
+    winnerMatchesByRound.unshift(roundMatches);
+  }
+
+  // === LOSER BRACKET ===
+  // Le loser bracket a environ 2x rounds - 1 rounds
+  const loserRounds = (rounds * 2) - 1;
+  const loserMatchesByRound = [];
+
+  for (let round = 1; round <= loserRounds; round++) {
+    // Nombre de matchs décroit progressivement
+    const matchesInRound = Math.pow(2, Math.ceil((loserRounds - round) / 2));
+    const roundMatches = [];
+
+    for (let i = 0; i < matchesInRound; i++) {
+      const result = await q(`
+        INSERT INTO tournament_matches(tournament_id, round_number, match_number, bracket_type, participant1_id, participant2_id)
+        VALUES ($1, $2, $3, 'loser', NULL, NULL)
+        RETURNING id
+      `, [tournamentId, round, i + 1]);
+
+      roundMatches.push(result.rows[0].id);
+    }
+
+    loserMatchesByRound.push(roundMatches);
+  }
+
+  // === GRAND FINAL ===
+  const grandFinalResult = await q(`
+    INSERT INTO tournament_matches(tournament_id, round_number, match_number, bracket_type, participant1_id, participant2_id)
+    VALUES ($1, $2, 1, 'grand_final', NULL, NULL)
+    RETURNING id
+  `, [tournamentId, rounds + 1]);
+
+  const grandFinalId = grandFinalResult.rows[0].id;
+
+  // === RELIER LES MATCHS ===
+
+  // Winner bracket progression
+  for (let round = 0; round < rounds - 1; round++) {
+    const currentRoundMatches = winnerMatchesByRound[round];
+    const nextRoundMatches = winnerMatchesByRound[round + 1];
+
+    for (let i = 0; i < currentRoundMatches.length; i++) {
+      const nextMatchIndex = Math.floor(i / 2);
+      const loserDestIndex = Math.floor(i / 2);
+      const loserRoundIndex = round * 2; // Les perdants descendent progressivement
+
+      await q(`
+        UPDATE tournament_matches
+        SET next_match_winner_id = $1, next_match_loser_id = $2
+        WHERE id = $3
+      `, [
+        nextRoundMatches[nextMatchIndex],
+        loserMatchesByRound[loserRoundIndex] ? loserMatchesByRound[loserRoundIndex][loserDestIndex] : null,
+        currentRoundMatches[i]
+      ]);
+    }
+  }
+
+  // Dernier match du winner bracket -> grand final
+  const lastWinnerMatch = winnerMatchesByRound[winnerMatchesByRound.length - 1][0];
+  await q(`UPDATE tournament_matches SET next_match_winner_id = $1 WHERE id = $2`, [grandFinalId, lastWinnerMatch]);
+
+  // Loser bracket progression
+  for (let round = 0; round < loserRounds - 1; round++) {
+    const currentRoundMatches = loserMatchesByRound[round];
+    const nextRoundMatches = loserMatchesByRound[round + 1];
+
+    for (let i = 0; i < currentRoundMatches.length; i++) {
+      const nextMatchIndex = Math.floor(i / 2);
+      await q(`
+        UPDATE tournament_matches
+        SET next_match_winner_id = $1
+        WHERE id = $2
+      `, [nextRoundMatches[nextMatchIndex], currentRoundMatches[i]]);
+    }
+  }
+
+  // Dernier match du loser bracket -> grand final
+  const lastLoserMatch = loserMatchesByRound[loserMatchesByRound.length - 1][0];
+  await q(`UPDATE tournament_matches SET next_match_winner_id = $1 WHERE id = $2`, [grandFinalId, lastLoserMatch]);
+
+  // Remplir le premier tour du winner bracket avec les participants
+  const firstRoundMatches = winnerMatchesByRound[0];
+  for (let i = 0; i < firstRoundMatches.length; i++) {
+    const p1 = participants[i * 2] || null;
+    const p2 = participants[i * 2 + 1] || null;
+
+    await q(`
+      UPDATE tournament_matches
+      SET participant1_id = $1, participant2_id = $2
+      WHERE id = $3
+    `, [p1?.id || null, p2?.id || null, firstRoundMatches[i]]);
+  }
 }
 
 async function generateRoundRobin(tournamentId, participants) {
@@ -1323,7 +1486,7 @@ async function generateRoundRobin(tournamentId, participants) {
   }
 }
 
-// Mettre à jour un match (résultat)
+// Mettre à jour un match (résultat) avec progression automatique
 app.put('/tournaments/:id/matches/:mid', auth, adminOnly, async (req, res) => {
   try {
     const { id, mid } = req.params;
@@ -1333,23 +1496,26 @@ app.put('/tournaments/:id/matches/:mid', auth, adminOnly, async (req, res) => {
     const mResult = await q(`SELECT * FROM tournament_matches WHERE id=$1 AND tournament_id=$2`, [mid, id]);
     if (mResult.rowCount === 0) return bad(res, 404, 'Match not found');
 
+    const currentMatch = mResult.rows[0];
+
+    // ✅ FIX: Permettre 0 comme score valide
     const updates = [];
     const values = [];
     let paramCount = 1;
 
-    if (score1_home !== undefined && score1_home !== null) {
+    if (score1_home !== undefined && score1_home !== null && !isNaN(score1_home)) {
       updates.push(`score1_home=$${paramCount++}`);
       values.push(score1_home);
     }
-    if (score2_home !== undefined && score2_home !== null) {
+    if (score2_home !== undefined && score2_home !== null && !isNaN(score2_home)) {
       updates.push(`score2_home=$${paramCount++}`);
       values.push(score2_home);
     }
-    if (score1_away !== undefined && score1_away !== null) {
+    if (score1_away !== undefined && score1_away !== null && !isNaN(score1_away)) {
       updates.push(`score1_away=$${paramCount++}`);
       values.push(score1_away);
     }
-    if (score2_away !== undefined && score2_away !== null) {
+    if (score2_away !== undefined && score2_away !== null && !isNaN(score2_away)) {
       updates.push(`score2_away=$${paramCount++}`);
       values.push(score2_away);
     }
@@ -1369,8 +1535,44 @@ app.put('/tournaments/:id/matches/:mid', auth, adminOnly, async (req, res) => {
       RETURNING *
     `, values);
 
-    io.emit('tournament:match_updated', { tournament_id: parseInt(id), match: result.rows[0] });
-    ok(res, { match: result.rows[0] });
+    const updatedMatch = result.rows[0];
+
+    // === PROGRESSION AUTOMATIQUE ===
+    if (winner_id && updatedMatch.next_match_winner_id) {
+      const nextMatchId = updatedMatch.next_match_winner_id;
+
+      // Récupérer le match suivant
+      const nextMatchResult = await q(`SELECT * FROM tournament_matches WHERE id=$1`, [nextMatchId]);
+      const nextMatch = nextMatchResult.rows[0];
+
+      // Déterminer quelle position remplir (participant1 ou participant2)
+      if (!nextMatch.participant1_id) {
+        await q(`UPDATE tournament_matches SET participant1_id=$1 WHERE id=$2`, [winner_id, nextMatchId]);
+      } else if (!nextMatch.participant2_id) {
+        await q(`UPDATE tournament_matches SET participant2_id=$1 WHERE id=$2`, [winner_id, nextMatchId]);
+      }
+    }
+
+    // Progression des perdants vers le loser bracket (si applicable)
+    if (winner_id && updatedMatch.next_match_loser_id) {
+      const loser_id = (winner_id === updatedMatch.participant1_id) ? updatedMatch.participant2_id : updatedMatch.participant1_id;
+
+      if (loser_id) {
+        const nextLoserMatchId = updatedMatch.next_match_loser_id;
+
+        const nextLoserMatchResult = await q(`SELECT * FROM tournament_matches WHERE id=$1`, [nextLoserMatchId]);
+        const nextLoserMatch = nextLoserMatchResult.rows[0];
+
+        if (!nextLoserMatch.participant1_id) {
+          await q(`UPDATE tournament_matches SET participant1_id=$1 WHERE id=$2`, [loser_id, nextLoserMatchId]);
+        } else if (!nextLoserMatch.participant2_id) {
+          await q(`UPDATE tournament_matches SET participant2_id=$1 WHERE id=$2`, [loser_id, nextLoserMatchId]);
+        }
+      }
+    }
+
+    io.emit('tournament:match_updated', { tournament_id: parseInt(id), match: updatedMatch });
+    ok(res, { match: updatedMatch });
   } catch (err) {
     console.error(err);
     bad(res, 500, 'Failed to update match');

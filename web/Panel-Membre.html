@@ -132,7 +132,7 @@
       <div class="logo" aria-hidden="true"></div>
     </div>
     <h1 style="margin:0;font-size:20px">👤 Panel Membre</h1>
-    <button id="menuToggle" class="menu-toggle" aria-label="Ouvrir le menu" aria-expanded="false">☰ Menu</button>
+    <button id="menuToggle" class="menu-toggle" aria-label="Ouvrir le menu" aria-expanded="false" title="Ouvrir le menu de navigation">☰ Menu</button>
 
     <!-- Navigation Desktop -->
     <nav class="nav-desktop" style="display:none;gap:8px;align-items:center" aria-label="Navigation principale">
@@ -142,7 +142,7 @@
       <a class="btn" href="Tournois.html" style="border:1px solid var(--border);background:transparent;color:inherit;text-decoration:none;padding:8px 12px;border-radius:999px;font-weight:600">🏆 Tournois</a>
       <a class="btn adminNav" href="Admin-Joueurs.html" style="display:none;border:1px solid var(--border);background:transparent;color:inherit;text-decoration:none;padding:8px 12px;border-radius:999px;font-weight:600">👥 Admin-Joueurs</a>
       <a class="btn adminNav" href="Admin-Utilisateurs.html" style="display:none;border:1px solid var(--border);background:transparent;color:inherit;text-decoration:none;padding:8px 12px;border-radius:999px;font-weight:600">🛡️ Admin Utilisateurs</a>
-      <button id="logoutBtn" class="btn danger" type="button" style="border:1px solid var(--border);background:rgba(239,68,68,.12);border-color:#7f1d1d;color:#fca5a5;padding:8px 12px;border-radius:999px;font-weight:600">Déconnexion</button>
+      <button id="logoutBtn" class="btn danger" type="button" style="border:1px solid var(--border);background:rgba(239,68,68,.12);border-color:#7f1d1d;color:#fca5a5;padding:8px 12px;border-radius:999px;font-weight:600" title="Se déconnecter de votre compte">Déconnexion</button>
     </nav>
 
     <!-- Badge de saison -->
@@ -154,7 +154,7 @@
     <div class="mm-panel" role="dialog" aria-modal="true" aria-labelledby="mmTitle">
       <div id="mmTitle" class="mm-title">
         <span>Menu</span>
-        <button id="mmClose" class="btn" style="position:absolute;right:12px;top:12px;padding:6px 10px;font-size:18px;line-height:1;background:transparent;border:none" aria-label="Fermer">✕</button>
+        <button id="mmClose" class="btn" style="position:absolute;right:12px;top:12px;padding:6px 10px;font-size:18px;line-height:1;background:transparent;border:none" aria-label="Fermer" title="Fermer le menu">✕</button>
       </div>
       <div class="mm-list">
         <a class="mm-btn" href="Accueil.html">🏠 Accueil</a>
@@ -164,8 +164,8 @@
         <a class="mm-btn adminOnly" href="Admin-Joueurs.html" style="display:none">👥 Admin-Joueurs</a>
         <a class="mm-btn adminOnly" href="Admin-Utilisateurs.html" style="display:none">🛡️ Admin Utilisateurs</a>
       </div>
-      <div class="mm-theme"><button id="mmTheme" class="btn">☀️ / 🌙 Thème</button></div>
-      <div class="mm-logout"><button id="mmLogout" class="btn danger">Déconnexion</button></div>
+      <div class="mm-theme"><button id="mmTheme" class="btn" title="Basculer entre thème clair et sombre">☀️ / 🌙 Thème</button></div>
+      <div class="mm-logout"><button id="mmLogout" class="btn danger" title="Se déconnecter de votre compte">Déconnexion</button></div>
     </div>
   </div>
 
@@ -194,7 +194,7 @@
               <div id="playerId" class="muted">—</div>
             </div>
           </div>
-          <button id="toggleIdent" class="btn toggle-card" aria-expanded="true" aria-controls="identBody">Réduire</button>
+          <button id="toggleIdent" class="btn toggle-card" aria-expanded="true" aria-controls="identBody" title="Réduire ou développer cette section">Réduire</button>
         </div>
 
         <div id="identBody" style="margin-top:10px">
@@ -214,23 +214,23 @@
     <section class="card section">
       <div class="section-head">
         <h3 style="margin:6px 0">Mon profil</h3>
-        <button class="btn toggle-card" aria-expanded="true" aria-controls="profilBody">Réduire</button>
+        <button class="btn toggle-card" aria-expanded="true" aria-controls="profilBody" title="Réduire ou développer cette section">Réduire</button>
       </div>
       <div id="profilBody" class="section-body">
         <div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap">
           <input id="nameInp" placeholder="Votre nom"/>
-          <button id="saveName" class="btn">Enregistrer</button>
+          <button id="saveName" class="btn" title="Enregistrer votre nouveau nom">Enregistrer</button>
         </div>
         <div style="display:flex;gap:8px;align-items:center;margin-top:10px;flex-wrap:wrap">
           <input id="photoInp" type="file" accept="image/*">
-          <button id="savePhoto" class="btn">Changer la photo</button>
+          <button id="savePhoto" class="btn" title="Télécharger et enregistrer votre nouvelle photo de profil">Changer la photo</button>
         </div>
         <div style="margin-top:10px">
           <div class="muted">Changer le mot de passe</div>
           <div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap">
             <input id="curPwd" type="password" placeholder="Mot de passe actuel (optionnel)">
             <input id="newPwd" type="password" placeholder="Nouveau mot de passe (min 6)">
-            <button id="savePwd" class="btn">Mettre à jour</button>
+            <button id="savePwd" class="btn" title="Mettre à jour votre mot de passe">Mettre à jour</button>
           </div>
         </div>
       </div>
@@ -248,7 +248,7 @@
           </select>
           <label>Limite</label>
           <select id="confLimit"><option>10</option><option selected>15</option><option>25</option><option>50</option></select>
-          <button class="btn toggle-card" aria-expanded="true" aria-controls="confBody">Réduire</button>
+          <button class="btn toggle-card" aria-expanded="true" aria-controls="confBody" title="Réduire ou développer cette section">Réduire</button>
         </div>
       </div>
       <div id="confBody" class="section-body">
@@ -271,15 +271,15 @@
             <option value="current" selected>En cours</option>
             <option value="previous">Précédente</option>
           </select>
-          <button class="btn toggle-card" aria-expanded="true" aria-controls="cmpBody">Réduire</button>
+          <button class="btn toggle-card" aria-expanded="true" aria-controls="cmpBody" title="Réduire ou développer cette section">Réduire</button>
         </div>
       </div>
       <div id="cmpBody" class="section-body">
         <div style="display:flex;gap:8px;flex-wrap:wrap;align-items:center;margin-bottom:8px">
           <select id="cmpA" style="min-width:220px"><option value="">Joueur A…</option></select>
           <select id="cmpB" style="min-width:220px"><option value="">Joueur B…</option></select>
-          <button id="cmpRun" class="btn">Comparer</button>
-          <button id="cmpSwap" class="btn">Inverser</button>
+          <button id="cmpRun" class="btn" title="Comparer les statistiques des deux joueurs">Comparer</button>
+          <button id="cmpSwap" class="btn" title="Inverser la sélection des deux joueurs">Inverser</button>
         </div>
         <div id="cmpOut" class="cmp-grid"></div>
       </div>
@@ -291,8 +291,8 @@
         <h3 style="margin:6px 0">Rechercher un joueur</h3>
         <div style="display:flex;gap:8px;flex-wrap:wrap">
           <input id="pSearch" placeholder="Nom ou ID…" style="min-width:220px">
-          <button id="pSearchBtn" class="btn">Rechercher</button>
-          <button class="btn toggle-card" aria-expanded="true" aria-controls="searchBody">Réduire</button>
+          <button id="pSearchBtn" class="btn" title="Rechercher un joueur par nom ou ID">Rechercher</button>
+          <button class="btn toggle-card" aria-expanded="true" aria-controls="searchBody" title="Réduire ou développer cette section">Réduire</button>
         </div>
       </div>
       <div id="searchBody" class="section-body">
@@ -306,8 +306,8 @@
         <h3 style="margin:6px 0">Classement — Saison</h3>
         <div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap">
           <input id="search" placeholder="Rechercher joueur…" style="min-width:220px">
-          <button id="seasonReload" class="btn" type="button">Rafraîchir</button>
-          <button class="btn toggle-card" aria-expanded="true" aria-controls="seasonBody">Réduire</button>
+          <button id="seasonReload" class="btn" type="button" title="Recharger le classement depuis le serveur">Rafraîchir</button>
+          <button class="btn toggle-card" aria-expanded="true" aria-controls="seasonBody" title="Réduire ou développer cette section">Réduire</button>
         </div>
       </div>
       <div id="seasonBody" class="section-body">
@@ -353,7 +353,7 @@
         <option value="current">Saison en cours</option>
         <option value="previous">Saison précédente</option>
       </select>
-      <button id="pmH2hBtn" class="btn" type="button">Voir face-à-face</button>
+      <button id="pmH2hBtn" class="btn" type="button" title="Voir vos confrontations face-à-face avec ce joueur">Voir face-à-face</button>
     </div>
     <div id="pmStats" class="muted">—</div>
     <div class="tableWrap">
@@ -364,7 +364,7 @@
     </div>
   </div>
   <div style="padding:12px;border-top:1px solid var(--border);display:flex;gap:10px;justify-content:flex-end">
-    <button class="btn" onclick="document.getElementById('pModal').close()">Fermer</button>
+    <button class="btn" onclick="document.getElementById('pModal').close()" title="Fermer cette fenêtre">Fermer</button>
   </div>
 </dialog>
 
@@ -373,7 +373,7 @@
   <form method="dialog" style="margin:0">
     <div class="h2h-h">
       <div id="h2hTitle">Face-à-face</div>
-      <button class="btn" value="close" aria-label="Fermer">✖</button>
+      <button class="btn" value="close" aria-label="Fermer" title="Fermer cette fenêtre">✖</button>
     </div>
     <div class="h2h-b">
       <div class="h2h-toolbar">
@@ -410,7 +410,7 @@
       </div>
     </div>
     <div class="h2h-f">
-      <button class="btn" value="close">Fermer</button>
+      <button class="btn" value="close" title="Fermer cette fenêtre">Fermer</button>
     </div>
   </form>
 </dialog>
@@ -425,10 +425,47 @@ const DEF_API = ()=> (location.protocol.startsWith('http') ? location.protocol :
 const API = (localStorage.getItem('efoot.api')||DEF_API()).replace(/\/+$/,'');
 const TOKEN = localStorage.getItem('efoot.token');
 
-/* ===== Auth guard ===== */
+/* ===== Helper safeFetch (défini en premier pour l'auth guard) ===== */
+async function safeFetch(url,opt={},ms=12000){
+  const c=new AbortController(); const t=setTimeout(()=>c.abort(),ms);
+  try{ return await fetch(url,{signal:c.signal,...opt}); } finally{ clearTimeout(t); }
+}
+
+/* ===== Auth guard simplifié ===== */
 (function(){
   const expAt=+localStorage.getItem('efoot.expAt')||0;
-  if(!TOKEN || Date.now()>=expAt){ location.href='login.html'; }
+
+  // Vérification basique uniquement
+  if(!TOKEN || Date.now()>=expAt){
+    location.href='login.html';
+    return;
+  }
+
+  // Validation asynchrone en arrière-plan (non-bloquante)
+  (async function validateInBackground(){
+    try{
+      const r = await safeFetch(API+'/auth/me', {
+        headers:{Authorization:'Bearer '+TOKEN}
+      }, 5000);
+
+      if(!r || !r.ok){
+        // Token invalide
+        console.warn('Token invalide, redirection...');
+        ['efoot.token','efoot.role','efoot.expAt'].forEach(k=>localStorage.removeItem(k));
+        setTimeout(() => location.href='login.html', 1000);
+      }else{
+        // Token valide, mettre à jour le rôle
+        const d = await r.json();
+        if(d.user && d.user.role){
+          localStorage.setItem('efoot.role', d.user.role.toLowerCase());
+        }
+      }
+    }catch(err){
+      // Serveur en cold start, on laisse l'utilisateur utiliser l'app
+      // Les requêtes suivantes réessayeront automatiquement
+      console.warn('Validation token différée (serveur lent):', err.message);
+    }
+  })();
 })();
 
 /* ===== Thème ===== */
@@ -465,37 +502,83 @@ $('#logoutBtn').onclick=()=>{
   }
 };
 
-/* ===== lib fetch protégée ===== */
-async function safeFetch(url,opt={},ms=12000){
-  const c=new AbortController(); const t=setTimeout(()=>c.abort(),ms);
-  try{ return await fetch(url,{signal:c.signal,...opt}); } finally{ clearTimeout(t); }
-}
-
 /* ===== Identité + KPIs + confrontations ===== */
 (async function initMe(){
+  // Charger les saisons d'abord
+  try{
+    const rSeasons = await safeFetch(API+'/seasons', { headers:{Authorization:'Bearer '+TOKEN} }, 8000);
+    const dSeasons = await rSeasons.json();
+    const seasonSel = $('#seasonSel');
+    seasonSel.innerHTML = '<option value="">Choisir une saison...</option>';
+
+    if(dSeasons.seasons && dSeasons.seasons.length > 0){
+      // Trouver la saison active
+      let activeSeason = dSeasons.seasons.find(s => !s.is_closed);
+      if(!activeSeason) activeSeason = dSeasons.seasons[0]; // Fallback sur la première
+
+      dSeasons.seasons.forEach(s => {
+        const opt = document.createElement('option');
+        opt.value = s.id;
+        opt.textContent = s.name || `Saison #${s.id}`;
+        if(s.id === activeSeason.id) opt.selected = true;
+        seasonSel.appendChild(opt);
+      });
+    }
+  }catch(e){
+    console.error('Erreur chargement saisons:', e);
+    $('#seasonSel').innerHTML = '<option value="">Erreur chargement saisons</option>';
+  }
+
+  // Charger l'identité du joueur
   try{
     const rp = await safeFetch(API+'/me/player', { headers:{Authorization:'Bearer '+TOKEN} }, 8000);
     const dp = await rp.json();
     $('#playerName').textContent = dp.player?.name || '—';
     $('#playerId').textContent   = dp.player?.player_id || '—';
     $('#avatar').src = dp.player?.profile_pic_url ? (API+dp.player.profile_pic_url) : 'assets/icons/apple-touch-icon.png';
-  }catch(e){ console.error(e); }
+  }catch(e){
+    console.error('Erreur chargement profil:', e);
+    $('#playerName').textContent = 'Erreur';
+    $('#playerId').textContent = '—';
+  }
 
   async function refresh(){
     const season = $('#seasonSel').value;
-    const rs = await safeFetch(API+'/me/stats?season='+season, { headers:{Authorization:'Bearer '+TOKEN} });
-    const ds = await rs.json();
-    $('#k_played').textContent = ds.played_legs ?? 0;
-    $('#k_bm').textContent     = ds.goals_for ?? 0;
-    $('#k_bc').textContent     = ds.goals_against ?? 0;
-    $('#k_rank').textContent   = ds.season_rank ?? '—';
-    $('#k_pts').textContent    = ds.season_points ?? '—';
-    $('#k_avg').textContent    = (ds.season_average ?? '—');
+    if(!season){
+      // Pas de saison sélectionnée
+      $('#k_played').textContent = '0';
+      $('#k_bm').textContent = '0';
+      $('#k_bc').textContent = '0';
+      $('#k_rank').textContent = '—';
+      $('#k_pts').textContent = '—';
+      $('#k_avg').textContent = '—';
+      $('#confTbody').innerHTML = '<tr><td colspan="6" style="text-align:center;color:var(--muted)">Sélectionnez une saison</td></tr>';
+      return;
+    }
+    try{
+      const rs = await safeFetch(API+'/me/stats?season='+season, { headers:{Authorization:'Bearer '+TOKEN} });
+      const ds = await rs.json();
+      $('#k_played').textContent = ds.played_legs ?? 0;
+      $('#k_bm').textContent     = ds.goals_for ?? 0;
+      $('#k_bc').textContent     = ds.goals_against ?? 0;
+      $('#k_rank').textContent   = ds.season_rank ?? '—';
+      $('#k_pts').textContent    = ds.season_points ?? '—';
+      $('#k_avg').textContent    = (ds.season_average ?? '—');
+    }catch(e){
+      console.error('Erreur chargement stats:', e);
+      $('#k_played').textContent = 'Err';
+      $('#k_bm').textContent = 'Err';
+      $('#k_bc').textContent = 'Err';
+      $('#k_rank').textContent = '—';
+      $('#k_pts').textContent = '—';
+      $('#k_avg').textContent = '—';
+    }
 
-    const rm = await safeFetch(API+'/me/matches?season='+season, { headers:{Authorization:'Bearer '+TOKEN} });
-    const dm = await rm.json();
-    const tb = $('#confTbody'); tb.innerHTML='';
-    (dm.matches||[]).sort((a,b)=> new Date(b.date)-new Date(a.date))
+    try{
+      const rm = await safeFetch(API+'/me/matches?season='+season, { headers:{Authorization:'Bearer '+TOKEN} });
+      const dm = await rm.json();
+      const tb = $('#confTbody'); tb.innerHTML='';
+      (dm.matches||[]).sort((a,b)=> new Date(b.date)-new Date(a.date))
       .slice(0, Number($('#confLimit').value||15))
       .forEach(x=>{
         const add = (leg,sc,badge) => `<tr>
@@ -515,6 +598,10 @@ async function safeFetch(url,opt={},ms=12000){
           tb.insertAdjacentHTML('beforeend', add('Retour', `${x.retour.gf}-${x.retour.ga}`, r));
         }
       });
+    }catch(e){
+      console.error('Erreur chargement matchs:', e);
+      $('#confTbody').innerHTML = '<tr><td colspan="6" style="text-align:center;color:#ef4444">Erreur de chargement des confrontations</td></tr>';
+    }
   }
   $('#seasonSel').onchange = refresh;
   $('#confLimit').onchange = refresh;

@@ -141,7 +141,7 @@
       </div>
     </a>
 
-    <button id="menuToggle" class="menu-toggle" aria-label="Ouvrir le menu" aria-expanded="false">☰ Menu</button>
+    <button id="menuToggle" class="menu-toggle" aria-label="Ouvrir le menu" aria-expanded="false" title="Ouvrir le menu de navigation">☰ Menu</button>
     <nav class="nav-desktop" aria-label="Navigation principale" style="display:none">
       <div id="menu" style="display:flex;gap:8px">
         <a class="btn" href="./Accueil.html">🏠 Accueil</a>
@@ -150,7 +150,7 @@
         <a class="btn" href="./Panel-Membre.html">👤 Mon espace</a>
         <a class="btn adminNav" href="./Admin-Joueurs.html" style="display:none">👥 Admin-Joueurs</a>
         <a class="btn adminNav" href="./Admin-Utilisateurs.html" style="display:none">🛡️ Admin Utilisateurs</a>
-        <button id="logoutBtn" class="btn danger" type="button">Déconnexion</button>
+        <button id="logoutBtn" class="btn danger" type="button" title="Se déconnecter de votre compte">Déconnexion</button>
       </div>
     </nav>
 
@@ -164,7 +164,7 @@
     <div class="mm-panel" role="dialog" aria-modal="true" aria-labelledby="mmTitle">
       <div id="mmTitle" class="mm-title">
         <span>Menu</span>
-        <button id="mmClose" class="btn" style="position:absolute;right:12px;top:12px;padding:6px 10px;font-size:18px;line-height:1;background:transparent;border:none" aria-label="Fermer">✕</button>
+        <button id="mmClose" class="btn" style="position:absolute;right:12px;top:12px;padding:6px 10px;font-size:18px;line-height:1;background:transparent;border:none" aria-label="Fermer" title="Fermer le menu">✕</button>
       </div>
       <div class="mm-list">
         <a class="mm-btn" href="Accueil.html">🏠 Accueil</a>
@@ -174,15 +174,15 @@
         <a class="mm-btn adminOnly" id="mmAdminPlayers" href="Admin-Joueurs.html" style="display:none">👥 Admin-Joueurs</a>
         <a class="mm-btn adminOnly" id="mmAdminUsers" href="Admin-Utilisateurs.html" style="display:none">🛡️ Admin Utilisateurs</a>
       </div>
-      <div class="mm-theme"><button id="mmTheme" class="btn">☀️ / 🌙 Thème</button></div>
-      <div class="mm-logout"><button id="mmLogout" class="btn danger">Déconnexion</button></div>
+      <div class="mm-theme"><button id="mmTheme" class="btn" title="Basculer entre thème clair et sombre">☀️ / 🌙 Thème</button></div>
+      <div class="mm-logout"><button id="mmLogout" class="btn danger" title="Se déconnecter de votre compte">Déconnexion</button></div>
     </div>
   </div>
 
   <div class="row" style="margin:12px 0; display:flex; gap:10px; flex-wrap:wrap">
     <label class="muted">Saison :</label>
     <select id="seasonSelect" style="min-width:220px"></select>
-    <button id="newSeason" class="btn adminOnly">Créer saison</button>
+    <button id="newSeason" class="btn adminOnly" title="Créer une nouvelle saison de championnat">Créer saison</button>
 
     <input id="search" placeholder="Rechercher un joueur (nom ou ID)…" style="flex:1;min-width:240px">
     <label class="muted" style="display:flex;gap:6px;align-items:center">
@@ -191,9 +191,9 @@
     <label class="muted" style="display:flex;gap:6px;align-items:center">
       <input type="checkbox" id="optForm" checked> Forme (5)
     </label>
-    <button id="compareBtn" class="btn">Comparer des joueurs</button>
-    <button id="printA4" class="btn">Imprimer (A4)</button>
-    <button id="refresh" class="btn">Rafraîchir</button>
+    <button id="compareBtn" class="btn" title="Comparer les statistiques de plusieurs joueurs">Comparer des joueurs</button>
+    <button id="printA4" class="btn" title="Imprimer le classement au format A4">Imprimer (A4)</button>
+    <button id="refresh" class="btn" title="Recharger le classement depuis le serveur">Rafraîchir</button>
   </div>
 
   <div class="hint" id="partHint" style="margin-bottom:6px">Seuil de classement : <b id="partThreshold">—</b> participations (25% des journées)</div>
@@ -202,10 +202,10 @@
   <div class="row" style="margin:0 0 10px; display:flex; gap:10px; align-items:center; flex-wrap:wrap">
     <div class="muted">Journée confirmée :</div>
     <select id="daySelect" style="min-width:220px"></select>
-    <button id="viewDay" class="btn">Afficher</button>
-    <button id="editDay" class="btn primary adminOnly" disabled>Modifier (admin)</button>
-    <button id="printDay" class="btn" disabled>Imprimer cette journée</button>
-    <button id="deleteDay" class="btn danger adminOnly" disabled>Supprimer cette journée</button>
+    <button id="viewDay" class="btn" title="Afficher les détails de cette journée">Afficher</button>
+    <button id="editDay" class="btn primary adminOnly" disabled title="Modifier cette journée (réservé aux administrateurs)">Modifier (admin)</button>
+    <button id="printDay" class="btn" disabled title="Imprimer cette journée au format PDF">Imprimer cette journée</button>
+    <button id="deleteDay" class="btn danger adminOnly" disabled title="Supprimer définitivement cette journée (irréversible)">Supprimer cette journée</button>
   </div>
 
   <h3 class="sectionTitle">Classés (≥ 25% de participation)</h3>
@@ -230,7 +230,7 @@
   <dialog id="dayModal" class="day">
     <div class="day-head" style="padding:14px;border-bottom:1px solid var(--border);display:flex;justify-content:space-between;align-items:center">
       <div id="dayTitle" style="font-weight:700">Journée</div>
-      <button class="btn" onclick="document.getElementById('dayModal').close()">Fermer</button>
+      <button class="btn" onclick="document.getElementById('dayModal').close()" title="Fermer cette fenêtre">Fermer</button>
     </div>
     <div id="day-body" style="padding:12px"></div>
   </dialog>
@@ -239,7 +239,7 @@
   <dialog id="compareModal" class="compare">
   <div class="day-head" style="padding:14px;border-bottom:1px solid var(--border);display:flex;justify-content:space-between;align-items:center">
     <div style="font-weight:700">Comparateur de joueurs</div>
-    <button class="btn" onclick="document.getElementById('compareModal').close()">✖</button>
+    <button class="btn" onclick="document.getElementById('compareModal').close()" title="Fermer le comparateur">✖</button>
   </div>
 
   <!-- ICI : on remplace les styles par une classe responsive -->
@@ -255,7 +255,7 @@
   </div>
 
   <div style="padding:0 14px 14px;display:flex;gap:10px">
-    <button class="btn" id="cmpRun">Comparer</button>
+    <button class="btn" id="cmpRun" title="Lancer la comparaison entre les deux joueurs">Comparer</button>
   </div>
   <div id="cmpResult" style="padding:14px"></div>
 </dialog>

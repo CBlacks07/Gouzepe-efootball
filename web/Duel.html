@@ -349,7 +349,7 @@
       <div class="title"><b>GOUZEPE — Duels</b><small>Matchs d'exhibition (hors championnat)</small></div>
     </a>
 
-    <button id="menuToggle" class="menu-toggle" aria-expanded="false">☰ Menu</button>
+    <button id="menuToggle" class="menu-toggle" aria-expanded="false" title="Ouvrir le menu de navigation">☰ Menu</button>
     <nav class="nav" aria-label="Navigation principale" style="display:none">
       <div id="menu">
         <a class="btn" href="./Accueil.html">🏠 Accueil</a>
@@ -358,7 +358,7 @@
         <a class="btn" href="./Panel-Membre.html">👤 Mon espace</a>
         <a class="btn adminNav" href="./Admin-Joueurs.html" style="display:none">👥 Admin-Joueurs</a>
         <a class="btn adminNav" href="./Admin-Utilisateurs.html" style="display:none">🛡️ Admin Utilisateurs</a>
-        <button id="logoutBtn" class="btn danger" type="button">Déconnexion</button>
+        <button id="logoutBtn" class="btn danger" type="button" title="Se déconnecter de votre compte">Déconnexion</button>
       </div>
     </nav>
 
@@ -372,7 +372,7 @@
     <div class="mm-panel" role="dialog" aria-modal="true" aria-labelledby="mmTitle">
       <div id="mmTitle" class="mm-title">
         <span>Menu</span>
-        <button id="mmClose" class="btn" style="position:absolute;right:12px;top:12px;padding:6px 10px;font-size:18px;line-height:1;background:transparent;border:none" aria-label="Fermer">✕</button>
+        <button id="mmClose" class="btn" style="position:absolute;right:12px;top:12px;padding:6px 10px;font-size:18px;line-height:1;background:transparent;border:none" aria-label="Fermer" title="Fermer le menu">✕</button>
       </div>
       <div class="mm-list">
         <a class="mm-btn" href="Accueil.html">🏠 Accueil</a>
@@ -382,8 +382,8 @@
         <a class="mm-btn adminOnly" id="mmAdminPlayers" href="Admin-Joueurs.html" style="display:none">👥 Admin-Joueurs</a>
         <a class="mm-btn adminOnly" id="mmAdminUsers" href="Admin-Utilisateurs.html" style="display:none">🛡️ Admin Utilisateurs</a>
       </div>
-      <div class="mm-theme"><button id="mmTheme" class="btn">☀️ / 🌙 Thème</button></div>
-      <div class="mm-logout"><button id="mmLogout" class="btn danger">Déconnexion</button></div>
+      <div class="mm-theme"><button id="mmTheme" class="btn" title="Basculer entre thème clair et sombre">☀️ / 🌙 Thème</button></div>
+      <div class="mm-logout"><button id="mmLogout" class="btn danger" title="Se déconnecter de votre compte">Déconnexion</button></div>
     </div>
   </div>
 
@@ -406,9 +406,9 @@
       <div class="field" style="margin-top:8px">
         <label>Résultat</label>
         <div class="res" id="resPick">
-          <button class="pill" data-v="A" aria-pressed="false">🏆 A gagne<span class="dot"></span></button>
-          <button class="pill" data-v="D" aria-pressed="false">🤝 Nul<span class="dot"></span></button>
-          <button class="pill" data-v="B" aria-pressed="false">🏆 B gagne<span class="dot"></span></button>
+          <button class="pill" data-v="A" aria-pressed="false" title="Le joueur A remporte le duel">🏆 A gagne<span class="dot"></span></button>
+          <button class="pill" data-v="D" aria-pressed="false" title="Match nul entre les deux joueurs">🤝 Nul<span class="dot"></span></button>
+          <button class="pill" data-v="B" aria-pressed="false" title="Le joueur B remporte le duel">🏆 B gagne<span class="dot"></span></button>
         </div>
         <div class="tiny muted">L’historique retient uniquement W/D/L (pas de score).</div>
       </div>
@@ -419,7 +419,7 @@
           <input id="dt" type="datetime-local"/>
         </div>
         <div class="sp"></div>
-        <div class="right"><button id="save" class="btn primary">Enregistrer le duel</button></div>
+        <div class="right"><button id="save" class="btn primary" title="Enregistrer ce duel dans l'historique">Enregistrer le duel</button></div>
       </div>
       <div id="saveMsg" class="tiny muted" style="margin-top:6px">—</div>
     </section>
@@ -447,7 +447,7 @@
           <input id="to" type="date">
         </div>
         <div class="sp"></div>
-        <div class="right"><button id="compare" class="btn info">Comparer</button></div>
+        <div class="right"><button id="compare" class="btn info" title="Comparer les statistiques entre deux joueurs">Comparer</button></div>
       </div>
       <div id="cmpOut" style="margin-top:10px"></div>
     </section>
@@ -468,9 +468,9 @@
           <label for="histTo">À</label><input id="histTo" type="date">
           <label for="histP">Joueur</label><select id="histP"><option value="">Tous</option></select>
           <label for="limit">Afficher</label><select id="limit"><option>5</option><option selected>10</option><option>20</option><option>50</option></select>
-          <button id="refresh" class="btn">Rafraîchir</button>
-          <a id="exportCsv" class="btn" href="#">Export CSV</a>
-          <a id="exportPdf" class="btn" href="#" target="_blank" rel="noopener">Imprimer PDF</a>
+          <button id="refresh" class="btn" title="Recharger l'historique des duels depuis le serveur">Rafraîchir</button>
+          <a id="exportCsv" class="btn" href="#" title="Exporter l'historique au format CSV">Export CSV</a>
+          <a id="exportPdf" class="btn" href="#" target="_blank" rel="noopener" title="Imprimer l'historique au format PDF">Imprimer PDF</a>
         </div>
       </div>
       <div class="table-wrap">

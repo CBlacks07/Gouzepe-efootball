@@ -224,7 +224,7 @@ html.light .bg-video{opacity:.18; filter:contrast(.95) saturate(.85)}
       </div>
     </a>
 
-    <button id="menuToggle" class="btn ghost" aria-controls="menu" aria-expanded="false">☰ Menu</button>
+    <button id="menuToggle" class="btn ghost" aria-controls="menu" aria-expanded="false" title="Ouvrir le menu de navigation">☰ Menu</button>
     <nav class="nav" aria-label="Navigation principale">
       <div id="menu">
         <a class="btn ghost" href="./Duel.html">💪🏽 Duel</a>
@@ -233,7 +233,7 @@ html.light .bg-video{opacity:.18; filter:contrast(.95) saturate(.85)}
         <a class="btn ghost" href="./Panel-Membre.html">👤 Mon espace</a>
         <a class="btn ghost adminNav" href="./Admin-Joueurs.html" style="display:none">👥 Admin-Joueurs</a>
         <a class="btn ghost adminNav" href="./Admin-Utilisateurs.html" style="display:none">🛡️ Admin Utilisateurs</a>
-        <button id="logoutBtn" class="btn ghost danger" type="button">Déconnexion</button>
+        <button id="logoutBtn" class="btn ghost danger" type="button" title="Se déconnecter de votre compte">Déconnexion</button>
       </div>
     </nav>
 
@@ -247,7 +247,7 @@ html.light .bg-video{opacity:.18; filter:contrast(.95) saturate(.85)}
   <div class="mm-panel" role="dialog" aria-modal="true" aria-labelledby="mmTitle">
     <div id="mmTitle" class="mm-title">
       <span>Menu</span>
-      <button id="mmClose" class="btn ghost" style="position:absolute;right:12px;top:12px;padding:6px 10px;font-size:18px;line-height:1" aria-label="Fermer">✕</button>
+      <button id="mmClose" class="btn ghost" style="position:absolute;right:12px;top:12px;padding:6px 10px;font-size:18px;line-height:1" aria-label="Fermer" title="Fermer le menu">✕</button>
     </div>
     <div class="mm-list">
       <a class="mm-btn" href="./Duel.html">💪🏽 Duel</a>
@@ -256,8 +256,8 @@ html.light .bg-video{opacity:.18; filter:contrast(.95) saturate(.85)}
       <a class="mm-btn" href="./Panel-Membre.html">👤 Mon espace</a>
       <a class="mm-btn adminOnly" id="mmAdminPlayers" href="./Admin-Joueurs.html" style="display:none">👥 Admin-Joueurs</a>
     </div>
-    <div class="mm-theme"><button id="mmTheme" class="btn ghost">☀️ / 🌙 Thème</button></div>
-    <div class="mm-logout"><button id="mmLogout" class="btn danger">Déconnexion</button></div>
+    <div class="mm-theme"><button id="mmTheme" class="btn ghost" title="Basculer entre thème clair et sombre">☀️ / 🌙 Thème</button></div>
+    <div class="mm-logout"><button id="mmLogout" class="btn danger" title="Se déconnecter de votre compte">Déconnexion</button></div>
   </div>
 </div>
 
@@ -298,11 +298,11 @@ html.light .bg-video{opacity:.18; filter:contrast(.95) saturate(.85)}
         <span class="tiny muted" id="dayInfo"></span>
         <span class="spacer"></span>
         <button id="manageParticipants" class="btn primary adminOnly" style="display:none" title="Sélectionner les joueurs et générer automatiquement toutes les confrontations (round-robin)">⚙️ Gérer Participants</button>
-        <button id="clearD1" class="btn warn adminOnly" style="display:none">Effacer D1</button>
-        <button id="clearD2" class="btn warn adminOnly" style="display:none">Effacer D2</button>
-        <button id="printBtn" class="btn ghost">Imprimer (PDF)</button>
-        <button id="saveEdit" class="btn info adminOnly" style="display:none">Sauver brouillon</button>
-        <button id="save" class="btn primary adminOnly" style="display:none">Publier</button>
+        <button id="clearD1" class="btn warn adminOnly" style="display:none" title="Effacer tous les scores de la Division 1">Effacer D1</button>
+        <button id="clearD2" class="btn warn adminOnly" style="display:none" title="Effacer tous les scores de la Division 2">Effacer D2</button>
+        <button id="printBtn" class="btn ghost" title="Imprimer la feuille de journée au format PDF">Imprimer (PDF)</button>
+        <button id="saveEdit" class="btn info adminOnly" style="display:none" title="Enregistrer les modifications en tant que brouillon">Sauver brouillon</button>
+        <button id="save" class="btn primary adminOnly" style="display:none" title="Publier la journée de manière définitive">Publier</button>
       </div>
 
       <datalist id="players"></datalist>
@@ -352,7 +352,7 @@ html.light .bg-video{opacity:.18; filter:contrast(.95) saturate(.85)}
         <div class="row" style="display:flex;gap:10px;align-items:center;margin:8px 0">
           <label>Affiche</label>
           <input id="barrage_ids" list="players" placeholder="ID_D1 – ID_D2" />
-          <button id="b_auto" class="btn ghost adminOnly" style="display:none">↺ Proposer</button>
+          <button id="b_auto" class="btn ghost adminOnly" style="display:none" title="Proposer automatiquement une affiche de barrage">↺ Proposer</button>
         </div>
         <div style="margin:16px 0;padding:16px;background:var(--panel);border:1px solid var(--border);border-radius:12px">
           <div class="muted" style="margin-bottom:12px;font-weight:600">Cocher le gagnant :</div>
@@ -408,9 +408,9 @@ html.light .bg-video{opacity:.18; filter:contrast(.95) saturate(.85)}
       <div id="c_err" style="color:#ef4444;margin-top:6px"></div>
     </div>
     <div style="padding:14px;border-top:1px solid var(--border);display:flex;gap:10px;justify-content:flex-end">
-      <button class="btn" id="c_print">Imprimer (PDF)</button>
-      <button class="btn" id="c_cancel">Annuler</button>
-      <button class="btn primary" id="c_ok">Valider & Enregistrer</button>
+      <button class="btn" id="c_print" title="Imprimer la confirmation de journée au format PDF">Imprimer (PDF)</button>
+      <button class="btn" id="c_cancel" title="Annuler et fermer sans enregistrer">Annuler</button>
+      <button class="btn primary" id="c_ok" title="Confirmer et enregistrer la journée">Valider & Enregistrer</button>
     </div>
   </dialog>
 
@@ -418,7 +418,7 @@ html.light .bg-video{opacity:.18; filter:contrast(.95) saturate(.85)}
   <dialog id="participantsModal" style="max-width:900px">
     <div style="padding:16px;border-bottom:1px solid var(--border);font-weight:700;display:flex;align-items:center;justify-content:space-between">
       <span>Gérer les participants de la journée</span>
-      <button id="pm_close" class="btn ghost" style="padding:4px 8px">✕</button>
+      <button id="pm_close" class="btn ghost" style="padding:4px 8px" title="Fermer la fenêtre de gestion des participants">✕</button>
     </div>
     <div style="padding:16px">
       <div style="margin-bottom:16px">
@@ -455,10 +455,10 @@ html.light .bg-video{opacity:.18; filter:contrast(.95) saturate(.85)}
       </div>
     </div>
     <div style="padding:14px;border-top:1px solid var(--border);display:flex;gap:10px;justify-content:space-between">
-      <button class="btn warn" id="pm_reset">Réinitialiser tout</button>
+      <button class="btn warn" id="pm_reset" title="Réinitialiser tous les participants">Réinitialiser tout</button>
       <div style="display:flex;gap:10px">
-        <button class="btn" id="pm_cancel">Annuler</button>
-        <button class="btn primary" id="pm_validate">Valider & Générer les matchs</button>
+        <button class="btn" id="pm_cancel" title="Annuler et fermer sans enregistrer">Annuler</button>
+        <button class="btn primary" id="pm_validate" title="Valider la sélection et générer automatiquement les confrontations">Valider & Générer les matchs</button>
       </div>
     </div>
   </dialog>

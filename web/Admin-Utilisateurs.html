@@ -136,7 +136,7 @@
       <div class="logo" aria-hidden="true"></div>
       <h1 style="margin:0;font-size:20px">Administration — Utilisateurs</h1>
     </div>
-    <button id="menuToggle" class="menu-toggle" aria-label="Ouvrir le menu" aria-expanded="false">☰ Menu</button>
+    <button id="menuToggle" class="menu-toggle" aria-label="Ouvrir le menu" aria-expanded="false" title="Ouvrir le menu de navigation">☰ Menu</button>
     <nav class="nav-desktop" style="display:none;gap:10px;align-items:center">
       <a class="btn" href="Accueil.html">🏠 Accueil</a>
       <a class="btn" href="Duel.html">💪🏽 Duel</a>
@@ -145,7 +145,7 @@
       <a class="btn" href="Panel-Membre.html">👤 Mon espace</a>
       <a class="btn adminNav" href="Admin-Joueurs.html" style="display:none">👥 Admin-Joueurs</a>
       <a class="btn adminNav" href="Admin-Utilisateurs.html" style="display:none">🛡️ Admin Utilisateurs</a>
-      <button id="logoutBtn" class="btn danger">Déconnexion</button>
+      <button id="logoutBtn" class="btn danger" title="Se déconnecter de votre compte">Déconnexion</button>
     </nav>
     <div id="season-badge" class="badge" style="display:none"><span class="dot" style="width:8px;height:8px;border-radius:50%;background:var(--brand);margin-right:6px"></span><span id="season-top">Saison</span></div>
     <button id="theme" class="btn" title="Basculer thème" style="margin-left:auto">☀️</button>
@@ -156,7 +156,7 @@
     <div class="mm-panel" role="dialog" aria-modal="true" aria-labelledby="mmTitle">
       <div id="mmTitle" class="mm-title">
         <span>Menu</span>
-        <button id="mmClose" class="btn" style="position:absolute;right:12px;top:12px;padding:6px 10px;font-size:18px;line-height:1;background:transparent;border:none" aria-label="Fermer">✕</button>
+        <button id="mmClose" class="btn" style="position:absolute;right:12px;top:12px;padding:6px 10px;font-size:18px;line-height:1;background:transparent;border:none" aria-label="Fermer" title="Fermer le menu">✕</button>
       </div>
       <div class="mm-list">
         <a class="mm-btn" href="Accueil.html">🏠 Accueil</a>
@@ -167,8 +167,8 @@
         <a class="mm-btn adminOnly" href="Admin-Joueurs.html" style="display:none">👥 Admin-Joueurs</a>
         <a class="mm-btn adminOnly" href="Admin-Utilisateurs.html" style="display:none">🛡️ Admin Utilisateurs</a>
       </div>
-      <div class="mm-theme"><button id="mmTheme" class="btn">☀️ / 🌙 Thème</button></div>
-      <div class="mm-logout"><button id="mmLogout" class="btn danger">Déconnexion</button></div>
+      <div class="mm-theme"><button id="mmTheme" class="btn" title="Basculer entre thème clair et sombre">☀️ / 🌙 Thème</button></div>
+      <div class="mm-logout"><button id="mmLogout" class="btn danger" title="Se déconnecter de votre compte">Déconnexion</button></div>
     </div>
   </div>
 
@@ -182,7 +182,7 @@
         <option value="member">member</option>
         <option value="admin">admin</option>
       </select>
-      <button id="addBtn" class="btn primary">Ajouter</button>
+      <button id="addBtn" class="btn primary" title="Créer un nouvel utilisateur">Ajouter</button>
     </div>
     <div class="muted" style="margin-top:6px">Astuce : si vous ne mettez pas de domaine, <code>@gz.local</code> sera ajouté automatiquement.</div>
   </section>
@@ -193,7 +193,7 @@
       <h3 style="margin:6px 0">Utilisateurs enregistrés</h3>
       <div class="row">
         <input id="search" placeholder="Rechercher (email)…" style="min-width:220px">
-        <button id="refresh" class="btn">Rafraîchir</button>
+        <button id="refresh" class="btn" title="Recharger la liste des utilisateurs depuis le serveur">Rafraîchir</button>
       </div>
     </div>
 
@@ -233,8 +233,8 @@
       </label>
       <div id="editErr" style="color:#ef4444"></div>
       <div style="display:flex;gap:10px;justify-content:flex-end;border-top:1px solid var(--border);padding-top:12px">
-        <button type="button" class="btn" onclick="document.getElementById('editDlg').close()">Annuler</button>
-        <button type="submit" class="btn primary">Enregistrer</button>
+        <button type="button" class="btn" onclick="document.getElementById('editDlg').close()" title="Annuler et fermer sans enregistrer">Annuler</button>
+        <button type="submit" class="btn primary" title="Enregistrer les modifications de l'utilisateur">Enregistrer</button>
       </div>
     </form>
   </dialog>

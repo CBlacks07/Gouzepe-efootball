@@ -157,7 +157,7 @@
       </div>
     </a>
 
-    <button id="menuToggle" class="btn ghost menu-toggle" style="display:none">☰ Menu</button>
+    <button id="menuToggle" class="btn ghost menu-toggle" style="display:none" title="Ouvrir le menu de navigation">☰ Menu</button>
 
     <nav class="nav nav-desktop" style="display:flex;gap:10px;align-items:center">
       <a class="btn ghost" href="./Accueil.html">🏠 Accueil</a>
@@ -166,7 +166,7 @@
       <a class="btn ghost" href="./Panel-Membre.html">👤 Mon espace</a>
       <a class="btn ghost adminNav" href="./Admin-Joueurs.html" style="display:none">👥 Admin-Joueurs</a>
       <a class="btn ghost adminNav" href="./Admin-Utilisateurs.html" style="display:none">🛡️ Admin Utilisateurs</a>
-      <button id="logoutBtn" class="btn danger">Déconnexion</button>
+      <button id="logoutBtn" class="btn danger" title="Se déconnecter de votre compte">Déconnexion</button>
     </nav>
 
     <div style="flex:1"></div>
@@ -179,7 +179,7 @@
     <div style="width:min(94vw,400px);margin-top:0;background:var(--panel);color:var(--text);border:none;border-bottom-left-radius:16px;border-bottom-right-radius:16px;box-shadow:0 8px 32px rgba(0,0,0,.4);padding:0;max-height:90vh;overflow-y:auto">
       <div style="font-weight:800;text-align:center;padding:16px;border-bottom:1px solid var(--border);margin:0;position:sticky;top:0;background:var(--panel);z-index:1">
         <span>Menu</span>
-        <button id="mmClose" class="btn ghost" style="position:absolute;right:12px;top:12px;padding:6px 10px;font-size:18px;line-height:1">✕</button>
+        <button id="mmClose" class="btn ghost" style="position:absolute;right:12px;top:12px;padding:6px 10px;font-size:18px;line-height:1" title="Fermer le menu">✕</button>
       </div>
       <div style="display:flex;flex-direction:column;gap:0;padding:8px">
         <a class="btn ghost" href="./Accueil.html" style="display:flex;align-items:center;justify-content:flex-start;gap:12px;padding:14px 16px;border-radius:12px">🏠 Accueil</a>
@@ -191,10 +191,10 @@
         <a class="btn ghost adminOnly" href="./Admin-Utilisateurs.html" style="display:flex;align-items:center;justify-content:flex-start;gap:12px;padding:14px 16px;border-radius:12px">🛡️ Admin Utilisateurs</a>
       </div>
       <div style="display:flex;justify-content:center;padding:8px 16px;border-top:1px solid var(--border)">
-        <button id="mmTheme" class="btn ghost">☀️ / 🌙 Thème</button>
+        <button id="mmTheme" class="btn ghost" title="Basculer entre thème clair et sombre">☀️ / 🌙 Thème</button>
       </div>
       <div style="display:flex;justify-content:center;padding:12px 16px;border-top:1px solid var(--border)">
-        <button id="mmLogout" class="btn danger" style="width:100%">Déconnexion</button>
+        <button id="mmLogout" class="btn danger" style="width:100%" title="Se déconnecter de votre compte">Déconnexion</button>
       </div>
     </div>
   </div>
@@ -280,7 +280,7 @@
               <textarea id="tournamentDescription" rows="3" placeholder="Détails sur le tournoi..."></textarea>
             </div>
 
-            <button type="submit" class="btn primary">✨ Créer le tournoi</button>
+            <button type="submit" class="btn primary" title="Créer ce nouveau tournoi">✨ Créer le tournoi</button>
           </form>
         </div>
       </div>
@@ -288,7 +288,7 @@
 
     <!-- VIEW: Détails du tournoi -->
     <div id="detailView" class="view">
-      <button class="btn back-button" onclick="backToList()">← Retour à la liste</button>
+      <button class="btn back-button" onclick="backToList()" title="Retourner à la liste des tournois">← Retour à la liste</button>
 
       <div id="tournamentDetails"></div>
     </div>

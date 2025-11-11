@@ -295,7 +295,7 @@ document.getElementById('f').addEventListener('submit', async (e)=>{
     }, 12000);
 
     const d=await r.json().catch(()=>({}));
-    if(!r || !r.ok){ throw new Error((d&&d.error)||'Identifiants invalides'); }
+    if(!r || !r.ok){ throw new Error('Identifiant ou mot de passe incorrect'); }
 
     const token=d.token;
     const role=(d.user&&d.user.role)||'member';

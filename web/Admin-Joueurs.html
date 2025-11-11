@@ -148,9 +148,9 @@
     <div id="editMsg" class="muted">—</div>
   </div>
   <div class="dlg-f">
-    <button class="btn" id="editCancel">Annuler</button>
-    <button class="btn" id="linkUser">Lier/MAJ compte</button>
-    <button class="btn primary" id="editSave">Enregistrer</button>
+    <button class="btn" id="editCancel" title="Annuler et fermer sans enregistrer">Annuler</button>
+    <button class="btn" id="linkUser" title="Lier ou mettre à jour le compte membre associé">Lier/MAJ compte</button>
+    <button class="btn primary" id="editSave" title="Enregistrer les modifications du joueur">Enregistrer</button>
   </div>
 </dialog>
 
@@ -161,7 +161,7 @@
       <div class="logo" aria-hidden="true"></div>
       <h1 id="pageTitle" style="margin:0;font-size:20px">Administration — Joueurs</h1>
     </div>
-    <button id="menuToggle" class="menu-toggle" aria-label="Ouvrir le menu" aria-expanded="false">☰ Menu</button>
+    <button id="menuToggle" class="menu-toggle" aria-label="Ouvrir le menu" aria-expanded="false" title="Ouvrir le menu de navigation">☰ Menu</button>
     <nav class="nav-desktop" style="display:none;gap:10px;align-items:center">
       <a class="btn" href="Accueil.html">🏠 Accueil</a>
       <a class="btn" href="Duel.html">💪🏽 Duel</a>
@@ -170,10 +170,10 @@
       <a class="btn" href="Panel-Membre.html">👤 Mon espace</a>
       <a class="btn adminNav" href="Admin-Joueurs.html" style="display:none">👥 Admin-Joueurs</a>
       <a class="btn adminNav" href="Admin-Utilisateurs.html" style="display:none">🛡️ Admin Utilisateurs</a>
-      <button id="logoutBtn" class="btn danger">Déconnexion</button>
+      <button id="logoutBtn" class="btn danger" title="Se déconnecter de votre compte">Déconnexion</button>
     </nav>
     <div id="season-badge" class="badge" style="display:none"><span class="dot" style="width:8px;height:8px;border-radius:50%;background:var(--brand);margin-right:6px"></span><span id="season-top">Saison</span></div>
-    <button id="theme" class="btn" style="margin-left:auto">☀️</button>
+    <button id="theme" class="btn" style="margin-left:auto" title="Basculer entre thème clair et sombre">☀️</button>
   </div>
 
   <!-- Menu Mobile Moderne -->
@@ -181,7 +181,7 @@
     <div class="mm-panel" role="dialog" aria-modal="true" aria-labelledby="mmTitle">
       <div id="mmTitle" class="mm-title">
         <span>Menu</span>
-        <button id="mmClose" class="btn" style="position:absolute;right:12px;top:12px;padding:6px 10px;font-size:18px;line-height:1;background:transparent;border:none" aria-label="Fermer">✕</button>
+        <button id="mmClose" class="btn" style="position:absolute;right:12px;top:12px;padding:6px 10px;font-size:18px;line-height:1;background:transparent;border:none" aria-label="Fermer" title="Fermer le menu">✕</button>
       </div>
       <div class="mm-list">
         <a class="mm-btn" href="Accueil.html">🏠 Accueil</a>
@@ -192,8 +192,8 @@
         <a class="mm-btn adminOnly" href="Admin-Joueurs.html" style="display:none">👥 Admin-Joueurs</a>
         <a class="mm-btn adminOnly" href="Admin-Utilisateurs.html" style="display:none">🛡️ Admin Utilisateurs</a>
       </div>
-      <div class="mm-theme"><button id="mmTheme" class="btn">☀️ / 🌙 Thème</button></div>
-      <div class="mm-logout"><button id="mmLogout" class="btn danger">Déconnexion</button></div>
+      <div class="mm-theme"><button id="mmTheme" class="btn" title="Basculer entre thème clair et sombre">☀️ / 🌙 Thème</button></div>
+      <div class="mm-logout"><button id="mmLogout" class="btn danger" title="Se déconnecter de votre compte">Déconnexion</button></div>
     </div>
   </div>
 
@@ -206,7 +206,7 @@
         <option value="MEMBRE">MEMBRE</option>
         <option value="INVITE">INVITE</option>
       </select>
-      <button id="addBtn" class="btn primary">Ajouter</button>
+      <button id="addBtn" class="btn primary" title="Créer un nouveau joueur">Ajouter</button>
     </div>
     <div id="msg" class="muted" style="margin-top:6px"></div>
   </section>
@@ -216,7 +216,7 @@
       <h3 style="margin:6px 0">Joueurs enregistrés</h3>
       <div class="row">
         <input id="q" placeholder="Rechercher (ID/nom)..." />
-        <button id="reload" class="btn">Rafraîchir</button>
+        <button id="reload" class="btn" title="Recharger la liste des joueurs depuis le serveur">Rafraîchir</button>
       </div>
     </div>
     <div class="table-wrap" style="overflow-x:auto;-webkit-overflow-scrolling:touch">

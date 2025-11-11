@@ -19,7 +19,7 @@ CREATE TABLE IF NOT EXISTS users (
   email         TEXT UNIQUE NOT NULL,
   password_hash TEXT NOT NULL,
   role          TEXT NOT NULL DEFAULT 'member',
-  player_id     TEXT REFERENCES players(player_id) ON DELETE SET NULL,
+  player_id     TEXT REFERENCES players(player_id) ON UPDATE CASCADE ON DELETE SET NULL,
   created_at    TIMESTAMP DEFAULT now()
 );
 

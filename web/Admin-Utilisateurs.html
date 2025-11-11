@@ -131,25 +131,31 @@
 <body class="container">
 <div class="wrap">
 
-  <div class="top">
-    <div class="nav">
-      <div class="logo" aria-hidden="true"></div>
-      <h1 style="margin:0;font-size:20px">Administration — Utilisateurs</h1>
-    </div>
-    <button id="menuToggle" class="menu-toggle" aria-label="Ouvrir le menu" aria-expanded="false" title="Ouvrir le menu de navigation">☰ Menu</button>
-    <nav class="nav-desktop" style="display:none;gap:10px;align-items:center">
-      <a class="btn" href="Accueil.html">🏠 Accueil</a>
-      <a class="btn" href="Duel.html">💪🏽 Duel</a>
-      <a class="btn" href="Classement-general.html">📊 Classements</a>
-      <a class="btn" href="Tournois.html">🏆 Tournois</a>
-      <a class="btn" href="Panel-Membre.html">👤 Mon espace</a>
-      <a class="btn adminNav" href="Admin-Joueurs.html" style="display:none">👥 Admin-Joueurs</a>
-      <a class="btn adminNav" href="Admin-Utilisateurs.html" style="display:none">🛡️ Admin Utilisateurs</a>
-      <button id="logoutBtn" class="btn danger" title="Se déconnecter de votre compte">Déconnexion</button>
+  <header class="top">
+    <a class="brand" href="./Accueil.html" aria-label="Accueil GOUZEPE" style="text-decoration:none;color:inherit;display:flex;align-items:center;gap:10px">
+      <img class="logo" src="assets/icons/apple-touch-icon.png" alt="Logo" style="width:58px;height:58px;border-radius:14px;background:url('assets/icons/apple-touch-icon.png') center/cover no-repeat">
+      <div style="display:flex;flex-direction:column">
+        <h1 style="margin:0;font-size:18px;font-weight:700">GOUZEPE eFOOTBALL</h1>
+        <small style="color:var(--muted);font-size:13px">Administration — Utilisateurs</small>
+      </div>
+    </a>
+
+    <button id="menuToggle" class="menu-toggle" aria-controls="menu" aria-expanded="false" title="Ouvrir le menu de navigation">☰ Menu</button>
+    <nav class="nav-desktop" aria-label="Navigation principale" style="display:none;gap:8px;align-items:center">
+      <a class="btn" href="./Accueil.html">🏠 Accueil</a>
+      <a class="btn" href="./Duel.html">💪🏽 Duel</a>
+      <a class="btn" href="./Classement-general.html">📊 Classements</a>
+      <a class="btn" href="./Tournois.html">🏆 Tournois</a>
+      <a class="btn" href="./Panel-Membre.html">👤 Mon espace</a>
+      <a class="btn adminNav" href="./Admin-Joueurs.html" style="display:none">👥 Admin-Joueurs</a>
+      <a class="btn adminNav" href="./Admin-Utilisateurs.html" style="display:none">🛡️ Admin Utilisateurs</a>
+      <button id="logoutBtn" class="btn danger" type="button" title="Se déconnecter de votre compte">Déconnexion</button>
     </nav>
+
+    <div style="flex:1"></div>
     <div id="season-badge" class="badge" style="display:none"><span class="dot" style="width:8px;height:8px;border-radius:50%;background:var(--brand);margin-right:6px"></span><span id="season-top">Saison</span></div>
-    <button id="theme" class="btn" title="Basculer thème" style="margin-left:auto">☀️</button>
-  </div>
+    <button id="theme" class="btn" title="Basculer entre thème clair et sombre">☀️</button>
+  </header>
 
   <!-- Menu Mobile Moderne -->
   <div id="mobileMenu" hidden>
@@ -203,6 +209,7 @@
           <tr>
             <th>Email</th>
             <th>Rôle</th>
+            <th>Player ID</th>
             <th>Créé</th>
             <th style="width:220px">Actions</th>
           </tr>
@@ -216,7 +223,7 @@
 
   <!-- Modal édition -->
   <dialog id="editDlg">
-    <div style="padding:14px;border-bottom:1px solid var(--border);font-weight:700">Modifier l’utilisateur</div>
+    <div style="padding:14px;border-bottom:1px solid var(--border);font-weight:700">Modifier l'utilisateur</div>
     <form id="editForm" style="padding:14px;display:grid;gap:10px">
       <input type="hidden" id="editId">
       <label>Email
@@ -227,6 +234,9 @@
           <option value="member">member</option>
           <option value="admin">admin</option>
         </select>
+      </label>
+      <label>Player ID (optionnel)
+        <input id="editPlayerId" placeholder="Exemple: GPG-001">
       </label>
       <label>Nouveau mot de passe (optionnel)
         <input id="editPwd" type="password" placeholder="laisser vide pour ne pas changer">
@@ -314,6 +324,7 @@ function renderUsers(){
     tr.innerHTML =
       `<td>${escapeHtml(u.email||'')}</td>
        <td>${escapeHtml(u.role||'')}</td>
+       <td>${escapeHtml(u.player_id||'—')}</td>
        <td class="muted">${escapeHtml(fmtDate(u.created_at||u.createdAt||''))}</td>
        <td>
          <button class="btn primary" data-edit="${u.id}">Modifier</button>
@@ -357,6 +368,7 @@ document.addEventListener('click', e=>{
     $('#editId').value = u.id;
     $('#editEmail').value = u.email||'';
     $('#editRole').value = (u.role||'member');
+    $('#editPlayerId').value = u.player_id||'';
     $('#editPwd').value = '';
     $('#editErr').textContent='';
     $('#editDlg').showModal();
@@ -369,8 +381,11 @@ document.getElementById('editForm').addEventListener('submit', async (e)=>{
   const id = $('#editId').value;
   const email = normEmail($('#editEmail').value);
   const role  = $('#editRole').value;
+  const playerId = $('#editPlayerId').value.trim();
   const pwd   = $('#editPwd').value.trim();
-  const body = { email, role }; if(pwd) body.password = pwd;
+  const body = { email, role };
+  if(playerId) body.player_id = playerId;
+  if(pwd) body.password = pwd;
   try{
     const r=await fetch(`${API}/admin/users/${encodeURIComponent(id)}`,{
       method:'PUT',

@@ -11,8 +11,8 @@
 <meta name="color-scheme" content="dark light">
 
 <style>
-  :root{--bg:#0b1220;--panel:#0f1627;--card:#0c1426;--text:#e5e7eb;--muted:#94a3b8;--border:#1f2937;--accent:#2563eb}
-  :root.light{--bg:#f4f6fb;--panel:#fff;--card:#fff;--text:#0f172a;--muted:#475569;--border:#e2e8f0;--accent:#2563eb}
+  :root{--bg:#0b1220;--panel:#0f1627;--card:#0c1426;--text:#e5e7eb;--muted:#94a3b8;--border:#1f2937;--accent:#2563eb;--brand:#16a34a}
+  :root.light{--bg:#f4f6fb;--panel:#fff;--card:#fff;--text:#0f172a;--muted:#475569;--border:#e2e8f0;--accent:#2563eb;--brand:#16a34a}
 
   *{box-sizing:border-box} html,body{height:100%}
   body{margin:0;color:var(--text);font-family:system-ui,-apple-system,Segoe UI,Roboto,Ubuntu,"Trebuchet MS",sans-serif;
@@ -74,6 +74,11 @@
   .mm-logout .btn{background:rgba(239,68,68,.12);border-color:#7f1d1d;color:#fca5a5; width:100%;}
   @media (min-width:841px){ #mobileMenu{ display:none !important } .menu-toggle{ display:none; } }
 
+  @media (min-width: 900px){
+    .menu-toggle{display:none !important}
+    .nav-desktop{display:flex !important}
+  }
+
   /* Boutons boost */
   .btn{
     display:inline-flex;align-items:center;justify-content:center;gap:8px;
@@ -102,6 +107,7 @@
   html.light th{background:#f1f5f9;border-bottom:1px solid #e2e8f0}
   html.light td{border-bottom:1px solid #eef2f7}
   .muted{color:var(--muted)}
+  .badge{display:inline-flex;align-items:center;gap:8px;padding:4px 8px;border:1px dashed var(--border);border-radius:999px;font-weight:600;opacity:.9}
 
   dialog{border:none;border-radius:14px;max-width:520px;width:min(92vw,520px);padding:0;background:var(--panel);color:var(--text)}
   dialog::backdrop{background:rgba(0,0,0,.35)}
@@ -156,6 +162,17 @@
       <h1 id="pageTitle" style="margin:0;font-size:20px">Administration — Joueurs</h1>
     </div>
     <button id="menuToggle" class="menu-toggle" aria-label="Ouvrir le menu" aria-expanded="false">☰ Menu</button>
+    <nav class="nav-desktop" style="display:none;gap:10px;align-items:center">
+      <a class="btn" href="Accueil.html">🏠 Accueil</a>
+      <a class="btn" href="Duel.html">💪🏽 Duel</a>
+      <a class="btn" href="Classement-general.html">📊 Classements</a>
+      <a class="btn" href="Tournois.html">🏆 Tournois</a>
+      <a class="btn" href="Panel-Membre.html">👤 Mon espace</a>
+      <a class="btn adminNav" href="Admin-Joueurs.html" style="display:none">👥 Admin-Joueurs</a>
+      <a class="btn adminNav" href="Admin-Utilisateurs.html" style="display:none">🛡️ Admin Utilisateurs</a>
+      <button id="logoutBtn" class="btn danger">Déconnexion</button>
+    </nav>
+    <div id="season-badge" class="badge" style="display:none"><span class="dot" style="width:8px;height:8px;border-radius:50%;background:var(--brand);margin-right:6px"></span><span id="season-top">Saison</span></div>
     <button id="theme" class="btn" style="margin-left:auto">☀️</button>
   </div>
 
@@ -167,10 +184,13 @@
         <button id="mmClose" class="btn" style="position:absolute;right:12px;top:12px;padding:6px 10px;font-size:18px;line-height:1;background:transparent;border:none" aria-label="Fermer">✕</button>
       </div>
       <div class="mm-list">
-        <a class="mm-btn" href="Accueil.html">🏟️ Accueil</a>
-        <a class="mm-btn" href="Duel.html">⚔️ Duel</a>
+        <a class="mm-btn" href="Accueil.html">🏠 Accueil</a>
+        <a class="mm-btn" href="Duel.html">💪🏽 Duel</a>
         <a class="mm-btn" href="Classement-general.html">📊 Classements</a>
-        <a class="mm-btn" href="Admin-Utilisateurs.html">🛡️ Admin-Utilisateurs</a>
+        <a class="mm-btn" href="Tournois.html">🏆 Tournois</a>
+        <a class="mm-btn" href="Panel-Membre.html">👤 Mon espace</a>
+        <a class="mm-btn adminOnly" href="Admin-Joueurs.html" style="display:none">👥 Admin-Joueurs</a>
+        <a class="mm-btn adminOnly" href="Admin-Utilisateurs.html" style="display:none">🛡️ Admin Utilisateurs</a>
       </div>
       <div class="mm-theme"><button id="mmTheme" class="btn">☀️ / 🌙 Thème</button></div>
       <div class="mm-logout"><button id="mmLogout" class="btn danger">Déconnexion</button></div>

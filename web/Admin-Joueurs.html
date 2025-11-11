@@ -126,8 +126,9 @@
 <dialog id="editDlg">
   <div class="dlg-h">Modifier le joueur</div>
   <div class="dlg-b">
-    <label>ID (clé)</label>
-    <input id="e_pid" readonly>
+    <label>ID (clé) - <span class="muted">Attention : modifier l'ID affectera toutes les références</span></label>
+    <input id="e_pid" placeholder="ex: CBlacks_GZ">
+    <input id="e_pid_old" type="hidden">
 
     <label>Nom</label>
     <input id="e_name" placeholder="Nom complet">
@@ -156,25 +157,33 @@
 
 <body class="container">
 <div class="wrap">
-  <div class="top">
-    <div class="nav">
-      <div class="logo" aria-hidden="true"></div>
-      <h1 id="pageTitle" style="margin:0;font-size:20px">Administration — Joueurs</h1>
-    </div>
-    <button id="menuToggle" class="menu-toggle" aria-label="Ouvrir le menu" aria-expanded="false" title="Ouvrir le menu de navigation">☰ Menu</button>
-    <nav class="nav-desktop" style="display:none;gap:10px;align-items:center">
-      <a class="btn" href="Accueil.html">🏠 Accueil</a>
-      <a class="btn" href="Duel.html">💪🏽 Duel</a>
-      <a class="btn" href="Classement-general.html">📊 Classements</a>
-      <a class="btn" href="Tournois.html">🏆 Tournois</a>
-      <a class="btn" href="Panel-Membre.html">👤 Mon espace</a>
-      <a class="btn adminNav" href="Admin-Joueurs.html" style="display:none">👥 Admin-Joueurs</a>
-      <a class="btn adminNav" href="Admin-Utilisateurs.html" style="display:none">🛡️ Admin Utilisateurs</a>
-      <button id="logoutBtn" class="btn danger" title="Se déconnecter de votre compte">Déconnexion</button>
+  <header class="top">
+    <a class="brand" href="./Accueil.html" aria-label="Accueil GOUZEPE" style="text-decoration:none;color:inherit;display:flex;align-items:center;gap:10px">
+      <img class="logo" src="assets/icons/apple-touch-icon.png" alt="Logo" style="width:58px;height:58px;border-radius:14px">
+      <div style="display:flex;flex-direction:column">
+        <h1 style="margin:0;font-size:18px;font-weight:700">GOUZEPE eFOOTBALL</h1>
+        <small style="color:var(--muted);font-size:13px">Administration — Joueurs</small>
+      </div>
+    </a>
+
+    <button id="menuToggle" class="menu-toggle" aria-controls="menu" aria-expanded="false" title="Ouvrir le menu de navigation">☰ Menu</button>
+    <nav class="nav" aria-label="Navigation principale" style="display:none">
+      <div id="menu" style="display:flex;gap:8px">
+        <a class="btn" href="./Accueil.html">🏠 Accueil</a>
+        <a class="btn" href="./Duel.html">💪🏽 Duel</a>
+        <a class="btn" href="./Classement-general.html">📊 Classements</a>
+        <a class="btn" href="./Tournois.html">🏆 Tournois</a>
+        <a class="btn" href="./Panel-Membre.html">👤 Mon espace</a>
+        <a class="btn adminNav" href="./Admin-Joueurs.html" style="display:none">👥 Admin-Joueurs</a>
+        <a class="btn adminNav" href="./Admin-Utilisateurs.html" style="display:none">🛡️ Admin Utilisateurs</a>
+        <button id="logoutBtn" class="btn danger" type="button" title="Se déconnecter de votre compte">Déconnexion</button>
+      </div>
     </nav>
+
+    <div style="flex:1"></div>
     <div id="season-badge" class="badge" style="display:none"><span class="dot" style="width:8px;height:8px;border-radius:50%;background:var(--brand);margin-right:6px"></span><span id="season-top">Saison</span></div>
-    <button id="theme" class="btn" style="margin-left:auto" title="Basculer entre thème clair et sombre">☀️</button>
-  </div>
+    <button id="theme" class="btn" title="Basculer entre thème clair et sombre">☀️</button>
+  </header>
 
   <!-- Menu Mobile Moderne -->
   <div id="mobileMenu" hidden>
@@ -363,6 +372,7 @@ async function openEditPlayer(id){
   const p=players.find(x=>x.player_id===id); if(!p) return;
   const dlg   = document.getElementById('editDlg');
   const pid   = document.getElementById('e_pid');
+  const pidOld= document.getElementById('e_pid_old');
   const pname = document.getElementById('e_name');
   const prole = document.getElementById('e_role');
   const pemail= document.getElementById('e_email');
@@ -370,6 +380,7 @@ async function openEditPlayer(id){
   const msg   = document.getElementById('editMsg');
 
   pid.value   = p.player_id || '';
+  pidOld.value= p.player_id || '';
   pname.value = p.name || '';
   prole.value = (p.role || 'MEMBRE').toUpperCase();
   pemail.value= p.user_email || slugifyNameToEmail(p.name||p.player_id);
@@ -381,10 +392,29 @@ async function openEditPlayer(id){
 
   document.getElementById('editSave').onclick = async ()=>{
     try{
+      const newId = pid.value.trim();
+      const oldId = pidOld.value.trim();
+
+      if(!newId) {
+        msg.textContent='ID requis';
+        return;
+      }
+
+      const body = {
+        name: pname.value.trim(),
+        role: prole.value
+      };
+
+      // Si l'ID a changé, inclure le nouveau player_id
+      if(newId !== oldId) {
+        if(!confirm(`⚠️ Modifier l'ID "${oldId}" → "${newId}"?\nCela affectera toutes les références (matchs, stats, etc.)`)) {
+          return;
+        }
+        body.player_id = newId;
+      }
+
       msg.textContent='Mise à jour…';
-      await write('PUT',`${API}/admin/players/${encodeURIComponent(id)}`,{
-        name: pname.value.trim(), role: prole.value
-      });
+      await write('PUT',`${API}/admin/players/${encodeURIComponent(oldId)}`, body);
       msg.textContent='OK';
       dlg.close(); await load();
     }catch(e){ msg.textContent=e.message||'Erreur'; }

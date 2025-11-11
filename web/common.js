@@ -108,32 +108,10 @@
     }
   })();
 
-  // ---------- Auto-discovery de l'API ----------
-  (async function autoDiscoverAPI() {
-    if (localStorage.getItem('efoot.api')) return;
-    // Éviter de découvrir l'API si on est en train de rediriger
-    if (sessionStorage.getItem('_redirecting')) return;
-
-    const candidates = [];
-    const h = location.hostname;
-    if (h.endsWith('.onrender.com')) {
-      if (h.includes('-static')) candidates.push('https://' + h.replace('-static', '-api'));
-      candidates.push('https://' + h.replace('-static', ''));
-    }
-    candidates.push(DEF_API());
-    for (const base of candidates) {
-      try {
-        const r = await safeFetch(base.replace(/\/+$/, '') + '/health', { cache: 'no-store' }, 2500);
-        if (r && r.ok) {
-          localStorage.setItem('efoot.api', base.replace(/\/+$/, ''));
-          // Ne recharger qu'une seule fois
-          if (!sessionStorage.getItem('_api_discovered')) {
-            sessionStorage.setItem('_api_discovered', '1');
-            location.reload();
-          }
-          return;
-        }
-      } catch (_) { }
+  // ---------- Auto-discovery de l'API (simplifié) ----------
+  (function initAPI() {
+    if (!localStorage.getItem('efoot.api')) {
+      localStorage.setItem('efoot.api', DEF_API());
     }
   })();
 

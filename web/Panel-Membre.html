@@ -431,41 +431,12 @@ async function safeFetch(url,opt={},ms=12000){
   try{ return await fetch(url,{signal:c.signal,...opt}); } finally{ clearTimeout(t); }
 }
 
-/* ===== Auth guard simplifié ===== */
+/* ===== Auth guard ===== */
 (function(){
   const expAt=+localStorage.getItem('efoot.expAt')||0;
-
-  // Vérification basique uniquement
   if(!TOKEN || Date.now()>=expAt){
     location.href='login.html';
-    return;
   }
-
-  // Validation asynchrone en arrière-plan (non-bloquante)
-  (async function validateInBackground(){
-    try{
-      const r = await safeFetch(API+'/auth/me', {
-        headers:{Authorization:'Bearer '+TOKEN}
-      }, 5000);
-
-      if(!r || !r.ok){
-        // Token invalide
-        console.warn('Token invalide, redirection...');
-        ['efoot.token','efoot.role','efoot.expAt'].forEach(k=>localStorage.removeItem(k));
-        setTimeout(() => location.href='login.html', 1000);
-      }else{
-        // Token valide, mettre à jour le rôle
-        const d = await r.json();
-        if(d.user && d.user.role){
-          localStorage.setItem('efoot.role', d.user.role.toLowerCase());
-        }
-      }
-    }catch(err){
-      // Serveur en cold start, on laisse l'utilisateur utiliser l'app
-      // Les requêtes suivantes réessayeront automatiquement
-      console.warn('Validation token différée (serveur lent):', err.message);
-    }
-  })();
 })();
 
 /* ===== Thème ===== */
@@ -609,7 +580,11 @@ $('#logoutBtn').onclick=()=>{
   $('#confTbody').addEventListener('click',(e)=>{
     const pid=e.target?.dataset?.view; if(!pid) return; openH2H(pid);
   });
-  refresh();
+
+  // Appeler refresh() seulement si une saison est sélectionnée
+  if($('#seasonSel').value){
+    await refresh();
+  }
 })();
 
 /* ===== Profil : nom / mot de passe / photo ===== */

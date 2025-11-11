@@ -173,14 +173,13 @@
 })();
 
 /* ===== Helpers ===== */
-const PROD_API = 'https://gouzepe-api.onrender.com';
 const isPrivateNet = (h)=>/^(localhost|127\.0\.0\.1|10\.\d+\.\d+\.\d+|192\.168\.\d+\.\d+|172\.(1[6-9]|2\d|3[01])\.\d+\.\d+)$/.test(h);
 const DEF_API = ()=>{
   const host = location.hostname || '';
   if (isPrivateNet(host)) {
     return (location.protocol.startsWith('http') ? location.protocol : 'http:') + '//' + host + ':3000';
   }
-  return PROD_API;
+  return 'https://gouzepe-api.onrender.com'; // URL de production
 };
 function getAPI(){ return (localStorage.getItem('efoot.api')||DEF_API()).replace(/\/+$/,''); }
 function setAPI(v){ localStorage.setItem('efoot.api', v.replace(/\/+$/,'')); }
@@ -199,34 +198,13 @@ async function safeFetch(url, opt={}, ms=8000){
   finally{ clearTimeout(t); }
 }
 
-/* Attente du /health (Render “cold start”) */
-async function waitForHealth(base, maxMs=90000){
-  const start=Date.now();
-  let delay=900;               // première tentative rapide
-  const mult=1.5, maxDelay=5000;
-  while(Date.now()-start < maxMs){
-    try{
-      const r=await safeFetch(base+'/health',{cache:'no-store'},Math.min(4000,delay));
-      if(r && r.ok){
-        const d=await r.json().catch(()=>({}));
-        if(d && (d.ok===true || d.service)){ return true; }
-      }
-    }catch(_){}
-    const waited = Math.round((Date.now()-start)/1000);
-    showBoot(`Le serveur démarre… (${waited}s)`);
-    await new Promise(res=>setTimeout(res, delay));
-    delay = Math.min(maxDelay, Math.round(delay*mult));
-  }
-  return false;
-}
-
 /* Validation du token avant redirection */
 async function validateSession(){
   const token = localStorage.getItem('efoot.token');
   const expAt = +localStorage.getItem('efoot.expAt') || 0;
   if(!token || Date.now()>=expAt) return null;
   try{
-    const r=await safeFetch(getAPI()+'/auth/me',{headers:{Authorization:'Bearer ' + token}},7000);
+    const r=await safeFetch(getAPI()+'/auth/me',{headers:{Authorization:'Bearer ' + token}},5000);
     if(!r || !r.ok) return null;
     const d=await r.json();
     return (d.user && d.user.role) ? d.user.role : (localStorage.getItem('efoot.role')||'member');
@@ -238,31 +216,26 @@ function goAfterLogin(role){
   location.replace(r==='admin' ? 'Accueil.html' : 'Panel-Membre.html');
 }
 
-/* Bootstrap quand une session existe déjà (NE PLUS rediriger à l'aveugle) */
+/* Bootstrap si session existe déjà */
 (async function bootstrapIfAlreadyLogged(){
-  // Si on vient de se faire rediriger, ne pas essayer de rediriger à nouveau
   if(sessionStorage.getItem('_redirecting')) return;
 
   const token = localStorage.getItem('efoot.token');
   const expAt = +localStorage.getItem('efoot.expAt') || 0;
-  // Ne rien faire si pas de token ou si expAt invalide/expiré
   if(!token || expAt <= 0 || Date.now()>=expAt) return;
 
-  setBusy(true); showErr(''); showBoot('Préparation…');
+  setBusy(true); showErr(''); showBoot('Vérification...');
 
-  // 1) Attendre /health (serveur prêt) - timeout réduit
-  const ok = await waitForHealth(getAPI(), 30000);
-  if(!ok){ setBusy(false); showBoot(''); return; }
-
-  // 2) Valider la session et partir
   const role = await validateSession();
-  if(role){ showBoot(''); goAfterLogin(role); }
-  else {
-    // Session invalide: nettoyer localStorage
+  if(role){
+    showBoot('');
+    goAfterLogin(role);
+  }else{
     localStorage.removeItem('efoot.token');
     localStorage.removeItem('efoot.expAt');
     localStorage.removeItem('efoot.role');
-    setBusy(false); showBoot('');
+    setBusy(false);
+    showBoot('');
   }
 })();
 
@@ -278,7 +251,7 @@ function goAfterLogin(role){
   });
 })();
 
-/* Soumission simple avec attente serveur prêt avant redirection */
+/* Soumission du formulaire de connexion */
 document.getElementById('f').addEventListener('submit', async (e)=>{
   e.preventDefault();
   showErr(''); showBoot(''); setBusy(true);
@@ -302,18 +275,11 @@ document.getElementById('f').addEventListener('submit', async (e)=>{
     const expHours = Number(d.expHours||1);
     localStorage.setItem('efoot.token', token);
     localStorage.setItem('efoot.role', role.toLowerCase());
-    // ✅ FIX: Corriger le calcul d'expiration (était *60*1000 = minutes, maintenant *60*60*1000 = heures)
     localStorage.setItem('efoot.expAt', String(Date.now()+expHours*3600*1000));
 
-    // <— NOUVEAU : on attend que l’API soit prête avant de quitter la page
-    showBoot('Connexion réussie. Le serveur se réveille…');
-    const ok = await waitForHealth(getAPI(), 90000);
-    if(!ok){ showErr("Le serveur est lent à démarrer (Render). Patiente et réessaie."); setBusy(false); showBoot(''); return; }
-
-    // on valide le token et on part
-    const vr = await validateSession();
-    if(vr){ showBoot(''); goAfterLogin(vr); }
-    else { showErr("Impossible de valider la session pour l’instant."); setBusy(false); showBoot(''); }
+    // Redirection immédiate
+    showBoot('Connexion réussie...');
+    goAfterLogin(role);
 
   }catch(err){
     console.error(err);

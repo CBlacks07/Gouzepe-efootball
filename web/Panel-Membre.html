@@ -431,87 +431,41 @@ async function safeFetch(url,opt={},ms=12000){
   try{ return await fetch(url,{signal:c.signal,...opt}); } finally{ clearTimeout(t); }
 }
 
-/* ===== Auth guard amélioré ===== */
-(async function(){
+/* ===== Auth guard simplifié ===== */
+(function(){
   const expAt=+localStorage.getItem('efoot.expAt')||0;
 
-  // Vérification basique
+  // Vérification basique uniquement
   if(!TOKEN || Date.now()>=expAt){
     location.href='login.html';
     return;
   }
 
-  // Validation rapide du token (timeout court)
-  try{
-    const r = await safeFetch(API+'/auth/me', {
-      headers:{Authorization:'Bearer '+TOKEN}
-    }, 5000);
+  // Validation asynchrone en arrière-plan (non-bloquante)
+  (async function validateInBackground(){
+    try{
+      const r = await safeFetch(API+'/auth/me', {
+        headers:{Authorization:'Bearer '+TOKEN}
+      }, 5000);
 
-    if(!r || !r.ok){
-      // Token invalide, nettoyer et rediriger
-      ['efoot.token','efoot.role','efoot.expAt'].forEach(k=>localStorage.removeItem(k));
-      location.href='login.html';
-      return;
-    }
-
-    // Token valide, continuer
-    const d = await r.json();
-    if(d.user && d.user.role){
-      localStorage.setItem('efoot.role', d.user.role.toLowerCase());
-    }
-  }catch(err){
-    // Erreur réseau ou serveur en cold start
-    // On laisse passer pour l'instant et on affiche un loader
-    console.warn('Auth validation delayed:', err.message);
-
-    // Afficher un indicateur de chargement
-    const loader = document.createElement('div');
-    loader.id = 'auth-loader';
-    loader.style.cssText = 'position:fixed;inset:0;background:rgba(0,0,0,0.9);z-index:9999;display:flex;align-items:center;justify-content:center;color:#fff;font-size:18px;flex-direction:column;gap:16px';
-    loader.innerHTML = '<div>Connexion au serveur...</div><div style="font-size:14px;color:#94a3b8">Le serveur se réveille, veuillez patienter</div>';
-    document.body.appendChild(loader);
-
-    // Attendre que le serveur soit prêt (max 60s)
-    const waitForServer = async () => {
-      const maxAttempts = 20;
-      let attempts = 0;
-
-      while(attempts < maxAttempts){
-        try{
-          const r = await safeFetch(API+'/health', {cache:'no-store'}, 4000);
-          if(r && r.ok){
-            // Serveur prêt, revalider le token
-            const rAuth = await safeFetch(API+'/auth/me', {
-              headers:{Authorization:'Bearer '+TOKEN}
-            }, 5000);
-
-            if(rAuth && rAuth.ok){
-              // Token valide
-              loader.remove();
-              return true;
-            }else{
-              // Token invalide
-              ['efoot.token','efoot.role','efoot.expAt'].forEach(k=>localStorage.removeItem(k));
-              location.href='login.html';
-              return false;
-            }
-          }
-        }catch(e){
-          console.warn('Waiting for server...', attempts);
+      if(!r || !r.ok){
+        // Token invalide
+        console.warn('Token invalide, redirection...');
+        ['efoot.token','efoot.role','efoot.expAt'].forEach(k=>localStorage.removeItem(k));
+        setTimeout(() => location.href='login.html', 1000);
+      }else{
+        // Token valide, mettre à jour le rôle
+        const d = await r.json();
+        if(d.user && d.user.role){
+          localStorage.setItem('efoot.role', d.user.role.toLowerCase());
         }
-
-        attempts++;
-        await new Promise(resolve => setTimeout(resolve, 3000));
       }
-
-      // Timeout
-      alert('Le serveur met trop de temps à répondre. Veuillez réessayer.');
-      location.href='login.html';
-      return false;
-    };
-
-    await waitForServer();
-  }
+    }catch(err){
+      // Serveur en cold start, on laisse l'utilisateur utiliser l'app
+      // Les requêtes suivantes réessayeront automatiquement
+      console.warn('Validation token différée (serveur lent):', err.message);
+    }
+  })();
 })();
 
 /* ===== Thème ===== */
@@ -550,29 +504,81 @@ $('#logoutBtn').onclick=()=>{
 
 /* ===== Identité + KPIs + confrontations ===== */
 (async function initMe(){
+  // Charger les saisons d'abord
+  try{
+    const rSeasons = await safeFetch(API+'/seasons', { headers:{Authorization:'Bearer '+TOKEN} }, 8000);
+    const dSeasons = await rSeasons.json();
+    const seasonSel = $('#seasonSel');
+    seasonSel.innerHTML = '<option value="">Choisir une saison...</option>';
+
+    if(dSeasons.seasons && dSeasons.seasons.length > 0){
+      // Trouver la saison active
+      let activeSeason = dSeasons.seasons.find(s => !s.is_closed);
+      if(!activeSeason) activeSeason = dSeasons.seasons[0]; // Fallback sur la première
+
+      dSeasons.seasons.forEach(s => {
+        const opt = document.createElement('option');
+        opt.value = s.id;
+        opt.textContent = s.name || `Saison #${s.id}`;
+        if(s.id === activeSeason.id) opt.selected = true;
+        seasonSel.appendChild(opt);
+      });
+    }
+  }catch(e){
+    console.error('Erreur chargement saisons:', e);
+    $('#seasonSel').innerHTML = '<option value="">Erreur chargement saisons</option>';
+  }
+
+  // Charger l'identité du joueur
   try{
     const rp = await safeFetch(API+'/me/player', { headers:{Authorization:'Bearer '+TOKEN} }, 8000);
     const dp = await rp.json();
     $('#playerName').textContent = dp.player?.name || '—';
     $('#playerId').textContent   = dp.player?.player_id || '—';
     $('#avatar').src = dp.player?.profile_pic_url ? (API+dp.player.profile_pic_url) : 'assets/icons/apple-touch-icon.png';
-  }catch(e){ console.error(e); }
+  }catch(e){
+    console.error('Erreur chargement profil:', e);
+    $('#playerName').textContent = 'Erreur';
+    $('#playerId').textContent = '—';
+  }
 
   async function refresh(){
     const season = $('#seasonSel').value;
-    const rs = await safeFetch(API+'/me/stats?season='+season, { headers:{Authorization:'Bearer '+TOKEN} });
-    const ds = await rs.json();
-    $('#k_played').textContent = ds.played_legs ?? 0;
-    $('#k_bm').textContent     = ds.goals_for ?? 0;
-    $('#k_bc').textContent     = ds.goals_against ?? 0;
-    $('#k_rank').textContent   = ds.season_rank ?? '—';
-    $('#k_pts').textContent    = ds.season_points ?? '—';
-    $('#k_avg').textContent    = (ds.season_average ?? '—');
+    if(!season){
+      // Pas de saison sélectionnée
+      $('#k_played').textContent = '0';
+      $('#k_bm').textContent = '0';
+      $('#k_bc').textContent = '0';
+      $('#k_rank').textContent = '—';
+      $('#k_pts').textContent = '—';
+      $('#k_avg').textContent = '—';
+      $('#confTbody').innerHTML = '<tr><td colspan="6" style="text-align:center;color:var(--muted)">Sélectionnez une saison</td></tr>';
+      return;
+    }
+    try{
+      const rs = await safeFetch(API+'/me/stats?season='+season, { headers:{Authorization:'Bearer '+TOKEN} });
+      const ds = await rs.json();
+      $('#k_played').textContent = ds.played_legs ?? 0;
+      $('#k_bm').textContent     = ds.goals_for ?? 0;
+      $('#k_bc').textContent     = ds.goals_against ?? 0;
+      $('#k_rank').textContent   = ds.season_rank ?? '—';
+      $('#k_pts').textContent    = ds.season_points ?? '—';
+      $('#k_avg').textContent    = (ds.season_average ?? '—');
+    }catch(e){
+      console.error('Erreur chargement stats:', e);
+      $('#k_played').textContent = 'Err';
+      $('#k_bm').textContent = 'Err';
+      $('#k_bc').textContent = 'Err';
+      $('#k_rank').textContent = '—';
+      $('#k_pts').textContent = '—';
+      $('#k_avg').textContent = '—';
+    }
 
-    const rm = await safeFetch(API+'/me/matches?season='+season, { headers:{Authorization:'Bearer '+TOKEN} });
-    const dm = await rm.json();
-    const tb = $('#confTbody'); tb.innerHTML='';
-    (dm.matches||[]).sort((a,b)=> new Date(b.date)-new Date(a.date))
+    try{
+      const rm = await safeFetch(API+'/me/matches?season='+season, { headers:{Authorization:'Bearer '+TOKEN} });
+      const dm = await rm.json();
+      const tb = $('#confTbody'); tb.innerHTML='';
+      (dm.matches||[]).sort((a,b)=> new Date(b.date)-new Date(a.date))
       .slice(0, Number($('#confLimit').value||15))
       .forEach(x=>{
         const add = (leg,sc,badge) => `<tr>
@@ -592,6 +598,10 @@ $('#logoutBtn').onclick=()=>{
           tb.insertAdjacentHTML('beforeend', add('Retour', `${x.retour.gf}-${x.retour.ga}`, r));
         }
       });
+    }catch(e){
+      console.error('Erreur chargement matchs:', e);
+      $('#confTbody').innerHTML = '<tr><td colspan="6" style="text-align:center;color:#ef4444">Erreur de chargement des confrontations</td></tr>';
+    }
   }
   $('#seasonSel').onchange = refresh;
   $('#confLimit').onchange = refresh;

@@ -489,6 +489,99 @@ app.get('/players/:pid', auth, async (req,res)=>{
   ok(res,{ player:{...row, online: !!online} });
 });
 
+// Mettre à jour un joueur (admin seulement)
+app.put('/admin/players/:oldId', auth, adminOnly, async (req, res) => {
+  const oldId = req.params.oldId;
+  const { player_id: newId, name, role } = req.body || {};
+
+  // Vérifier que le joueur existe
+  const existing = await q(`SELECT player_id, name, role FROM players WHERE player_id = $1`, [oldId]);
+  if (!existing.rowCount) return bad(res, 404, 'Joueur introuvable');
+
+  const player = existing.rows[0];
+  const updatedName = name !== undefined ? name : player.name;
+  const updatedRole = role !== undefined ? role : player.role;
+
+  // Si l'ID change
+  if (newId && newId !== oldId) {
+    // Vérifier que le nouvel ID n'existe pas déjà
+    const conflict = await q(`SELECT player_id FROM players WHERE player_id = $1`, [newId]);
+    if (conflict.rowCount) return bad(res, 409, 'Ce nouvel ID existe déjà');
+
+    // Fonction helper pour mettre à jour les player_id dans un JSONB
+    function updatePlayerIdInPayload(payload, oldId, newId) {
+      if (!payload) return payload;
+      let updated = false;
+
+      // Mettre à jour d1 et d2 (matchs)
+      for (const div of ['d1', 'd2']) {
+        if (Array.isArray(payload[div])) {
+          payload[div].forEach(match => {
+            if (match.p1 === oldId) { match.p1 = newId; updated = true; }
+            if (match.p2 === oldId) { match.p2 = newId; updated = true; }
+          });
+        }
+      }
+
+      // Mettre à jour champions
+      if (payload.champions) {
+        if (payload.champions.d1?.id === oldId) {
+          payload.champions.d1.id = newId;
+          updated = true;
+        }
+        if (payload.champions.d2?.id === oldId) {
+          payload.champions.d2.id = newId;
+          updated = true;
+        }
+      }
+
+      // Mettre à jour barrage
+      if (payload.barrage?.winner === oldId) {
+        payload.barrage.winner = newId;
+        updated = true;
+      }
+
+      return updated ? payload : null;
+    }
+
+    // Mettre à jour les matchdays
+    const matchdays = await q(`SELECT day, payload FROM matchday ORDER BY day ASC`);
+    for (const row of matchdays.rows) {
+      const updatedPayload = updatePlayerIdInPayload(JSON.parse(JSON.stringify(row.payload)), oldId, newId);
+      if (updatedPayload) {
+        await q(`UPDATE matchday SET payload = $1 WHERE day = $2`, [JSON.stringify(updatedPayload), row.day]);
+      }
+    }
+
+    // Mettre à jour les drafts
+    const drafts = await q(`SELECT day, payload FROM draft ORDER BY day ASC`);
+    for (const row of drafts.rows) {
+      const updatedPayload = updatePlayerIdInPayload(JSON.parse(JSON.stringify(row.payload)), oldId, newId);
+      if (updatedPayload) {
+        await q(`UPDATE draft SET payload = $1 WHERE day = $2`, [JSON.stringify(updatedPayload), row.day]);
+      }
+    }
+
+    // Mettre à jour la table players (CASCADE vers users et champion_result)
+    await q(`UPDATE players SET player_id = $1, name = $2, role = $3 WHERE player_id = $4`,
+      [newId, updatedName, updatedRole, oldId]);
+
+    // Mettre à jour la présence
+    if (presence.players.has(oldId)) {
+      const ts = presence.players.get(oldId);
+      presence.players.delete(oldId);
+      presence.players.set(newId, ts);
+    }
+
+    ok(res, { player: { player_id: newId, name: updatedName, role: updatedRole } });
+  } else {
+    // Mise à jour simple sans changement d'ID
+    await q(`UPDATE players SET name = $1, role = $2 WHERE player_id = $3`,
+      [updatedName, updatedRole, oldId]);
+    ok(res, { player: { player_id: oldId, name: updatedName, role: updatedRole } });
+  }
+});
+
 /* ====== Standings helpers ====== */
 async function currentSeasonId(){
   const r=await q(`SELECT id FROM seasons WHERE is_closed=false ORDER BY id DESC LIMIT 1`);

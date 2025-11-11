@@ -112,6 +112,12 @@
     .grid2{display:grid;grid-template-columns:1fr 1fr;gap:8px}
   }
 
+  /* Nav desktop */
+  @media (min-width: 900px){
+    .menu-toggle{display:none !important}
+    .nav-desktop{display:flex !important}
+  }
+
   /* Print A4 */
   @media print {
     @page { size: A4 portrait; margin: 14mm; }
@@ -127,16 +133,30 @@
 <div class="wrap">
 
   <div class="top">
-    <div class="nav">
+    <a class="brand" href="Accueil.html" style="display:flex;align-items:center;gap:10px;text-decoration:none;color:inherit">
       <div class="logo" aria-hidden="true"></div>
       <div>
         <div style="font-weight:900;letter-spacing:.3px">GOUZEPE GAMING CLUB</div>
         <div class="muted" style="font-size:12px;margin-top:2px">Championnat eFootball</div>
       </div>
-      <span id="season-badge" class="season-badge blink-slow" style="display:none;margin-left:8px">Saison : <b id="season-text"></b></span>
-    </div>
+    </a>
+
     <button id="menuToggle" class="menu-toggle" aria-label="Ouvrir le menu" aria-expanded="false">☰ Menu</button>
-    <button id="theme" class="btn" title="Basculer thème" style="margin-left:auto">☀️</button>
+    <nav class="nav-desktop" aria-label="Navigation principale" style="display:none">
+      <div id="menu" style="display:flex;gap:8px">
+        <a class="btn" href="./Accueil.html">🏠 Accueil</a>
+        <a class="btn" href="./Duel.html">💪🏽 Duel</a>
+        <a class="btn" href="./Tournois.html">🏆 Tournois</a>
+        <a class="btn" href="./Panel-Membre.html">👤 Mon espace</a>
+        <a class="btn adminNav" href="./Admin-Joueurs.html" style="display:none">👥 Admin-Joueurs</a>
+        <a class="btn adminNav" href="./Admin-Utilisateurs.html" style="display:none">🛡️ Admin Utilisateurs</a>
+        <button id="logoutBtn" class="btn danger" type="button">Déconnexion</button>
+      </div>
+    </nav>
+
+    <div class="sp" style="flex:1"></div>
+    <span id="season-badge" class="season-badge blink-slow" style="display:none;margin-left:8px">Saison : <b id="season-text"></b></span>
+    <button id="theme" class="btn" title="Basculer thème">☀️</button>
   </div>
 
   <!-- Menu Mobile Moderne -->
@@ -148,10 +168,11 @@
       </div>
       <div class="mm-list">
         <a class="mm-btn" href="Accueil.html">🏠 Accueil</a>
-        <a class="mm-btn" href="Duel.html">⚔️ Duel</a>
-        <a class="mm-btn" href="Panel-Membre.html">👤 Mon profil</a>
+        <a class="mm-btn" href="Duel.html">💪🏽 Duel</a>
+        <a class="mm-btn" href="Tournois.html">🏆 Tournois</a>
+        <a class="mm-btn" href="Panel-Membre.html">👤 Mon espace</a>
         <a class="mm-btn adminOnly" id="mmAdminPlayers" href="Admin-Joueurs.html" style="display:none">👥 Admin-Joueurs</a>
-        <a class="mm-btn adminOnly" id="mmAdminUsers" href="Admin-Utilisateurs.html" style="display:none">🛡️ Admin-Utilisateurs</a>
+        <a class="mm-btn adminOnly" id="mmAdminUsers" href="Admin-Utilisateurs.html" style="display:none">🛡️ Admin Utilisateurs</a>
       </div>
       <div class="mm-theme"><button id="mmTheme" class="btn">☀️ / 🌙 Thème</button></div>
       <div class="mm-logout"><button id="mmLogout" class="btn danger">Déconnexion</button></div>

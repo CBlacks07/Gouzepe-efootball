@@ -11,7 +11,7 @@
 <style>
   :root{
     --bg:#0b1220;--panel:#0f1627;--card:#0c1426;--text:#e5e7eb;--muted:#94a3b8;--border:#1f2937;
-    --accent:#2563eb; --champ:#ef4444; --ok:#16a34a; --ko:#ef4444; --mid:#64748b;
+    --brand:#16a34a;--accent:#2563eb; --champ:#ef4444; --ok:#16a34a; --ko:#ef4444; --mid:#64748b;
   }
   :root.light{--bg:#f4f6fb;--panel:#ffffff;--card:#ffffff;--text:#0f172a;--muted:#475569;--border:#e5e7eb;--accent:#1d4ed8}
   *{box-sizing:border-box} html,body{height:100%}
@@ -43,6 +43,9 @@
   .btn.danger{background:#7f1d1d;border-color:#7f1d1d;color:#fecaca}
   .btn.success{background:#14532d;border-color:#14532d;color:#d1fae5}
   .btn.ghost{background:transparent}
+
+  .badge{display:inline-flex;align-items:center;gap:6px;padding:4px 8px;border:1px dashed var(--border);border-radius:999px;font-weight:600;opacity:.9;font-size:13px}
+  .badge .dot{width:8px;height:8px;border-radius:50%;background:var(--brand)}
 
   input,select,textarea{border:1px solid var(--border);border-radius:12px;padding:10px 12px;background:#0b1020;color:var(--text);font-size:14px;width:100%}
   html.light input,html.light select,html.light textarea{background:#fff}
@@ -128,13 +131,24 @@
     .bracket-connector{right:-20px;width:20px}
     .bracket-connector-v{right:-20px}
   }
+
+  /* Navigation responsive */
+  @media (min-width: 900px){
+    .menu-toggle{display:none !important}
+    .nav-desktop{display:flex !important}
+  }
+
+  @media (max-width: 899px){
+    .menu-toggle{display:inline-flex !important}
+    .nav-desktop{display:none !important}
+  }
 </style>
 </head>
 <body class="container">
 <div class="wrap">
 
   <!-- TOP BAR -->
-  <header class="top">
+  <header class="top" id="topbar">
     <a class="brand" href="./Accueil.html" style="text-decoration:none;color:inherit;display:flex;align-items:center;gap:12px">
       <img src="assets/icons/apple-touch-icon.png" alt="Logo" style="width:42px;height:42px;border-radius:12px">
       <div>
@@ -143,11 +157,47 @@
       </div>
     </a>
 
-    <div style="display:flex;gap:10px;align-items:center">
-      <button id="theme" class="btn ghost" title="Thème">☀️</button>
+    <button id="menuToggle" class="btn ghost menu-toggle" style="display:none">☰ Menu</button>
+
+    <nav class="nav nav-desktop" style="display:flex;gap:10px;align-items:center">
+      <a class="btn ghost" href="./Accueil.html">🏠 Accueil</a>
+      <a class="btn ghost" href="./Duel.html">💪🏽 Duel</a>
+      <a class="btn ghost" href="./Classement-general.html">📊 Classements</a>
+      <a class="btn ghost" href="./Panel-Membre.html">👤 Mon espace</a>
+      <a class="btn ghost adminNav" href="./Admin-Joueurs.html" style="display:none">👥 Admin-Joueurs</a>
+      <a class="btn ghost adminNav" href="./Admin-Utilisateurs.html" style="display:none">🛡️ Admin Utilisateurs</a>
       <button id="logoutBtn" class="btn danger">Déconnexion</button>
-    </div>
+    </nav>
+
+    <div style="flex:1"></div>
+    <div id="season-badge" class="badge" style="display:none"><span class="dot" style="width:8px;height:8px;border-radius:50%;background:var(--brand);margin-right:6px"></span><span id="season-top">Saison</span></div>
+    <button id="theme" class="btn ghost" title="Thème">☀️</button>
   </header>
+
+  <!-- Menu Mobile -->
+  <div id="mobileMenu" style="display:none;position:fixed;inset:0;z-index:60;background:rgba(0,0,0,.65);backdrop-filter:blur(4px);align-items:flex-start;justify-content:center;padding:0">
+    <div style="width:min(94vw,400px);margin-top:0;background:var(--panel);color:var(--text);border:none;border-bottom-left-radius:16px;border-bottom-right-radius:16px;box-shadow:0 8px 32px rgba(0,0,0,.4);padding:0;max-height:90vh;overflow-y:auto">
+      <div style="font-weight:800;text-align:center;padding:16px;border-bottom:1px solid var(--border);margin:0;position:sticky;top:0;background:var(--panel);z-index:1">
+        <span>Menu</span>
+        <button id="mmClose" class="btn ghost" style="position:absolute;right:12px;top:12px;padding:6px 10px;font-size:18px;line-height:1">✕</button>
+      </div>
+      <div style="display:flex;flex-direction:column;gap:0;padding:8px">
+        <a class="btn ghost" href="./Accueil.html" style="display:flex;align-items:center;justify-content:flex-start;gap:12px;padding:14px 16px;border-radius:12px">🏠 Accueil</a>
+        <a class="btn ghost" href="./Duel.html" style="display:flex;align-items:center;justify-content:flex-start;gap:12px;padding:14px 16px;border-radius:12px">💪🏽 Duel</a>
+        <a class="btn ghost" href="./Classement-general.html" style="display:flex;align-items:center;justify-content:flex-start;gap:12px;padding:14px 16px;border-radius:12px">📊 Classements</a>
+        <a class="btn ghost" href="./Tournois.html" style="display:flex;align-items:center;justify-content:flex-start;gap:12px;padding:14px 16px;border-radius:12px">🏆 Tournois</a>
+        <a class="btn ghost" href="./Panel-Membre.html" style="display:flex;align-items:center;justify-content:flex-start;gap:12px;padding:14px 16px;border-radius:12px">👤 Mon espace</a>
+        <a class="btn ghost adminOnly" href="./Admin-Joueurs.html" style="display:flex;align-items:center;justify-content:flex-start;gap:12px;padding:14px 16px;border-radius:12px">👥 Admin-Joueurs</a>
+        <a class="btn ghost adminOnly" href="./Admin-Utilisateurs.html" style="display:flex;align-items:center;justify-content:flex-start;gap:12px;padding:14px 16px;border-radius:12px">🛡️ Admin Utilisateurs</a>
+      </div>
+      <div style="display:flex;justify-content:center;padding:8px 16px;border-top:1px solid var(--border)">
+        <button id="mmTheme" class="btn ghost">☀️ / 🌙 Thème</button>
+      </div>
+      <div style="display:flex;justify-content:center;padding:12px 16px;border-top:1px solid var(--border)">
+        <button id="mmLogout" class="btn danger" style="width:100%">Déconnexion</button>
+      </div>
+    </div>
+  </div>
 
   <!-- MAIN CONTENT -->
   <main>
@@ -257,6 +307,7 @@ if (!token) location.href = 'login.html';
 
 // Afficher les éléments admin
 $$('.adminOnly').forEach(el => el.style.display = (role === 'admin') ? '' : 'none');
+$$('.adminNav').forEach(el => el.style.display = (role === 'admin') ? '' : 'none');
 
 // Thème
 (function(){
@@ -272,6 +323,38 @@ $$('.adminOnly').forEach(el => el.style.display = (role === 'admin') ? '' : 'non
 
 // Logout
 $('#logoutBtn')?.addEventListener('click', () => {
+  if (confirm('Voulez-vous vraiment vous déconnecter ?')) {
+    ['efoot.token', 'efoot.role', 'efoot.expAt'].forEach(k => localStorage.removeItem(k));
+    location.href = 'login.html';
+  }
+});
+
+// Menu mobile
+const mobileMenu = $('#mobileMenu');
+const menuToggle = $('#menuToggle');
+const mmClose = $('#mmClose');
+
+menuToggle?.addEventListener('click', () => {
+  mobileMenu.style.display = 'flex';
+});
+
+mmClose?.addEventListener('click', () => {
+  mobileMenu.style.display = 'none';
+});
+
+mobileMenu?.addEventListener('click', (e) => {
+  if (e.target === mobileMenu) {
+    mobileMenu.style.display = 'none';
+  }
+});
+
+// Thème mobile
+$('#mmTheme')?.addEventListener('click', () => {
+  $('#theme').click();
+});
+
+// Logout mobile
+$('#mmLogout')?.addEventListener('click', () => {
   if (confirm('Voulez-vous vraiment vous déconnecter ?')) {
     ['efoot.token', 'efoot.role', 'efoot.expAt'].forEach(k => localStorage.removeItem(k));
     location.href = 'login.html';

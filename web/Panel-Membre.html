@@ -202,8 +202,8 @@
         <div id="identBody" style="margin-top:10px">
           <div class="kpis">
             <div class="card kpi"><div class="muted">Manches jouées</div><div id="k_played" class="big">0</div></div>
-            <div class="card kpi"><div class="muted">Buts marqués</div><div id="k_bm" class="big">0</div></div>
-            <div class="card kpi"><div class="muted">Buts encaissés</div><div id="k_bc" class="big">0</div></div>
+            <div class="card kpi"><div class="muted">Moy. buts marqués</div><div id="k_bm" class="big">0</div></div>
+            <div class="card kpi"><div class="muted">Moy. buts encaissés</div><div id="k_bc" class="big">0</div></div>
             <div class="card kpi"><div class="muted">Rang général</div><div id="k_rank" class="big">—</div></div>
             <div class="card kpi"><div class="muted">Points</div><div id="k_pts" class="big">—</div></div>
             <div class="card kpi"><div class="muted">Moyenne</div><div id="k_avg" class="big">—</div></div>
@@ -249,7 +249,7 @@
             <option value="previous">Précédente</option>
           </select>
           <label>Limite</label>
-          <select id="confLimit"><option>10</option><option selected>15</option><option>25</option><option>50</option></select>
+          <select id="confLimit"><option>5</option><option selected>10</option><option>15</option><option value="all">Tous</option></select>
           <button class="btn toggle-card" aria-expanded="true" aria-controls="confBody" title="Réduire ou développer cette section">Réduire</button>
         </div>
       </div>
@@ -531,9 +531,12 @@ $('#logoutBtn').onclick=()=>{
     try{
       const rs = await safeFetch(API+'/me/stats?season='+season, { headers:{Authorization:'Bearer '+TOKEN} });
       const ds = await rs.json();
-      $('#k_played').textContent = ds.played_legs ?? 0;
-      $('#k_bm').textContent     = ds.goals_for ?? 0;
-      $('#k_bc').textContent     = ds.goals_against ?? 0;
+      const played = ds.played_legs ?? 0;
+      const avgGF = played > 0 ? (ds.goals_for / played).toFixed(2) : '0.00';
+      const avgGA = played > 0 ? (ds.goals_against / played).toFixed(2) : '0.00';
+      $('#k_played').textContent = played;
+      $('#k_bm').textContent     = avgGF;
+      $('#k_bc').textContent     = avgGA;
       $('#k_rank').textContent   = ds.season_rank ?? '—';
       $('#k_pts').textContent    = ds.season_points ?? '—';
       $('#k_avg').textContent    = (ds.season_average ?? '—');
@@ -551,8 +554,10 @@ $('#logoutBtn').onclick=()=>{
       const rm = await safeFetch(API+'/me/matches?season='+season, { headers:{Authorization:'Bearer '+TOKEN} });
       const dm = await rm.json();
       const tb = $('#confTbody'); tb.innerHTML='';
+      const limitVal = $('#confLimit').value;
+      const limit = limitVal === 'all' ? Infinity : Number(limitVal || 10);
       (dm.matches||[]).sort((a,b)=> new Date(b.date)-new Date(a.date))
-      .slice(0, Number($('#confLimit').value||15))
+      .slice(0, limit)
       .forEach(x=>{
         const add = (leg,sc,badge) => `<tr>
             <td>${new Date(x.date).toLocaleDateString('fr-FR')}</td>

@@ -203,6 +203,7 @@
           <tr>
             <th>Email</th>
             <th>Rôle</th>
+            <th>Player ID</th>
             <th>Créé</th>
             <th style="width:220px">Actions</th>
           </tr>
@@ -216,7 +217,7 @@
 
   <!-- Modal édition -->
   <dialog id="editDlg">
-    <div style="padding:14px;border-bottom:1px solid var(--border);font-weight:700">Modifier l’utilisateur</div>
+    <div style="padding:14px;border-bottom:1px solid var(--border);font-weight:700">Modifier l'utilisateur</div>
     <form id="editForm" style="padding:14px;display:grid;gap:10px">
       <input type="hidden" id="editId">
       <label>Email
@@ -227,6 +228,9 @@
           <option value="member">member</option>
           <option value="admin">admin</option>
         </select>
+      </label>
+      <label>Player ID (optionnel)
+        <input id="editPlayerId" placeholder="Exemple: GPG-001">
       </label>
       <label>Nouveau mot de passe (optionnel)
         <input id="editPwd" type="password" placeholder="laisser vide pour ne pas changer">
@@ -314,6 +318,7 @@ function renderUsers(){
     tr.innerHTML =
       `<td>${escapeHtml(u.email||'')}</td>
        <td>${escapeHtml(u.role||'')}</td>
+       <td>${escapeHtml(u.player_id||'—')}</td>
        <td class="muted">${escapeHtml(fmtDate(u.created_at||u.createdAt||''))}</td>
        <td>
          <button class="btn primary" data-edit="${u.id}">Modifier</button>
@@ -357,6 +362,7 @@ document.addEventListener('click', e=>{
     $('#editId').value = u.id;
     $('#editEmail').value = u.email||'';
     $('#editRole').value = (u.role||'member');
+    $('#editPlayerId').value = u.player_id||'';
     $('#editPwd').value = '';
     $('#editErr').textContent='';
     $('#editDlg').showModal();
@@ -369,8 +375,11 @@ document.getElementById('editForm').addEventListener('submit', async (e)=>{
   const id = $('#editId').value;
   const email = normEmail($('#editEmail').value);
   const role  = $('#editRole').value;
+  const playerId = $('#editPlayerId').value.trim();
   const pwd   = $('#editPwd').value.trim();
-  const body = { email, role }; if(pwd) body.password = pwd;
+  const body = { email, role };
+  if(playerId) body.player_id = playerId;
+  if(pwd) body.password = pwd;
   try{
     const r=await fetch(`${API}/admin/users/${encodeURIComponent(id)}`,{
       method:'PUT',

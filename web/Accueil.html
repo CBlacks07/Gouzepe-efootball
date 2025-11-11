@@ -297,8 +297,7 @@ html.light .bg-video{opacity:.18; filter:contrast(.95) saturate(.85)}
         <select id="dayStatus"><option value="auto" selected>Auto</option><option value="draft">Brouillon</option><option value="confirmed">Confirmée</option></select>
         <span class="tiny muted" id="dayInfo"></span>
         <span class="spacer"></span>
-        <button id="addD1" class="btn ghost adminOnly" style="display:none">+ Match D1</button>
-        <button id="addD2" class="btn ghost adminOnly" style="display:none">+ Match D2</button>
+        <button id="manageParticipants" class="btn primary adminOnly" style="display:none">⚙️ Gérer Participants</button>
         <button id="clearD1" class="btn warn adminOnly" style="display:none">Effacer D1</button>
         <button id="clearD2" class="btn warn adminOnly" style="display:none">Effacer D2</button>
         <button id="printBtn" class="btn ghost">Imprimer (PDF)</button>
@@ -412,6 +411,55 @@ html.light .bg-video{opacity:.18; filter:contrast(.95) saturate(.85)}
       <button class="btn" id="c_print">Imprimer (PDF)</button>
       <button class="btn" id="c_cancel">Annuler</button>
       <button class="btn primary" id="c_ok">Valider & Enregistrer</button>
+    </div>
+  </dialog>
+
+  <!-- ===== MODALE GESTION PARTICIPANTS ===== -->
+  <dialog id="participantsModal" style="max-width:900px">
+    <div style="padding:16px;border-bottom:1px solid var(--border);font-weight:700;display:flex;align-items:center;justify-content:space-between">
+      <span>Gérer les participants de la journée</span>
+      <button id="pm_close" class="btn ghost" style="padding:4px 8px">✕</button>
+    </div>
+    <div style="padding:16px">
+      <div style="margin-bottom:16px">
+        <input type="text" id="pm_search" placeholder="Rechercher un joueur..." style="width:100%;padding:10px;border-radius:10px;border:1px solid var(--border);background:transparent;color:inherit">
+      </div>
+
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px">
+        <!-- Division 1 -->
+        <div>
+          <h4 style="margin:0 0 10px;color:var(--brand)">Division 1</h4>
+          <div id="pm_d1_list" style="max-height:400px;overflow-y:auto;border:1px solid var(--border);border-radius:10px;padding:8px"></div>
+          <div style="margin-top:8px;text-align:center;color:var(--muted);font-size:14px">
+            <span id="pm_d1_count">0</span> participant(s)
+          </div>
+        </div>
+
+        <!-- Division 2 -->
+        <div>
+          <h4 style="margin:0 0 10px;color:var(--accent)">Division 2</h4>
+          <div id="pm_d2_list" style="max-height:400px;overflow-y:auto;border:1px solid var(--border);border-radius:10px;padding:8px"></div>
+          <div style="margin-top:8px;text-align:center;color:var(--muted);font-size:14px">
+            <span id="pm_d2_count">0</span> participant(s)
+          </div>
+        </div>
+      </div>
+
+      <div style="margin-top:16px;padding:12px;background:var(--panel);border:1px solid var(--border);border-radius:10px">
+        <div style="font-size:14px;color:var(--muted)">
+          <strong>Instructions :</strong><br>
+          • Cliquez sur un joueur pour le sélectionner<br>
+          • Utilisez les boutons pour l'affecter à D1 ou D2<br>
+          • Les confrontations seront générées automatiquement (système round-robin)
+        </div>
+      </div>
+    </div>
+    <div style="padding:14px;border-top:1px solid var(--border);display:flex;gap:10px;justify-content:space-between">
+      <button class="btn warn" id="pm_reset">Réinitialiser tout</button>
+      <div style="display:flex;gap:10px">
+        <button class="btn" id="pm_cancel">Annuler</button>
+        <button class="btn primary" id="pm_validate">Valider & Générer les matchs</button>
+      </div>
     </div>
   </dialog>
 
@@ -720,8 +768,6 @@ async function loadNextFixtures(){
     const del=e.target.closest('.del'); if(del){ if(!confirm('Supprimer cette ligne de match ?')) return; const div=del.closest('#d1_matches')?'d1':'d2'; del.closest('tr').remove(); readFromDOM(div); calculateAndRender(); validateCross(); lastEditTs=Date.now(); localSaveDraft(); }
   }, true);
 
-  $('#addD1').onclick=()=>{ if(ROLE!=='admin')return; S.d1.push({}); rebuild('d1'); lastEditTs=Date.now(); localSaveDraft(); };
-  $('#addD2').onclick=()=>{ if(ROLE!=='admin')return; S.d2.push({}); rebuild('d2'); lastEditTs=Date.now(); localSaveDraft(); };
   $('#clearD1').onclick=()=>{ if(ROLE!=='admin')return; if(!confirm('Effacer tous les scores D1 ?'))return; document.querySelectorAll('#d1_matches .scoresCell input').forEach(i=>i.value=''); readFromDOM('d1'); calculateAndRender(); lastEditTs=Date.now(); localSaveDraft(); };
   $('#clearD2').onclick=()=>{ if(ROLE!=='admin')return; if(!confirm('Effacer tous les scores D2 ?'))return; document.querySelectorAll('#d2_matches .scoresCell input').forEach(i=>i.value=''); readFromDOM('d2'); calculateAndRender(); lastEditTs=Date.now(); localSaveDraft(); };
 
@@ -847,6 +893,289 @@ async function loadNextFixtures(){
     }
 
     computeBarrageLabel();
+  }
+
+  /* ===== GESTION PARTICIPANTS & GÉNÉRATION AUTOMATIQUE ===== */
+  let PM_STATE = { d1: new Set(), d2: new Set() }; // Participants par division
+  let ALL_PLAYERS = []; // Liste de tous les joueurs disponibles
+
+  // Algorithme Round-Robin pour générer toutes les confrontations
+  function generateRoundRobin(playerIds) {
+    if (playerIds.length < 2) return [];
+
+    const players = [...playerIds];
+    const matches = [];
+
+    // Si nombre impair, ajouter un "bye" (repos)
+    if (players.length % 2 === 1) {
+      players.push(null);
+    }
+
+    const numRounds = players.length - 1;
+    const half = players.length / 2;
+
+    for (let round = 0; round < numRounds; round++) {
+      for (let i = 0; i < half; i++) {
+        const home = players[i];
+        const away = players[players.length - 1 - i];
+
+        // Ignorer les matchs avec "bye"
+        if (home !== null && away !== null) {
+          matches.push({
+            p1: home,
+            p2: away,
+            a1: null,
+            a2: null,
+            r1: null,
+            r2: null
+          });
+        }
+      }
+
+      // Rotation des joueurs (sauf le premier qui reste fixe)
+      players.splice(1, 0, players.pop());
+    }
+
+    return matches;
+  }
+
+  // Ouvrir la modale de gestion des participants
+  function openParticipantsModal() {
+    if (ROLE !== 'admin') return;
+
+    // Charger les participants actuels depuis les matchs existants
+    PM_STATE.d1 = new Set();
+    PM_STATE.d2 = new Set();
+
+    S.d1.forEach(m => {
+      if (m.p1) PM_STATE.d1.add(m.p1);
+      if (m.p2) PM_STATE.d1.add(m.p2);
+    });
+
+    S.d2.forEach(m => {
+      if (m.p1) PM_STATE.d2.add(m.p1);
+      if (m.p2) PM_STATE.d2.add(m.p2);
+    });
+
+    renderParticipantsModal();
+    $('#participantsModal').showModal();
+  }
+
+  // Fermer la modale
+  function closeParticipantsModal() {
+    $('#participantsModal').close();
+  }
+
+  // Rendu de la modale avec tous les joueurs
+  function renderParticipantsModal() {
+    const searchTerm = ($('#pm_search').value || '').toLowerCase();
+
+    // Filtrer les joueurs selon la recherche
+    const filteredPlayers = ALL_PLAYERS.filter(p => {
+      const name = (p.name || '').toLowerCase();
+      const id = (p.player_id || '').toLowerCase();
+      return name.includes(searchTerm) || id.includes(searchTerm);
+    });
+
+    // Trier : D1, D2, puis non affectés
+    const sortedPlayers = filteredPlayers.sort((a, b) => {
+      const aInD1 = PM_STATE.d1.has(a.player_id);
+      const aInD2 = PM_STATE.d2.has(a.player_id);
+      const bInD1 = PM_STATE.d1.has(b.player_id);
+      const bInD2 = PM_STATE.d2.has(b.player_id);
+
+      if (aInD1 && !bInD1) return -1;
+      if (!aInD1 && bInD1) return 1;
+      if (aInD2 && !bInD2) return -1;
+      if (!aInD2 && bInD2) return 1;
+
+      return (a.name || '').localeCompare(b.name || '');
+    });
+
+    const d1List = $('#pm_d1_list');
+    const d2List = $('#pm_d2_list');
+
+    d1List.innerHTML = '';
+    d2List.innerHTML = '';
+
+    // Créer les cartes de joueurs pour D1
+    PM_STATE.d1.forEach(playerId => {
+      const player = ALL_PLAYERS.find(p => p.player_id === playerId);
+      if (!player) return;
+
+      const card = createPlayerCard(player, 'd1');
+      d1List.appendChild(card);
+    });
+
+    // Créer les cartes de joueurs pour D2
+    PM_STATE.d2.forEach(playerId => {
+      const player = ALL_PLAYERS.find(p => p.player_id === playerId);
+      if (!player) return;
+
+      const card = createPlayerCard(player, 'd2');
+      d2List.appendChild(card);
+    });
+
+    // Si une liste est vide, afficher un placeholder
+    if (PM_STATE.d1.size === 0) {
+      d1List.innerHTML = '<div style="padding:20px;text-align:center;color:var(--muted)">Aucun participant en D1<br>Sélectionnez des joueurs ci-dessous</div>';
+    }
+
+    if (PM_STATE.d2.size === 0) {
+      d2List.innerHTML = '<div style="padding:20px;text-align:center;color:var(--muted)">Aucun participant en D2<br>Sélectionnez des joueurs ci-dessous</div>';
+    }
+
+    // Liste des joueurs disponibles (non affectés)
+    const availablePlayers = sortedPlayers.filter(p =>
+      !PM_STATE.d1.has(p.player_id) && !PM_STATE.d2.has(p.player_id)
+    );
+
+    if (availablePlayers.length > 0) {
+      const separator = document.createElement('div');
+      separator.style.cssText = 'margin:16px 0;padding:8px;text-align:center;color:var(--muted);font-weight:600;border-top:1px dashed var(--border)';
+      separator.textContent = 'Joueurs disponibles';
+      d1List.appendChild(separator.cloneNode(true));
+      d2List.appendChild(separator);
+
+      availablePlayers.forEach(player => {
+        const cardD1 = createPlayerCard(player, 'available', 'd1');
+        const cardD2 = createPlayerCard(player, 'available', 'd2');
+        d1List.appendChild(cardD1);
+        d2List.appendChild(cardD2);
+      });
+    }
+
+    // Mettre à jour les compteurs
+    $('#pm_d1_count').textContent = PM_STATE.d1.size;
+    $('#pm_d2_count').textContent = PM_STATE.d2.size;
+  }
+
+  // Créer une carte de joueur
+  function createPlayerCard(player, currentDiv, targetDiv) {
+    const card = document.createElement('div');
+    const isAssigned = currentDiv !== 'available';
+    const playerId = player.player_id;
+    const playerName = player.name || playerId;
+    const playerRole = (player.role || 'MEMBRE').toUpperCase();
+
+    card.style.cssText = `
+      padding:10px;
+      margin:4px 0;
+      border:1px solid var(--border);
+      border-radius:8px;
+      background:${isAssigned ? 'rgba(22,163,74,0.1)' : 'transparent'};
+      display:flex;
+      align-items:center;
+      justify-content:space-between;
+      transition:all 0.2s;
+    `;
+
+    card.innerHTML = `
+      <div style="flex:1">
+        <div style="font-weight:600">${escapeHtml(playerId)}</div>
+        <div style="font-size:12px;color:var(--muted)">${escapeHtml(playerName)} ${playerRole === 'INVITE' ? '(Invité)' : ''}</div>
+      </div>
+      <div style="display:flex;gap:6px">
+        ${isAssigned ?
+          `<button class="btn warn" style="padding:6px 10px;font-size:12px" data-action="remove" data-player="${playerId}" data-div="${currentDiv}">Retirer</button>` :
+          `<button class="btn primary" style="padding:6px 10px;font-size:12px" data-action="add" data-player="${playerId}" data-div="${targetDiv}">Ajouter</button>`
+        }
+      </div>
+    `;
+
+    // Gérer les clics sur les boutons
+    card.addEventListener('click', (e) => {
+      const btn = e.target.closest('button');
+      if (!btn) return;
+
+      const action = btn.dataset.action;
+      const player = btn.dataset.player;
+      const div = btn.dataset.div;
+
+      if (action === 'add') {
+        if (div === 'd1') {
+          PM_STATE.d1.add(player);
+          PM_STATE.d2.delete(player); // Retirer de D2 si présent
+        } else {
+          PM_STATE.d2.add(player);
+          PM_STATE.d1.delete(player); // Retirer de D1 si présent
+        }
+      } else if (action === 'remove') {
+        PM_STATE.d1.delete(player);
+        PM_STATE.d2.delete(player);
+      }
+
+      renderParticipantsModal();
+    });
+
+    return card;
+  }
+
+  // Valider et générer les matchs
+  function validateAndGenerateMatches() {
+    if (PM_STATE.d1.size < 2 && PM_STATE.d2.size < 2) {
+      alert('Vous devez avoir au moins 2 participants dans au moins une division.');
+      return;
+    }
+
+    if (!confirm(`Générer les matchs ?\n\nD1: ${PM_STATE.d1.size} participants\nD2: ${PM_STATE.d2.size} participants\n\nToutes les confrontations existantes seront remplacées.`)) {
+      return;
+    }
+
+    // Générer les matchs pour D1
+    if (PM_STATE.d1.size >= 2) {
+      S.d1 = generateRoundRobin([...PM_STATE.d1]);
+      rebuild('d1');
+    } else {
+      S.d1 = [];
+      rebuild('d1');
+    }
+
+    // Générer les matchs pour D2
+    if (PM_STATE.d2.size >= 2) {
+      S.d2 = generateRoundRobin([...PM_STATE.d2]);
+      rebuild('d2');
+    } else {
+      S.d2 = [];
+      rebuild('d2');
+    }
+
+    lastEditTs = Date.now();
+    localSaveDraft();
+    closeParticipantsModal();
+
+    alert(`Matchs générés avec succès !\n\nD1: ${S.d1.length} confrontations\nD2: ${S.d2.length} confrontations`);
+  }
+
+  // Réinitialiser tous les participants
+  function resetAllParticipants() {
+    if (!confirm('Réinitialiser tous les participants ? Cette action ne peut pas être annulée.')) {
+      return;
+    }
+
+    PM_STATE.d1.clear();
+    PM_STATE.d2.clear();
+    renderParticipantsModal();
+  }
+
+  // Event listeners pour la modale
+  $('#manageParticipants').onclick = openParticipantsModal;
+  $('#pm_close').onclick = closeParticipantsModal;
+  $('#pm_cancel').onclick = closeParticipantsModal;
+  $('#pm_validate').onclick = validateAndGenerateMatches;
+  $('#pm_reset').onclick = resetAllParticipants;
+  $('#pm_search').addEventListener('input', renderParticipantsModal);
+
+  // Charger ALL_PLAYERS depuis l'API
+  async function loadAllPlayers() {
+    try {
+      const r = await fetch(API() + '/players', hd());
+      const d = await r.json();
+      ALL_PLAYERS = d.players || [];
+    } catch (e) {
+      console.error('Erreur chargement joueurs:', e);
+      ALL_PLAYERS = [];
+    }
   }
 
   /* ===== Validations & restrictions ===== */
@@ -1147,6 +1476,7 @@ async function loadNextFixtures(){
   (async function(){
     await loadSession();
     await loadPlayers();
+    await loadAllPlayers(); // Charger tous les joueurs pour la modale
     await loadHeadline();
     await loadNextFixtures();
     await prefillDateToNextSaturday();

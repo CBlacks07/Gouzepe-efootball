@@ -861,9 +861,14 @@ async function loadNextFixtures(){
   function autoFillBarrage(force){
     const fld=$('#barrage_ids'); if(!force && (fld.value||'').trim()) return;
     const d2=standings('d2'), d1=standings('d1');
-    // ✅ FIX: Barrage entre AVANT-DERNIER de D1 et DEUXIÈME de D2
-    const d2second=d2[1]?.id;  // Deuxième D2
-    const d1avant=d1.length>=2?d1[d1.length-2].id:null;  // Avant-dernier D1
+
+    // ✅ FIX: Exclure les invités des barrages
+    const d2Members = d2.filter(r => r.role !== 'INVITE');
+    const d1Members = d1.filter(r => r.role !== 'INVITE');
+
+    // ✅ FIX: Barrage entre AVANT-DERNIER de D1 et DEUXIÈME de D2 (membres uniquement)
+    const d2second = d2Members[1]?.id;  // Deuxième D2
+    const d1avant = d1Members.length >= 2 ? d1Members[d1Members.length - 2].id : null;  // Avant-dernier D1
     if(d1avant&&d2second) fld.value=`${d1avant} – ${d2second}`;
     computeBarrageLabel();
   }

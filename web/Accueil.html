@@ -716,15 +716,20 @@ async function loadNextFixtures(){
   function standings(div){
     const agg={};
     (S[div]||[]).forEach(m=>{ if(!m.p1||!m.p2) return; if(m.a1!=null&&m.a2!=null) addAgg(agg,m.p1,m.p2,m.a1,m.a2); if(m.r1!=null&&m.r2!=null) addAgg(agg,m.p2,m.p1,m.r2,m.r1); });
+    // ✅ INCLURE les invités dans le classement (mais ils restent séparés dans l'impression PDF)
     return Object.entries(agg).map(([id,x])=>({ id, ...x, PTS:x.V*3+x.N, DIFF:x.BP-x.BC, role: PLAYERS_ROLE.get(String(id)) || 'MEMBRE' }))
-      .filter(r=>r.role!=='INVITE')
       .sort((a,b)=> b.PTS-a.PTS || b.DIFF-a.DIFF || b.BP-a.BP || String(a.id).localeCompare(String(b.id)));
   }
   function renderTable(div){
     const tb=$(`#${div}_tab tbody`); tb.innerHTML='';
     standings(div).forEach((r,i)=>{
       const trophySvg = i===0 ? '<svg class="trophy" viewBox="0 0 24 24" fill="currentColor" style="color:#fbbf24;width:16px;height:16px;vertical-align:-2px;margin-right:6px"><path d="M19 5h2a1 1 0 0 1 1 1c0 3.866-3.134 7-7 7h-1v2h3a1 1 0 1 1 0 2h-3v2h2a1 1 0 1 1 0 2H8a1 1 0 1 1 0-2h2v-2H7a1 1 0 1 1 0-2h3v-2H9C5.134 13 2 9.866 2 6a1 1 0 0 1 1-1h2V3a1 1 0 0 1 1-1h10a1 1 0 0 1 1 1v2zm-2 0V4H7v1a1 1 0 0 1-1 1H4.057A5.002 5.002 0 0 0 9 10h6a5.002 5.002 0 0 0 5-5h-1.943A1 1 0 0 1 17 5z"/></svg>' : '';
-      tb.insertAdjacentHTML('beforeend',`<tr><td>${i===0?trophySvg:''}${r.id}</td><td>${r.J}</td><td>${r.V}</td><td>${r.N}</td><td>${r.D}</td><td>${r.BP}</td><td>${r.BC}</td><td>${r.DIFF}</td><td>${r.PTS}</td></tr>`);
+      // ✅ Afficher les invités avec une indication visuelle (italique + couleur)
+      const isGuest = r.role === 'INVITE';
+      const guestStyle = isGuest ? ' style="font-style:italic;opacity:0.75"' : '';
+      const guestIcon = isGuest ? '<span style="font-size:11px;opacity:0.6">👤</span> ' : '';
+      const rank = i + 1;
+      tb.insertAdjacentHTML('beforeend',`<tr${guestStyle}><td>${i===0?trophySvg:''}${guestIcon}${rank}. ${r.id}</td><td>${r.J}</td><td>${r.V}</td><td>${r.N}</td><td>${r.D}</td><td>${r.BP}</td><td>${r.BC}</td><td>${r.DIFF}</td><td>${r.PTS}</td></tr>`);
     });
   }
   function calculateAndRender(){ renderTable('d1'); renderTable('d2'); autoFillBarrage(true); }

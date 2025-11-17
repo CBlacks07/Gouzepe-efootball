@@ -804,7 +804,11 @@ function renderTournamentDetails(data) {
   `;
 
   // Bracket visuel
-  if (matches.length > 0 && (tournament.format === 'single_elimination' || tournament.format === 'double_elimination')) {
+  if (matches.length > 0 && tournament.format === 'single_elimination') {
+    // Pour simple élimination, afficher directement sans titre "Winner Bracket"
+    const allMatches = matches.filter(m => m.bracket_type === 'winner' || !m.bracket_type);
+    html += renderSingleBracket(allMatches, tournament, '🏆 Bracket du Tournoi');
+  } else if (matches.length > 0 && tournament.format === 'double_elimination') {
     html += renderBracketView(matches, tournament);
   } else if (matches.length > 0 && tournament.format === 'round_robin') {
     html += renderRoundRobinMatches(matches, tournament);
@@ -824,10 +828,17 @@ function renderTournamentDetails(data) {
 
 // Affichage bracket visuel style Challonge
 function renderBracketView(matches, tournament) {
+  console.log('🎯 renderBracketView - Total matches:', matches.length);
+  console.log('Matches:', matches);
+
   // Séparer par type de bracket
   const winnerMatches = matches.filter(m => m.bracket_type === 'winner' || !m.bracket_type);
   const loserMatches = matches.filter(m => m.bracket_type === 'loser');
   const grandFinalMatches = matches.filter(m => m.bracket_type === 'grand_final');
+
+  console.log('Winner matches:', winnerMatches.length);
+  console.log('Loser matches:', loserMatches.length);
+  console.log('Grand final matches:', grandFinalMatches.length);
 
   let html = '';
 
@@ -851,6 +862,8 @@ function renderBracketView(matches, tournament) {
 
 // Affichage d'un bracket (winner, loser, ou grand final)
 function renderSingleBracket(matches, tournament, title) {
+  console.log(`📊 renderSingleBracket - ${title}:`, matches.length, 'matches');
+
   // Grouper par round
   const rounds = {};
   matches.forEach(m => {
@@ -858,8 +871,12 @@ function renderSingleBracket(matches, tournament, title) {
     rounds[m.round_number].push(m);
   });
 
+  console.log('Rounds:', rounds);
+
   const roundNumbers = Object.keys(rounds).sort((a, b) => a - b);
   const roundLabels = ['8èmes', 'Quarts', 'Demi-finales', 'Finale'];
+
+  console.log('Round numbers:', roundNumbers);
 
   let html = `
     <div class="card">

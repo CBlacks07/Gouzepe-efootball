@@ -157,52 +157,54 @@
 
 <body class="container">
 <div class="wrap">
-  <header class="top">
-    <a class="brand" href="./Accueil.html" aria-label="Accueil GOUZEPE" style="text-decoration:none;color:inherit;display:flex;align-items:center;gap:10px">
-      <img class="logo" src="assets/icons/apple-touch-icon.png" alt="Logo" style="width:58px;height:58px;border-radius:14px">
-      <div style="display:flex;flex-direction:column">
-        <h1 style="margin:0;font-size:18px;font-weight:700">GOUZEPE eFOOTBALL</h1>
-        <small style="color:var(--muted);font-size:13px">Administration — Joueurs</small>
+  <!-- ===== TOP ===== -->
+  <header class="top" id="topbar">
+    <a class="brand" href="./Accueil.html" aria-label="Accueil GOUZEPE">
+      <img id="clubLogo" class="logo" src="assets/icons/apple-touch-icon.png" alt="Logo">
+      <div class="brand-title">
+        <h1>GOUZEPE eFOOTBALL</h1>
+        <div class="season-sub"><span id="season-text" style="color: #16a34a; font-weight: bold;">Saison</span></div>
       </div>
     </a>
 
-    <button id="menuToggle" class="menu-toggle" aria-controls="menu" aria-expanded="false" title="Ouvrir le menu de navigation">☰ Menu</button>
-    <nav class="nav-desktop" aria-label="Navigation principale" style="display:none;gap:8px;align-items:center">
-      <a class="btn" href="./Accueil.html">🏠 Accueil</a>
-      <a class="btn" href="./Duel.html">💪🏽 Duel</a>
-      <a class="btn" href="./Classement-general.html">📊 Classements</a>
-      <a class="btn" href="./Tournois.html">🏆 Tournois</a>
-      <a class="btn" href="./Panel-Membre.html">👤 Mon espace</a>
-      <a class="btn adminNav" href="./Admin-Joueurs.html" style="display:none">👥 Admin-Joueurs</a>
-      <a class="btn adminNav" href="./Admin-Utilisateurs.html" style="display:none">🛡️ Admin Utilisateurs</a>
-      <button id="logoutBtn" class="btn danger" type="button" title="Se déconnecter de votre compte">Déconnexion</button>
+    <button id="menuToggle" class="btn ghost" aria-controls="menu" aria-expanded="false" title="Ouvrir le menu de navigation">☰ Menu</button>
+    <nav class="nav" aria-label="Navigation principale">
+      <div id="menu">
+        <a class="btn ghost" href="./Duel.html">💪🏽 Duel</a>
+        <a class="btn ghost" href="./Classement-general.html">📊 Classements</a>
+        <a class="btn ghost" href="./Tournois.html">🏆 Tournois</a>
+        <a class="btn ghost" href="./Panel-Membre.html">👤 Mon espace</a>
+        <a class="btn ghost adminNav" href="./Admin-Joueurs.html" style="display:none">👥 Admin-Joueurs</a>
+        <a class="btn ghost adminNav" href="./Admin-Utilisateurs.html" style="display:none">🛡️ Admin Utilisateurs</a>
+        <button id="logoutBtn" class="btn ghost danger" type="button" title="Se déconnecter de votre compte">Déconnexion</button>
+      </div>
     </nav>
 
-    <div style="flex:1"></div>
-    <div id="season-badge" class="badge" style="display:none"><span class="dot" style="width:8px;height:8px;border-radius:50%;background:var(--brand);margin-right:6px"></span><span id="season-top">Saison</span></div>
-    <button id="theme" class="btn" title="Basculer entre thème clair et sombre">☀️</button>
-  </header>
+    <div class="spacer"></div>
+    <div id="season-badge" class="badge badge-top"><span class="dot"></span><span id="season-top">Saison</span></div>
 
-  <!-- Menu Mobile Moderne -->
-  <div id="mobileMenu" hidden>
-    <div class="mm-panel" role="dialog" aria-modal="true" aria-labelledby="mmTitle">
-      <div id="mmTitle" class="mm-title">
-        <span>Menu</span>
-        <button id="mmClose" class="btn" style="position:absolute;right:12px;top:12px;padding:6px 10px;font-size:18px;line-height:1;background:transparent;border:none" aria-label="Fermer" title="Fermer le menu">✕</button>
-      </div>
-      <div class="mm-list">
-        <a class="mm-btn" href="Accueil.html">🏠 Accueil</a>
-        <a class="mm-btn" href="Duel.html">💪🏽 Duel</a>
-        <a class="mm-btn" href="Classement-general.html">📊 Classements</a>
-        <a class="mm-btn" href="Tournois.html">🏆 Tournois</a>
-        <a class="mm-btn" href="Panel-Membre.html">👤 Mon espace</a>
-        <a class="mm-btn adminOnly" href="Admin-Joueurs.html" style="display:none">👥 Admin-Joueurs</a>
-        <a class="mm-btn adminOnly" href="Admin-Utilisateurs.html" style="display:none">🛡️ Admin Utilisateurs</a>
-      </div>
-      <div class="mm-theme"><button id="mmTheme" class="btn" title="Basculer entre thème clair et sombre">☀️ / 🌙 Thème</button></div>
-      <div class="mm-logout"><button id="mmLogout" class="btn danger" title="Se déconnecter de votre compte">Déconnexion</button></div>
+    <button id="theme" class="btn ghost" title="Thème clair/sombre">☀️/🌙</button>
+
+    <!-- Menu Mobile Moderne -->
+<div id="mobileMenu" hidden>
+  <div class="mm-panel" role="dialog" aria-modal="true" aria-labelledby="mmTitle">
+    <div id="mmTitle" class="mm-title">
+      <span>Menu</span>
+      <button id="mmClose" class="btn ghost" style="position:absolute;right:12px;top:12px;padding:6px 10px;font-size:18px;line-height:1" aria-label="Fermer" title="Fermer le menu">✕</button>
     </div>
+    <div class="mm-list">
+      <a class="mm-btn" href="./Duel.html">💪🏽 Duel</a>
+      <a class="mm-btn" href="./Classement-general.html">📊 Classements</a>
+      <a class="mm-btn" href="./Tournois.html">🏆 Tournois</a>
+      <a class="mm-btn" href="./Panel-Membre.html">👤 Mon espace</a>
+      <a class="mm-btn adminOnly" id="mmAdminPlayers" href="./Admin-Joueurs.html" style="display:none">👥 Admin-Joueurs</a>
+    </div>
+    <div class="mm-theme"><button id="mmTheme" class="btn ghost" title="Basculer entre thème clair et sombre">☀️ / 🌙 Thème</button></div>
+    <div class="mm-logout"><button id="mmLogout" class="btn danger" title="Se déconnecter de votre compte">Déconnexion</button></div>
   </div>
+</div>
+
+  </header>
 
   <section class="card adminOnly" style="margin-top:12px">
     <h3 style="margin:6px 0">Créer / modifier un joueur</h3>

@@ -454,6 +454,26 @@
             <button type="submit" class="btn primary" title="Créer ce nouveau tournoi">✨ Créer le tournoi</button>
           </form>
         </div>
+
+        <!-- Migration Tool Card -->
+        <div class="card" style="margin-top:24px;background:rgba(59,130,246,0.08);border-left:4px solid var(--primary)">
+          <h3 style="display:flex;align-items:center;gap:8px">
+            <span>🔧</span>
+            <span>Outil de migration - Correction des rounds</span>
+          </h3>
+          <p style="margin:12px 0;color:var(--muted);line-height:1.6">
+            Si vous avez des tournois créés avec l'ancienne version qui affichent les rounds dans le mauvais ordre
+            (Round 1 = finale au lieu du premier tour), utilisez cet outil pour corriger automatiquement la numérotation.
+          </p>
+          <p style="margin:12px 0;font-size:13px;color:var(--warning)">
+            ⚠️ <strong>Important:</strong> Cette opération modifie la base de données. Elle est sécurisée mais assurez-vous
+            de l'exécuter uniquement si nécessaire.
+          </p>
+          <button id="fixRoundsBtn" class="btn primary" onclick="fixTournamentRounds()" title="Corriger la numérotation des rounds dans tous les tournois">
+            🔧 Corriger les rounds de tous les tournois
+          </button>
+          <div id="migrationResult" style="margin-top:16px;display:none"></div>
+        </div>
       </div>
     </div>
 
@@ -1524,6 +1544,94 @@ async function deleteTournament(tournamentId) {
     backToList();
   } catch (err) {
     alert('❌ Erreur: ' + err.message);
+  }
+}
+
+// Corriger la numérotation des rounds dans tous les tournois
+async function fixTournamentRounds() {
+  const btn = $('#fixRoundsBtn');
+  const resultDiv = $('#migrationResult');
+
+  if (!confirm('⚠️ Cette opération va corriger la numérotation des rounds dans tous vos tournois existants.\n\nContinuer ?')) {
+    return;
+  }
+
+  try {
+    // Disable button and show loading
+    btn.disabled = true;
+    btn.textContent = '⏳ Migration en cours...';
+    resultDiv.style.display = 'block';
+    resultDiv.innerHTML = '<p style="color:var(--primary)">⏳ Analyse des tournois en cours...</p>';
+
+    const result = await apiCall('/admin/fix-tournament-rounds', {
+      method: 'POST'
+    });
+
+    // Show success message with details
+    let html = '<div style="padding:16px;background:rgba(34,197,94,0.1);border-radius:8px;border-left:4px solid var(--ok)">';
+    html += `<h4 style="color:var(--ok);margin:0 0 12px 0">✅ ${result.message}</h4>`;
+    html += `<p style="margin:8px 0"><strong>${result.tournaments_processed}</strong> tournoi(s) traité(s)</p>`;
+
+    if (result.results && result.results.length > 0) {
+      html += '<div style="margin-top:16px">';
+
+      result.results.forEach(tournament => {
+        const hasFixed = tournament.brackets.some(b => b.fixed);
+        const icon = hasFixed ? '🔧' : '✓';
+        const color = hasFixed ? 'var(--warning)' : 'var(--ok)';
+
+        html += `<details style="margin:8px 0;padding:12px;background:var(--panel);border-radius:6px;cursor:pointer">`;
+        html += `<summary style="font-weight:600;color:${color}">${icon} ${tournament.name}</summary>`;
+        html += '<div style="margin-top:12px;padding-left:16px;font-size:13px">';
+
+        tournament.brackets.forEach(bracket => {
+          if (bracket.fixed) {
+            html += `<div style="margin:8px 0;color:var(--warning)">`;
+            html += `<strong>Bracket ${bracket.bracket_type}:</strong> `;
+            html += `Corrigé (était inversé)<br>`;
+            html += `<div style="margin-left:16px;color:var(--muted)">`;
+            if (bracket.new_distribution) {
+              bracket.new_distribution.forEach(d => {
+                html += `Round ${d.round}: ${d.matches} match(s)<br>`;
+              });
+            }
+            html += `</div>`;
+            html += `</div>`;
+          } else {
+            html += `<div style="margin:8px 0;color:var(--ok)">`;
+            html += `<strong>Bracket ${bracket.bracket_type}:</strong> Déjà correct`;
+            html += `</div>`;
+          }
+        });
+
+        html += '</div></details>';
+      });
+
+      html += '</div>';
+    }
+
+    html += '<p style="margin-top:16px;font-size:13px;color:var(--muted)">🔄 Actualisez la page pour voir les changements dans vos tournois</p>';
+    html += '</div>';
+
+    resultDiv.innerHTML = html;
+    btn.textContent = '✅ Migration terminée !';
+    btn.style.background = 'var(--ok)';
+
+    // Refresh tournaments list after 2 seconds
+    setTimeout(() => {
+      loadTournaments();
+    }, 2000);
+
+  } catch (err) {
+    console.error('Migration error:', err);
+    resultDiv.innerHTML = `
+      <div style="padding:16px;background:rgba(239,68,68,0.1);border-radius:8px;border-left:4px solid var(--danger)">
+        <h4 style="color:var(--danger);margin:0 0 8px 0">❌ Erreur lors de la migration</h4>
+        <p style="margin:0;color:var(--muted)">${err.message}</p>
+      </div>
+    `;
+    btn.disabled = false;
+    btn.textContent = '🔧 Corriger les rounds de tous les tournois';
   }
 }
 

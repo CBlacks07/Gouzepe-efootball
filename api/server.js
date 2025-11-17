@@ -2407,6 +2407,143 @@ app.get('/tournaments/:id/matches/:mid/games', auth, async (req, res) => {
   }
 });
 
+/* ====== MIGRATION: Fix Round Numbering ====== */
+app.post('/admin/fix-tournament-rounds', auth, adminOnly, async (req, res) => {
+  try {
+    console.log('🔧 Starting tournament rounds migration...');
+
+    const results = [];
+
+    // Get all tournaments with matches
+    const tournamentsResult = await q(`
+      SELECT DISTINCT t.id, t.name, t.type, t.status
+      FROM tournaments t
+      JOIN tournament_matches tm ON tm.tournament_id = t.id
+      WHERE t.status IN ('draft', 'in_progress', 'completed')
+      ORDER BY t.id
+    `);
+
+    console.log(`📋 Found ${tournamentsResult.rows.length} tournament(s)`);
+
+    for (const tournament of tournamentsResult.rows) {
+      console.log(`\n🎯 Processing: "${tournament.name}" (ID: ${tournament.id})`);
+
+      const tournamentResult = {
+        id: tournament.id,
+        name: tournament.name,
+        brackets: []
+      };
+
+      // Get distinct bracket types
+      const bracketTypesResult = await q(`
+        SELECT DISTINCT COALESCE(bracket_type, 'winner') as bracket_type
+        FROM tournament_matches
+        WHERE tournament_id = $1
+      `, [tournament.id]);
+
+      for (const { bracket_type } of bracketTypesResult.rows) {
+        // Get total rounds for this bracket
+        const totalRoundsResult = await q(`
+          SELECT MAX(round_number) as max_round
+          FROM tournament_matches
+          WHERE tournament_id = $1 AND (bracket_type = $2 OR (bracket_type IS NULL AND $2 = 'winner'))
+        `, [tournament.id, bracket_type]);
+
+        const totalRounds = parseInt(totalRoundsResult.rows[0].max_round || 0);
+
+        if (totalRounds > 0) {
+          // Check if rounds are inverted (Round 1 should have most matches)
+          const round1Result = await q(`
+            SELECT COUNT(*) as count
+            FROM tournament_matches
+            WHERE tournament_id = $1
+              AND round_number = 1
+              AND (bracket_type = $2 OR (bracket_type IS NULL AND $2 = 'winner'))
+          `, [tournament.id, bracket_type]);
+
+          const roundMaxResult = await q(`
+            SELECT COUNT(*) as count
+            FROM tournament_matches
+            WHERE tournament_id = $1
+              AND round_number = $2
+              AND (bracket_type = $3 OR (bracket_type IS NULL AND $3 = 'winner'))
+          `, [tournament.id, totalRounds, bracket_type]);
+
+          const round1Count = parseInt(round1Result.rows[0].count);
+          const roundMaxCount = parseInt(roundMaxResult.rows[0].count);
+
+          console.log(`  Bracket: ${bracket_type}`);
+          console.log(`    Round 1: ${round1Count} matches`);
+          console.log(`    Round ${totalRounds}: ${roundMaxCount} matches`);
+
+          const bracketInfo = {
+            bracket_type,
+            total_rounds: totalRounds,
+            round1_matches: round1Count,
+            last_round_matches: roundMaxCount,
+            inverted: false,
+            fixed: false
+          };
+
+          // If Round 1 has fewer matches than last round, it's inverted
+          if (round1Count < roundMaxCount) {
+            console.log(`    ⚠️  INVERTED - Fixing...`);
+
+            // Fix the round numbers
+            await q(`
+              UPDATE tournament_matches
+              SET round_number = $1 - round_number + 1
+              WHERE tournament_id = $2
+                AND (bracket_type = $3 OR (bracket_type IS NULL AND $3 = 'winner'))
+            `, [totalRounds, tournament.id, bracket_type]);
+
+            bracketInfo.inverted = true;
+            bracketInfo.fixed = true;
+
+            // Verify the fix
+            const verifyResult = await q(`
+              SELECT round_number, COUNT(*) as count
+              FROM tournament_matches
+              WHERE tournament_id = $1
+                AND (bracket_type = $2 OR (bracket_type IS NULL AND $2 = 'winner'))
+              GROUP BY round_number
+              ORDER BY round_number
+            `, [tournament.id, bracket_type]);
+
+            bracketInfo.new_distribution = verifyResult.rows.map(r => ({
+              round: r.round_number,
+              matches: parseInt(r.count)
+            }));
+
+            console.log(`    ✅ Fixed!`);
+            verifyResult.rows.forEach(r => {
+              console.log(`       Round ${r.round_number}: ${r.count} matches`);
+            });
+          } else {
+            console.log(`    ✓ Already correct`);
+          }
+
+          tournamentResult.brackets.push(bracketInfo);
+        }
+      }
+
+      results.push(tournamentResult);
+    }
+
+    console.log('\n✅ Migration completed successfully!\n');
+
+    ok(res, {
+      message: 'Tournament rounds migration completed',
+      tournaments_processed: results.length,
+      results
+    });
+
+  } catch (err) {
+    console.error('❌ Migration error:', err);
+    bad(res, 500, 'Migration failed: ' + err.message);
+  }
+});
+
 /* ====== Start ====== */
 (async ()=>{
   try{

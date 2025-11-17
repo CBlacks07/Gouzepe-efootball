@@ -299,6 +299,19 @@
               </select>
             </div>
 
+            <div class="form-group">
+              <label>Format des matchs (Best of) *</label>
+              <select id="bestOf" required>
+                <option value="1" selected>Best of 1 (match simple)</option>
+                <option value="3">Best of 3 (premier à 2 victoires)</option>
+                <option value="5">Best of 5 (premier à 3 victoires)</option>
+                <option value="7">Best of 7 (premier à 4 victoires)</option>
+              </select>
+              <p style="font-size:12px;color:var(--muted);margin-top:6px">
+                💡 Pour Best of 3/5/7, chaque match sera composé de plusieurs games
+              </p>
+            </div>
+
             <div class="form-group" id="loserBracketOption" style="display:none">
               <label style="display:flex;align-items:center;gap:8px;cursor:pointer">
                 <input type="checkbox" id="hasLoserBracket">
@@ -328,6 +341,31 @@
                 <option value="simple">⚡ Score simple (un match)</option>
                 <option value="home_away">🔄 Aller-Retour (deux matchs)</option>
               </select>
+            </div>
+
+            <div class="form-group">
+              <label style="display:flex;align-items:center;gap:8px;cursor:pointer">
+                <input type="checkbox" id="checkInEnabled">
+                <span>✅ Activer le système de check-in (comme sur Challonge)</span>
+              </label>
+              <p style="font-size:12px;color:var(--muted);margin-top:6px">
+                Les participants devront se "check-in" avant le début du tournoi pour confirmer leur présence
+              </p>
+            </div>
+
+            <div class="form-group" id="checkInTimeOption" style="display:none">
+              <label>Délai de check-in (minutes avant le début)</label>
+              <input type="number" id="checkInMinutes" min="5" max="120" value="30" placeholder="30">
+              <p style="font-size:12px;color:var(--muted);margin-top:6px">
+                Les participants non check-in après ce délai pourront être retirés automatiquement
+              </p>
+            </div>
+
+            <div class="form-group">
+              <label style="display:flex;align-items:center;gap:8px;cursor:pointer">
+                <input type="checkbox" id="isPublic" checked>
+                <span>🌐 Tournoi public (visible par tous)</span>
+              </label>
             </div>
 
             <div class="form-group">
@@ -493,6 +531,16 @@ function toggleFormatOptions() {
   }
 }
 
+// Afficher/masquer délai check-in
+$('#checkInEnabled')?.addEventListener('change', (e) => {
+  const checkInTimeOption = $('#checkInTimeOption');
+  if (e.target.checked) {
+    checkInTimeOption.style.display = 'block';
+  } else {
+    checkInTimeOption.style.display = 'none';
+  }
+});
+
 // Charger les tournois
 async function loadTournaments() {
   try {
@@ -538,6 +586,10 @@ $('#createTournamentForm')?.addEventListener('submit', async (e) => {
   const match_format = $('#matchFormat').value;
   const description = $('#tournamentDescription').value.trim();
   const has_loser_bracket = (format === 'double_elimination') && $('#hasLoserBracket').checked;
+  const best_of = parseInt($('#bestOf').value) || 1;
+  const check_in_enabled = $('#checkInEnabled').checked;
+  const check_in_minutes = check_in_enabled ? (parseInt($('#checkInMinutes').value) || 30) : null;
+  const is_public = $('#isPublic').checked;
 
   if (!name || !game_type || !format || !match_format) {
     alert('Veuillez remplir tous les champs obligatoires');
@@ -547,12 +599,16 @@ $('#createTournamentForm')?.addEventListener('submit', async (e) => {
   try {
     await apiCall('/tournaments', {
       method: 'POST',
-      body: JSON.stringify({ name, game_type, format, match_format, description, has_loser_bracket })
+      body: JSON.stringify({
+        name, game_type, format, match_format, description, has_loser_bracket,
+        best_of, check_in_enabled, check_in_minutes, is_public
+      })
     });
 
     alert('✅ Tournoi créé avec succès !');
     $('#createTournamentForm').reset();
     toggleFormatOptions(); // Reset l'affichage
+    $('#checkInTimeOption').style.display = 'none';
 
     // Retour à la liste
     $('.tab[data-tab="all"]').click();
@@ -602,14 +658,40 @@ function renderTournamentDetails(data) {
           <div class="info-value">${tournament.match_format === 'home_away' ? 'Aller-Retour' : 'Score simple'}</div>
         </div>
         <div class="info-item">
+          <div class="info-label">Best of</div>
+          <div class="info-value">Best of ${tournament.best_of || 1}</div>
+        </div>
+        <div class="info-item">
           <div class="info-label">Statut</div>
           <div class="info-value">
             <span class="status ${tournament.status}">${tournament.status === 'active' ? 'En cours' : tournament.status === 'closed' ? 'Terminé' : 'Brouillon'}</span>
           </div>
         </div>
+        ${tournament.check_in_enabled ? `
+          <div class="info-item">
+            <div class="info-label">Check-in</div>
+            <div class="info-value">${participants.filter(p => p.checked_in).length} / ${participants.length} ✅</div>
+          </div>
+        ` : ''}
+        ${tournament.is_public ? `
+          <div class="info-item">
+            <div class="info-label">Visibilité</div>
+            <div class="info-value">🌐 Public</div>
+          </div>
+        ` : ''}
       </div>
 
       ${tournament.description ? `<p style="color:var(--muted);margin-top:12px">${escapeHtml(tournament.description)}</p>` : ''}
+
+      ${tournament.check_in_enabled && tournament.status === 'draft' ? `
+        <div style="background:rgba(34,197,94,.1);border:1px solid var(--ok);border-radius:12px;padding:16px;margin-top:12px">
+          <strong style="color:var(--ok)">✅ Check-in activé</strong>
+          <p style="margin:8px 0 0;font-size:14px;color:var(--muted)">
+            Les participants doivent se check-in avant le début du tournoi
+            ${tournament.check_in_deadline ? ` (deadline: ${new Date(tournament.check_in_deadline).toLocaleString('fr-FR')})` : ''}
+          </p>
+        </div>
+      ` : ''}
     </div>
   `;
 
@@ -620,6 +702,7 @@ function renderTournamentDetails(data) {
         <h5>Actions Admin</h5>
         <div class="btn-group">
           ${participants.length >= 2 ? `<button class="btn" style="background:#7c3aed;border-color:#7c3aed;color:#fff" onclick="shuffleParticipants(${tournament.id})">🔀 Mélanger participants</button>` : ''}
+          ${tournament.check_in_enabled && participants.some(p => !p.checked_in) ? `<button class="btn warn" onclick="removeNoShows(${tournament.id})">🚫 Retirer les absents</button>` : ''}
           <button class="btn success" onclick="generateBracket(${tournament.id})">🎯 Générer bracket</button>
           <button class="btn primary" onclick="startTournament(${tournament.id})">▶️ Démarrer tournoi</button>
           <button class="btn danger" onclick="deleteTournament(${tournament.id})">🗑️ Supprimer</button>
@@ -672,19 +755,48 @@ function renderTournamentDetails(data) {
           ` : ''}
 
           ${participants.length > 0 ? `
-            <div class="participants-inline">
-              ${participants.map(p => `<span class="participant-tag">${escapeHtml(p.participant_name)}</span>`).join('')}
-              ${role === 'admin' && tournament.status === 'draft' ? `
-                <div style="margin-top:12px;padding-top:12px;border-top:1px solid var(--border)">
+            ${tournament.check_in_enabled && tournament.status === 'draft' ? `
+              <div style="margin-bottom:16px;background:rgba(59,130,246,.1);border:1px solid var(--accent);border-radius:8px;padding:12px">
+                <strong>✅ Check-in des participants</strong>
+                <div style="margin-top:12px;display:grid;gap:8px">
                   ${participants.map(p => `
-                    <div style="display:inline-flex;align-items:center;gap:6px;margin:4px">
-                      <span style="font-size:13px">${escapeHtml(p.participant_name)}</span>
-                      <button class="btn danger" style="padding:4px 8px;font-size:11px" onclick="removeParticipant(${tournament.id}, ${p.id})">✕</button>
+                    <div style="display:flex;align-items:center;justify-content:space-between;background:var(--panel);padding:8px 12px;border-radius:6px">
+                      <div style="display:flex;align-items:center;gap:8px">
+                        <span style="font-size:14px;font-weight:600">${p.seed ? `#${p.seed}` : ''} ${escapeHtml(p.participant_name)}</span>
+                        ${p.checked_in ?
+                          '<span style="background:rgba(34,197,94,.2);color:var(--ok);padding:2px 8px;border-radius:999px;font-size:11px;font-weight:700">✓ CHECK-IN</span>' :
+                          '<span style="background:rgba(239,68,68,.2);color:var(--ko);padding:2px 8px;border-radius:999px;font-size:11px;font-weight:700">✗ ABSENT</span>'
+                        }
+                      </div>
+                      ${!p.checked_in ? `
+                        <button class="btn primary" style="padding:4px 10px;font-size:11px" onclick="checkInParticipant(${tournament.id}, '${escapeHtml(p.participant_name)}')">
+                          ✅ Check-in
+                        </button>
+                      ` : ''}
                     </div>
                   `).join('')}
                 </div>
-              ` : ''}
-            </div>
+              </div>
+            ` : `
+              <div class="participants-inline">
+                ${participants.map(p => {
+                  const seedBadge = p.seed ? `<span style="background:rgba(59,130,246,.2);color:var(--accent);padding:2px 6px;border-radius:4px;font-size:10px;font-weight:700;margin-right:4px">#${p.seed}</span>` : '';
+                  return `<span class="participant-tag">${seedBadge}${escapeHtml(p.participant_name)}</span>`;
+                }).join('')}
+              </div>
+            `}
+            ${role === 'admin' && tournament.status === 'draft' ? `
+              <div style="margin-top:12px;padding-top:12px;border-top:1px solid var(--border)">
+                <strong style="font-size:12px;color:var(--muted);display:block;margin-bottom:8px">GESTION DES PARTICIPANTS</strong>
+                ${participants.map(p => `
+                  <div style="display:flex;align-items:center;gap:6px;margin:6px 0;background:var(--card);padding:6px;border-radius:6px">
+                    <input type="number" value="${p.seed || ''}" placeholder="#" style="width:50px;padding:4px;font-size:11px" onchange="updateSeed(${tournament.id}, ${p.id}, this.value)" title="Seed (ordre)">
+                    <span style="flex:1;font-size:13px;font-weight:600">${escapeHtml(p.participant_name)}</span>
+                    <button class="btn danger" style="padding:4px 8px;font-size:11px" onclick="removeParticipant(${tournament.id}, ${p.id})">✕</button>
+                  </div>
+                `).join('')}
+              </div>
+            ` : ''}
           ` : '<p style="color:var(--muted)">Aucun participant</p>'}
         </div>
       </div>
@@ -808,6 +920,19 @@ function renderSingleBracket(matches, tournament, title) {
                 💾 Sauver
               </button>
             </div>
+          ` : ''}
+
+          ${m.participant1_id && m.participant2_id ? `
+            <div style="display:flex;gap:4px;padding:8px;border-top:1px solid var(--border)">
+              <button class="btn ghost" style="flex:1;padding:4px;font-size:11px" onclick="toggleMatchComments(${tournament.id}, ${m.id})">
+                💬 Commentaires
+              </button>
+              <button class="btn ghost" style="flex:1;padding:4px;font-size:11px" onclick="toggleMatchAttachments(${tournament.id}, ${m.id})">
+                📎 Preuves
+              </button>
+            </div>
+            <div id="comments-${m.id}" style="display:none"></div>
+            <div id="attachments-${m.id}" style="display:none"></div>
           ` : ''}
         </div>
       `;
@@ -968,6 +1093,19 @@ function renderGroupsMatches(matches, participants, tournament) {
                 💾 Sauver
               </button>
             </div>
+          ` : ''}
+
+          ${m.participant1_id && m.participant2_id ? `
+            <div style="display:flex;gap:4px;padding:8px;border-top:1px solid var(--border)">
+              <button class="btn ghost" style="flex:1;padding:4px;font-size:11px" onclick="toggleMatchComments(${tournament.id}, ${m.id})">
+                💬 Commentaires
+              </button>
+              <button class="btn ghost" style="flex:1;padding:4px;font-size:11px" onclick="toggleMatchAttachments(${tournament.id}, ${m.id})">
+                📎 Preuves
+              </button>
+            </div>
+            <div id="comments-${m.id}" style="display:none"></div>
+            <div id="attachments-${m.id}" style="display:none"></div>
           ` : ''}
         </div>
       `;
@@ -1275,6 +1413,214 @@ async function deleteTournament(tournamentId) {
 
     alert('✅ Tournoi supprimé');
     backToList();
+  } catch (err) {
+    alert('❌ Erreur: ' + err.message);
+  }
+}
+
+// === NOUVELLES FONCTIONS STYLE CHALLONGE ===
+
+// Retirer les participants non check-in
+async function removeNoShows(tournamentId) {
+  if (!confirm('⚠️ Retirer tous les participants qui ne se sont pas check-in ?')) return;
+
+  try {
+    const result = await apiCall(`/tournaments/${tournamentId}/remove-no-shows`, {
+      method: 'POST'
+    });
+
+    alert(`✅ ${result.removed_count} participant(s) retiré(s): ${result.removed_participants.join(', ')}`);
+    viewTournament(tournamentId);
+  } catch (err) {
+    alert('❌ Erreur: ' + err.message);
+  }
+}
+
+// Check-in d'un participant
+async function checkInParticipant(tournamentId, participantName) {
+  try {
+    await apiCall(`/tournaments/${tournamentId}/check-in`, {
+      method: 'POST',
+      body: JSON.stringify({ participant_name: participantName })
+    });
+
+    alert(`✅ Check-in réussi pour ${participantName} !`);
+    viewTournament(tournamentId);
+  } catch (err) {
+    alert('❌ Erreur: ' + err.message);
+  }
+}
+
+// Mettre à jour le seed d'un participant
+async function updateSeed(tournamentId, participantId, newSeed) {
+  try {
+    await apiCall(`/tournaments/${tournamentId}/participants/${participantId}/seed`, {
+      method: 'PUT',
+      body: JSON.stringify({ seed: newSeed })
+    });
+
+    viewTournament(tournamentId);
+  } catch (err) {
+    alert('❌ Erreur: ' + err.message);
+  }
+}
+
+// Afficher/masquer les commentaires d'un match
+async function toggleMatchComments(tournamentId, matchId) {
+  const container = $(`#comments-${matchId}`);
+  if (!container) return;
+
+  if (container.style.display === 'block') {
+    container.style.display = 'none';
+    return;
+  }
+
+  try {
+    const data = await apiCall(`/tournaments/${tournamentId}/matches/${matchId}/comments`);
+    const comments = data.comments || [];
+
+    let html = `
+      <div style="background:var(--card);padding:12px;border-radius:8px;margin-top:8px">
+        <h4 style="margin:0 0 12px;font-size:14px">💬 Commentaires (${comments.length})</h4>
+    `;
+
+    if (comments.length === 0) {
+      html += '<p style="color:var(--muted);font-size:13px">Aucun commentaire</p>';
+    } else {
+      comments.forEach(c => {
+        html += `
+          <div style="border-bottom:1px solid var(--border);padding:8px 0">
+            <div style="font-weight:600;font-size:13px">${escapeHtml(c.user_email)}</div>
+            <div style="color:var(--muted);font-size:13px;margin:4px 0">${escapeHtml(c.comment_text)}</div>
+            <div style="font-size:11px;color:var(--muted)">${new Date(c.created_at).toLocaleString('fr-FR')}</div>
+          </div>
+        `;
+      });
+    }
+
+    html += `
+        <div style="margin-top:12px">
+          <input type="text" id="comment-input-${matchId}" placeholder="Ajouter un commentaire..." style="width:100%;margin-bottom:8px">
+          <button class="btn primary" style="width:100%;padding:6px;font-size:12px" onclick="addMatchComment(${tournamentId}, ${matchId})">
+            💬 Poster
+          </button>
+        </div>
+      </div>
+    `;
+
+    container.innerHTML = html;
+    container.style.display = 'block';
+  } catch (err) {
+    alert('❌ Erreur: ' + err.message);
+  }
+}
+
+// Ajouter un commentaire
+async function addMatchComment(tournamentId, matchId) {
+  const input = $(`#comment-input-${matchId}`);
+  const text = input?.value.trim();
+
+  if (!text) {
+    alert('Veuillez entrer un commentaire');
+    return;
+  }
+
+  try {
+    await apiCall(`/tournaments/${tournamentId}/matches/${matchId}/comments`, {
+      method: 'POST',
+      body: JSON.stringify({ comment_text: text })
+    });
+
+    // Recharger les commentaires
+    toggleMatchComments(tournamentId, matchId);
+    toggleMatchComments(tournamentId, matchId);
+  } catch (err) {
+    alert('❌ Erreur: ' + err.message);
+  }
+}
+
+// Afficher/masquer les attachments d'un match
+async function toggleMatchAttachments(tournamentId, matchId) {
+  const container = $(`#attachments-${matchId}`);
+  if (!container) return;
+
+  if (container.style.display === 'block') {
+    container.style.display = 'none';
+    return;
+  }
+
+  try {
+    const data = await apiCall(`/tournaments/${tournamentId}/matches/${matchId}/attachments`);
+    const attachments = data.attachments || [];
+
+    let html = `
+      <div style="background:var(--card);padding:12px;border-radius:8px;margin-top:8px">
+        <h4 style="margin:0 0 12px;font-size:14px">📎 Preuves de résultat (${attachments.length})</h4>
+    `;
+
+    if (attachments.length === 0) {
+      html += '<p style="color:var(--muted);font-size:13px">Aucune preuve ajoutée</p>';
+    } else {
+      attachments.forEach(a => {
+        html += `
+          <div style="border-bottom:1px solid var(--border);padding:8px 0">
+            <div style="font-weight:600;font-size:13px">${a.attachment_type === 'image' ? '🖼️' : a.attachment_type === 'video' ? '🎥' : '🔗'} ${escapeHtml(a.description || 'Sans description')}</div>
+            <div style="margin:4px 0">
+              <a href="${escapeHtml(a.attachment_url)}" target="_blank" style="color:var(--accent);font-size:13px">Voir la preuve</a>
+            </div>
+            <div style="font-size:11px;color:var(--muted)">Par ${escapeHtml(a.uploaded_by)} • ${new Date(a.created_at).toLocaleString('fr-FR')}</div>
+          </div>
+        `;
+      });
+    }
+
+    html += `
+        <div style="margin-top:12px">
+          <select id="attach-type-${matchId}" style="margin-bottom:8px">
+            <option value="image">🖼️ Image</option>
+            <option value="video">🎥 Vidéo</option>
+            <option value="link">🔗 Lien</option>
+          </select>
+          <input type="text" id="attach-url-${matchId}" placeholder="URL de la preuve" style="width:100%;margin-bottom:8px">
+          <input type="text" id="attach-desc-${matchId}" placeholder="Description (optionnel)" style="width:100%;margin-bottom:8px">
+          <button class="btn primary" style="width:100%;padding:6px;font-size:12px" onclick="addMatchAttachment(${tournamentId}, ${matchId})">
+            📎 Ajouter une preuve
+          </button>
+        </div>
+      </div>
+    `;
+
+    container.innerHTML = html;
+    container.style.display = 'block';
+  } catch (err) {
+    alert('❌ Erreur: ' + err.message);
+  }
+}
+
+// Ajouter un attachment
+async function addMatchAttachment(tournamentId, matchId) {
+  const type = $(`#attach-type-${matchId}`)?.value;
+  const url = $(`#attach-url-${matchId}`)?.value.trim();
+  const desc = $(`#attach-desc-${matchId}`)?.value.trim();
+
+  if (!url) {
+    alert('Veuillez entrer une URL');
+    return;
+  }
+
+  try {
+    await apiCall(`/tournaments/${tournamentId}/matches/${matchId}/attachments`, {
+      method: 'POST',
+      body: JSON.stringify({
+        attachment_type: type,
+        attachment_url: url,
+        description: desc
+      })
+    });
+
+    // Recharger les attachments
+    toggleMatchAttachments(tournamentId, matchId);
+    toggleMatchAttachments(tournamentId, matchId);
   } catch (err) {
     alert('❌ Erreur: ' + err.message);
   }

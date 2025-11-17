@@ -56,32 +56,35 @@
     }
     a{color:inherit;text-decoration:none}
 
-    /* Topbar */
+    /* ===== TOP ===== */
     .top{
-      position:sticky;top:0;z-index:50;display:flex;gap:10px;align-items:center;
-      padding:10px var(--pad); background:var(--topbar-bg); backdrop-filter:blur(8px);
-      border-bottom:1px solid var(--border)
+      position:sticky;top:0;z-index:40;display:flex;align-items:center;gap:12px;
+      padding:10px var(--pad);background:rgba(10,14,22,.65);backdrop-filter:blur(8px);border-bottom:1px solid var(--border)
     }
-    .brand{display:flex;align-items:center;gap:10px}
-    .logo{width:40px;height:40px;border-radius:10px;border:1px solid var(--border);background:var(--panel)}
-    .title{display:flex;flex-direction:column}
-    .title b{font-size:18px}
-    .title small{color:var(--muted);margin-top:2px}
-    .sp{flex:1}
-    .menu-toggle{display:inline-flex;border:1px solid var(--border);background:var(--panel);color:inherit;border-radius:10px;padding:8px 10px}
-    .btn{
-      display:inline-flex;align-items:center;gap:8px;
-      border:1px solid var(--border);background:var(--panel);color:inherit;
-      border-radius:999px;padding:8px 12px;font-weight:600;white-space:nowrap;
-      transition:transform .1s ease, filter .15s ease, background-color .15s ease, border-color .15s ease;
-    }
-    .btn:hover{filter:brightness(1.04)} .btn:active{transform:translateY(1px)}
-    .btn.primary{background:var(--chip-win);border-color:#1e3a2f}
-    .btn.info{background:var(--chip-lose);border-color:#1e3a8a}
-    .nav{display:flex;align-items:center;gap:8px;overflow-x:auto;padding:4px 0}
+    html.light .top{background:rgba(255,255,255,.75)}
+    .brand{display:flex;align-items:center;gap:10px;text-decoration:none;color:inherit;user-select:none}
+    .logo{width:42px;height:42px;border-radius:12px;object-fit:cover;border:1px solid var(--border);background:#0d1420}
+    .brand-title{display:flex;flex-direction:column;line-height:1.1}
+    .brand-title h1{margin:0;font-size:18px;letter-spacing:.3px;font-weight:800}
+    .season-sub{margin:0;color:var(--muted);font-size:12px}
+    #menuToggle{display:none;flex:0 0 auto;appearance:none;border:1px solid var(--border);background:transparent;color:inherit;border-radius:10px;padding:8px 10px;align-items:center;gap:8px}
+    .nav{display:flex;align-items:center;gap:8px;overflow-x:auto;padding:4px 0;scrollbar-width:thin;-webkit-overflow-scrolling:touch}
     #menu{display:flex;gap:8px}
-    .badge{display:inline-flex;align-items:center;gap:6px;padding:4px 10px;border:1px dashed var(--border);border-radius:999px;font-size:13px;font-weight:600;opacity:.9}
-    @media (min-width:900px){.menu-toggle{display:none}.nav{display:flex!important}}
+    .btn{display:inline-flex;align-items:center;justify-content:center;gap:8px;padding:8px 12px;border-radius:999px;font-weight:600;border:1px solid var(--border);background:transparent;color:inherit;text-decoration:none;line-height:1;white-space:nowrap;transition:filter .15s,transform .02s}
+    .btn:hover{filter:brightness(1.1)} .btn:active{transform:translateY(1px)}
+    .btn.primary{background:rgba(22,163,74,.15);border-color:#1e3a2f}
+    .btn.info{background:rgba(59,130,246,.14);border-color:#1e3a8a}
+    .btn.warn{background:rgba(245,158,11,.14);border-color:#7c2d12}
+    .btn.ghost{background:transparent}
+    .spacer{flex:1 1 auto} .tiny{font-size:12px;opacity:.8}
+    .badge{display:inline-flex;align-items:center;gap:8px;padding:4px 8px;border:1px dashed var(--border);border-radius:999px;font-weight:600;opacity:.9}
+    .badge .dot{width:8px;height:8px;border-radius:50%;background:var(--brand)}
+    .badge-top{display:none}
+    @media (max-width: 900px){
+      #menuToggle{display:inline-flex}
+      .nav{display:none}
+      .top.nav-open .nav{display:flex}
+    }
     .btn.danger{background:var(--panel);border-color:#7f1d1d;color:#b91c1c}
 
     /* === Menu Mobile Moderne === */

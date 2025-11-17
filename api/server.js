@@ -297,6 +297,59 @@ async function ensureSchema(){
   await q(`ALTER TABLE tournament_matches ADD COLUMN IF NOT EXISTS group_id INTEGER`);
   await q(`ALTER TABLE tournament_matches ADD COLUMN IF NOT EXISTS is_knockout BOOLEAN DEFAULT false`);
 
+  /* === NOUVELLES FONCTIONNALITÉS STYLE CHALLONGE === */
+
+  /* Check-in system */
+  await q(`ALTER TABLE tournaments ADD COLUMN IF NOT EXISTS check_in_enabled BOOLEAN DEFAULT false`);
+  await q(`ALTER TABLE tournaments ADD COLUMN IF NOT EXISTS check_in_deadline TIMESTAMPTZ`);
+  await q(`ALTER TABLE tournament_participants ADD COLUMN IF NOT EXISTS checked_in BOOLEAN DEFAULT false`);
+  await q(`ALTER TABLE tournament_participants ADD COLUMN IF NOT EXISTS checked_in_at TIMESTAMPTZ`);
+
+  /* Best of X (1, 3, 5, 7...) */
+  await q(`ALTER TABLE tournaments ADD COLUMN IF NOT EXISTS best_of INTEGER DEFAULT 1`);
+
+  /* Table pour les sous-matches (games) dans un match Best of 3/5 */
+  await q(`CREATE TABLE IF NOT EXISTS match_games(
+    id SERIAL PRIMARY KEY,
+    match_id INTEGER NOT NULL REFERENCES tournament_matches(id) ON DELETE CASCADE,
+    game_number INTEGER NOT NULL,
+    score1 INTEGER,
+    score2 INTEGER,
+    winner_id INTEGER REFERENCES tournament_participants(id),
+    played_at TIMESTAMPTZ,
+    created_at TIMESTAMPTZ DEFAULT now(),
+    UNIQUE(match_id, game_number)
+  )`);
+
+  /* Attachments (preuves de résultats - captures d'écran, liens...) */
+  await q(`CREATE TABLE IF NOT EXISTS match_attachments(
+    id SERIAL PRIMARY KEY,
+    match_id INTEGER NOT NULL REFERENCES tournament_matches(id) ON DELETE CASCADE,
+    uploaded_by_user_id INTEGER REFERENCES users(id),
+    attachment_type TEXT NOT NULL,
+    attachment_url TEXT NOT NULL,
+    description TEXT,
+    created_at TIMESTAMPTZ DEFAULT now()
+  )`);
+
+  /* Commentaires sur les matchs */
+  await q(`CREATE TABLE IF NOT EXISTS match_comments(
+    id SERIAL PRIMARY KEY,
+    match_id INTEGER NOT NULL REFERENCES tournament_matches(id) ON DELETE CASCADE,
+    user_id INTEGER REFERENCES users(id),
+    comment_text TEXT NOT NULL,
+    created_at TIMESTAMPTZ DEFAULT now()
+  )`);
+
+  /* URL publique du tournoi */
+  await q(`ALTER TABLE tournaments ADD COLUMN IF NOT EXISTS public_url TEXT UNIQUE`);
+  await q(`ALTER TABLE tournaments ADD COLUMN IF NOT EXISTS is_public BOOLEAN DEFAULT true`);
+
+  /* Index pour performances */
+  await q(`CREATE INDEX IF NOT EXISTS idx_match_games_match ON match_games(match_id)`);
+  await q(`CREATE INDEX IF NOT EXISTS idx_match_attachments_match ON match_attachments(match_id)`);
+  await q(`CREATE INDEX IF NOT EXISTS idx_match_comments_match ON match_comments(match_id)`);
+
   /* seed admin */
   const adminEmail = process.env.ADMIN_EMAIL || 'admin@gz.local';
   const adminPass  = process.env.ADMIN_PASSWORD || 'admin';
@@ -1222,7 +1275,10 @@ app.get('/tournaments/:id', auth, async (req, res) => {
 // Créer un nouveau tournoi (admin seulement)
 app.post('/tournaments', auth, adminOnly, async (req, res) => {
   try {
-    const { name, game_type, format, match_format, description, has_loser_bracket } = req.body;
+    const {
+      name, game_type, format, match_format, description, has_loser_bracket,
+      check_in_enabled, check_in_minutes, best_of, is_public
+    } = req.body;
 
     if (!name || !game_type || !format) {
       return bad(res, 400, 'Missing required fields: name, game_type, format');
@@ -1243,11 +1299,31 @@ app.post('/tournaments', auth, adminOnly, async (req, res) => {
     // Loser bracket seulement pour double elimination
     const loserBracket = (format === 'double_elimination' && has_loser_bracket === true);
 
+    // Check-in deadline (si activé)
+    let checkInDeadline = null;
+    if (check_in_enabled && check_in_minutes) {
+      checkInDeadline = new Date(Date.now() + check_in_minutes * 60 * 1000);
+    }
+
+    // Best of (1, 3, 5, 7...)
+    const bestOf = best_of && [1, 3, 5, 7].includes(best_of) ? best_of : 1;
+
+    // Générer une URL publique unique
+    const publicUrl = `${name.toLowerCase().replace(/\s+/g, '-')}-${Date.now().toString(36)}`;
+
     const result = await q(`
-      INSERT INTO tournaments(name, game_type, format, match_format, description, has_loser_bracket, created_by_user_id, status)
-      VALUES ($1, $2, $3, $4, $5, $6, $7, 'draft')
+      INSERT INTO tournaments(
+        name, game_type, format, match_format, description, has_loser_bracket,
+        created_by_user_id, status, check_in_enabled, check_in_deadline, best_of,
+        is_public, public_url
+      )
+      VALUES ($1, $2, $3, $4, $5, $6, $7, 'draft', $8, $9, $10, $11, $12)
       RETURNING *
-    `, [name, game_type, format, match_format || 'simple', description || '', loserBracket, req.user.id]);
+    `, [
+      name, game_type, format, match_format || 'simple', description || '', loserBracket,
+      req.user.id, check_in_enabled || false, checkInDeadline, bestOf,
+      is_public !== false, publicUrl
+    ]);
 
     io.emit('tournament:created', { tournament: result.rows[0] });
     ok(res, { tournament: result.rows[0] });
@@ -1862,6 +1938,459 @@ app.get('/tournaments/:id/standings', auth, async (req, res) => {
   } catch (err) {
     console.error(err);
     bad(res, 500, 'Failed to fetch standings');
+  }
+});
+
+/* === NOUVELLES ROUTES STYLE CHALLONGE === */
+
+// Check-in participant
+app.post('/tournaments/:id/check-in', auth, async (req, res) => {
+  try {
+    const { id } = req.params;
+    const { participant_name } = req.body;
+
+    const tResult = await q(`SELECT * FROM tournaments WHERE id=$1`, [id]);
+    if (tResult.rowCount === 0) return bad(res, 404, 'Tournament not found');
+
+    const tournament = tResult.rows[0];
+
+    if (!tournament.check_in_enabled) {
+      return bad(res, 400, 'Check-in is not enabled for this tournament');
+    }
+
+    if (tournament.status !== 'draft') {
+      return bad(res, 400, 'Tournament has already started');
+    }
+
+    if (tournament.check_in_deadline && new Date() > new Date(tournament.check_in_deadline)) {
+      return bad(res, 400, 'Check-in deadline has passed');
+    }
+
+    // Trouver le participant
+    const pResult = await q(`
+      SELECT * FROM tournament_participants
+      WHERE tournament_id=$1 AND participant_name=$2
+    `, [id, participant_name]);
+
+    if (pResult.rowCount === 0) {
+      return bad(res, 404, 'Participant not found in this tournament');
+    }
+
+    // Check-in
+    await q(`
+      UPDATE tournament_participants
+      SET checked_in=true, checked_in_at=now()
+      WHERE id=$1
+    `, [pResult.rows[0].id]);
+
+    io.emit('tournament:checkin', {
+      tournament_id: id,
+      participant_name
+    });
+
+    ok(res, { message: 'Check-in successful' });
+  } catch (err) {
+    console.error(err);
+    bad(res, 500, 'Failed to check in');
+  }
+});
+
+// Retirer les participants non check-in (admin)
+app.post('/tournaments/:id/remove-no-shows', auth, adminOnly, async (req, res) => {
+  try {
+    const { id } = req.params;
+
+    const tResult = await q(`SELECT * FROM tournaments WHERE id=$1`, [id]);
+    if (tResult.rowCount === 0) return bad(res, 404, 'Tournament not found');
+
+    const tournament = tResult.rows[0];
+
+    if (!tournament.check_in_enabled) {
+      return bad(res, 400, 'Check-in is not enabled for this tournament');
+    }
+
+    // Supprimer les participants non check-in
+    const result = await q(`
+      DELETE FROM tournament_participants
+      WHERE tournament_id=$1 AND checked_in=false
+      RETURNING participant_name
+    `, [id]);
+
+    io.emit('tournament:updated', { tournament_id: id });
+
+    ok(res, {
+      removed_count: result.rowCount,
+      removed_participants: result.rows.map(r => r.participant_name)
+    });
+  } catch (err) {
+    console.error(err);
+    bad(res, 500, 'Failed to remove no-shows');
+  }
+});
+
+// Mettre à jour le seed d'un participant (admin)
+app.put('/tournaments/:id/participants/:pid/seed', auth, adminOnly, async (req, res) => {
+  try {
+    const { id, pid } = req.params;
+    const { seed } = req.body;
+
+    if (seed === undefined || seed === null) {
+      return bad(res, 400, 'Seed is required');
+    }
+
+    const tResult = await q(`SELECT * FROM tournaments WHERE id=$1`, [id]);
+    if (tResult.rowCount === 0) return bad(res, 404, 'Tournament not found');
+
+    if (tResult.rows[0].status !== 'draft') {
+      return bad(res, 400, 'Cannot modify seeds after tournament has started');
+    }
+
+    await q(`
+      UPDATE tournament_participants
+      SET seed=$1
+      WHERE id=$2 AND tournament_id=$3
+    `, [seed, pid, id]);
+
+    io.emit('tournament:updated', { tournament_id: id });
+
+    ok(res, { message: 'Seed updated successfully' });
+  } catch (err) {
+    console.error(err);
+    bad(res, 500, 'Failed to update seed');
+  }
+});
+
+// Réorganiser tous les seeds (admin)
+app.put('/tournaments/:id/reorder-seeds', auth, adminOnly, async (req, res) => {
+  try {
+    const { id } = req.params;
+    const { participant_ids } = req.body; // Tableau d'IDs dans le nouvel ordre
+
+    if (!Array.isArray(participant_ids)) {
+      return bad(res, 400, 'participant_ids must be an array');
+    }
+
+    const tResult = await q(`SELECT * FROM tournaments WHERE id=$1`, [id]);
+    if (tResult.rowCount === 0) return bad(res, 404, 'Tournament not found');
+
+    if (tResult.rows[0].status !== 'draft') {
+      return bad(res, 400, 'Cannot modify seeds after tournament has started');
+    }
+
+    // Mettre à jour les seeds selon l'ordre fourni
+    for (let i = 0; i < participant_ids.length; i++) {
+      await q(`
+        UPDATE tournament_participants
+        SET seed=$1
+        WHERE id=$2 AND tournament_id=$3
+      `, [i + 1, participant_ids[i], id]);
+    }
+
+    io.emit('tournament:updated', { tournament_id: id });
+
+    ok(res, { message: 'Seeds reordered successfully' });
+  } catch (err) {
+    console.error(err);
+    bad(res, 500, 'Failed to reorder seeds');
+  }
+});
+
+// Ajouter un commentaire sur un match
+app.post('/tournaments/:id/matches/:mid/comments', auth, async (req, res) => {
+  try {
+    const { id, mid } = req.params;
+    const { comment_text } = req.body;
+
+    if (!comment_text || comment_text.trim().length === 0) {
+      return bad(res, 400, 'Comment text is required');
+    }
+
+    // Vérifier que le match existe
+    const mResult = await q(`
+      SELECT * FROM tournament_matches
+      WHERE id=$1 AND tournament_id=$2
+    `, [mid, id]);
+
+    if (mResult.rowCount === 0) {
+      return bad(res, 404, 'Match not found');
+    }
+
+    // Ajouter le commentaire
+    const result = await q(`
+      INSERT INTO match_comments(match_id, user_id, comment_text)
+      VALUES ($1, $2, $3)
+      RETURNING *, (SELECT email FROM users WHERE id=$2) as user_email
+    `, [mid, req.user.id, comment_text.trim()]);
+
+    io.emit('match:comment', {
+      tournament_id: id,
+      match_id: mid,
+      comment: result.rows[0]
+    });
+
+    ok(res, { comment: result.rows[0] });
+  } catch (err) {
+    console.error(err);
+    bad(res, 500, 'Failed to add comment');
+  }
+});
+
+// Récupérer les commentaires d'un match
+app.get('/tournaments/:id/matches/:mid/comments', auth, async (req, res) => {
+  try {
+    const { mid } = req.params;
+
+    const result = await q(`
+      SELECT mc.*, u.email as user_email
+      FROM match_comments mc
+      LEFT JOIN users u ON mc.user_id = u.id
+      WHERE mc.match_id=$1
+      ORDER BY mc.created_at ASC
+    `, [mid]);
+
+    ok(res, { comments: result.rows });
+  } catch (err) {
+    console.error(err);
+    bad(res, 500, 'Failed to fetch comments');
+  }
+});
+
+// Supprimer un commentaire (admin ou auteur)
+app.delete('/tournaments/:id/matches/:mid/comments/:cid', auth, async (req, res) => {
+  try {
+    const { cid } = req.params;
+
+    const cResult = await q(`SELECT * FROM match_comments WHERE id=$1`, [cid]);
+    if (cResult.rowCount === 0) return bad(res, 404, 'Comment not found');
+
+    const comment = cResult.rows[0];
+
+    // Seul l'auteur ou un admin peut supprimer
+    if (comment.user_id !== req.user.id && req.user.role !== 'admin') {
+      return bad(res, 403, 'Not authorized to delete this comment');
+    }
+
+    await q(`DELETE FROM match_comments WHERE id=$1`, [cid]);
+
+    ok(res, { message: 'Comment deleted' });
+  } catch (err) {
+    console.error(err);
+    bad(res, 500, 'Failed to delete comment');
+  }
+});
+
+// Ajouter un attachment (preuve) à un match
+app.post('/tournaments/:id/matches/:mid/attachments', auth, async (req, res) => {
+  try {
+    const { id, mid } = req.params;
+    const { attachment_type, attachment_url, description } = req.body;
+
+    if (!attachment_type || !attachment_url) {
+      return bad(res, 400, 'attachment_type and attachment_url are required');
+    }
+
+    const validTypes = ['image', 'video', 'link'];
+    if (!validTypes.includes(attachment_type)) {
+      return bad(res, 400, 'Invalid attachment_type. Must be: image, video, or link');
+    }
+
+    // Vérifier que le match existe
+    const mResult = await q(`
+      SELECT * FROM tournament_matches
+      WHERE id=$1 AND tournament_id=$2
+    `, [mid, id]);
+
+    if (mResult.rowCount === 0) {
+      return bad(res, 404, 'Match not found');
+    }
+
+    // Ajouter l'attachment
+    const result = await q(`
+      INSERT INTO match_attachments(match_id, uploaded_by_user_id, attachment_type, attachment_url, description)
+      VALUES ($1, $2, $3, $4, $5)
+      RETURNING *
+    `, [mid, req.user.id, attachment_type, attachment_url, description || '']);
+
+    io.emit('match:attachment', {
+      tournament_id: id,
+      match_id: mid,
+      attachment: result.rows[0]
+    });
+
+    ok(res, { attachment: result.rows[0] });
+  } catch (err) {
+    console.error(err);
+    bad(res, 500, 'Failed to add attachment');
+  }
+});
+
+// Récupérer les attachments d'un match
+app.get('/tournaments/:id/matches/:mid/attachments', auth, async (req, res) => {
+  try {
+    const { mid } = req.params;
+
+    const result = await q(`
+      SELECT ma.*, u.email as uploaded_by
+      FROM match_attachments ma
+      LEFT JOIN users u ON ma.uploaded_by_user_id = u.id
+      WHERE ma.match_id=$1
+      ORDER BY ma.created_at DESC
+    `, [mid]);
+
+    ok(res, { attachments: result.rows });
+  } catch (err) {
+    console.error(err);
+    bad(res, 500, 'Failed to fetch attachments');
+  }
+});
+
+// Supprimer un attachment (admin ou auteur)
+app.delete('/tournaments/:id/matches/:mid/attachments/:aid', auth, async (req, res) => {
+  try {
+    const { aid } = req.params;
+
+    const aResult = await q(`SELECT * FROM match_attachments WHERE id=$1`, [aid]);
+    if (aResult.rowCount === 0) return bad(res, 404, 'Attachment not found');
+
+    const attachment = aResult.rows[0];
+
+    // Seul l'auteur ou un admin peut supprimer
+    if (attachment.uploaded_by_user_id !== req.user.id && req.user.role !== 'admin') {
+      return bad(res, 403, 'Not authorized to delete this attachment');
+    }
+
+    await q(`DELETE FROM match_attachments WHERE id=$1`, [aid]);
+
+    ok(res, { message: 'Attachment deleted' });
+  } catch (err) {
+    console.error(err);
+    bad(res, 500, 'Failed to delete attachment');
+  }
+});
+
+// Enregistrer un game dans un match Best of X (admin)
+app.post('/tournaments/:id/matches/:mid/games', auth, adminOnly, async (req, res) => {
+  try {
+    const { id, mid } = req.params;
+    const { game_number, score1, score2 } = req.body;
+
+    if (game_number === undefined || score1 === undefined || score2 === undefined) {
+      return bad(res, 400, 'game_number, score1, and score2 are required');
+    }
+
+    // Vérifier que le match existe
+    const mResult = await q(`
+      SELECT tm.*, t.best_of
+      FROM tournament_matches tm
+      JOIN tournaments t ON tm.tournament_id = t.id
+      WHERE tm.id=$1 AND tm.tournament_id=$2
+    `, [mid, id]);
+
+    if (mResult.rowCount === 0) {
+      return bad(res, 404, 'Match not found');
+    }
+
+    const match = mResult.rows[0];
+
+    if (match.best_of <= 1) {
+      return bad(res, 400, 'This tournament is not Best of X format');
+    }
+
+    // Déterminer le gagnant du game
+    let winner_id = null;
+    if (score1 > score2) {
+      winner_id = match.participant1_id;
+    } else if (score2 > score1) {
+      winner_id = match.participant2_id;
+    }
+
+    // Enregistrer le game
+    const result = await q(`
+      INSERT INTO match_games(match_id, game_number, score1, score2, winner_id, played_at)
+      VALUES ($1, $2, $3, $4, $5, now())
+      ON CONFLICT (match_id, game_number)
+      DO UPDATE SET score1=$3, score2=$4, winner_id=$5, played_at=now()
+      RETURNING *
+    `, [mid, game_number, score1, score2, winner_id]);
+
+    // Vérifier si le match est terminé
+    const gamesResult = await q(`
+      SELECT winner_id FROM match_games WHERE match_id=$1
+    `, [mid]);
+
+    const winsNeeded = Math.ceil(match.best_of / 2);
+    const p1Wins = gamesResult.rows.filter(g => g.winner_id === match.participant1_id).length;
+    const p2Wins = gamesResult.rows.filter(g => g.winner_id === match.participant2_id).length;
+
+    let matchWinner = null;
+    if (p1Wins >= winsNeeded) {
+      matchWinner = match.participant1_id;
+    } else if (p2Wins >= winsNeeded) {
+      matchWinner = match.participant2_id;
+    }
+
+    // Si le match est terminé, mettre à jour
+    if (matchWinner) {
+      await q(`
+        UPDATE tournament_matches
+        SET winner_id=$1, played_at=now()
+        WHERE id=$2
+      `, [matchWinner, mid]);
+
+      // Propager le gagnant au prochain match (comme dans la logique existante)
+      if (match.next_match_winner_id) {
+        const nextMatch = await q(`SELECT * FROM tournament_matches WHERE id=$1`, [match.next_match_winner_id]);
+        if (nextMatch.rowCount > 0) {
+          if (nextMatch.rows[0].participant1_id === null) {
+            await q(`UPDATE tournament_matches SET participant1_id=$1 WHERE id=$2`, [matchWinner, match.next_match_winner_id]);
+          } else if (nextMatch.rows[0].participant2_id === null) {
+            await q(`UPDATE tournament_matches SET participant2_id=$1 WHERE id=$2`, [matchWinner, match.next_match_winner_id]);
+          }
+        }
+      }
+    }
+
+    io.emit('match:game', {
+      tournament_id: id,
+      match_id: mid,
+      game: result.rows[0],
+      match_winner: matchWinner
+    });
+
+    ok(res, {
+      game: result.rows[0],
+      match_complete: matchWinner !== null,
+      match_winner_id: matchWinner
+    });
+  } catch (err) {
+    console.error(err);
+    bad(res, 500, 'Failed to save game');
+  }
+});
+
+// Récupérer les games d'un match
+app.get('/tournaments/:id/matches/:mid/games', auth, async (req, res) => {
+  try {
+    const { mid } = req.params;
+
+    const result = await q(`
+      SELECT mg.*,
+             p1.participant_name as p1_name,
+             p2.participant_name as p2_name,
+             w.participant_name as winner_name
+      FROM match_games mg
+      JOIN tournament_matches tm ON mg.match_id = tm.id
+      LEFT JOIN tournament_participants p1 ON tm.participant1_id = p1.id
+      LEFT JOIN tournament_participants p2 ON tm.participant2_id = p2.id
+      LEFT JOIN tournament_participants w ON mg.winner_id = w.id
+      WHERE mg.match_id=$1
+      ORDER BY mg.game_number ASC
+    `, [mid]);
+
+    ok(res, { games: result.rows });
+  } catch (err) {
+    console.error(err);
+    bad(res, 500, 'Failed to fetch games');
   }
 });
 

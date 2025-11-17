@@ -877,9 +877,6 @@ function renderSingleBracket(matches, tournament, title) {
     `;
 
     rounds[roundNum].forEach(m => {
-      // Ne pas afficher les matchs où les deux participants sont TBD (encore vides)
-      if (!m.participant1_id && !m.participant2_id) return;
-
       const isPlayed = m.winner_id !== null;
       const canEdit = role === 'admin' && tournament.status === 'active' && !isPlayed && m.participant1_id && m.participant2_id;
       const isHomeAway = tournament.match_format === 'home_away';
@@ -891,14 +888,19 @@ function renderSingleBracket(matches, tournament, title) {
         ((m.score2_home || 0) + (m.score2_away || 0)) :
         (m.score2_home || 0);
 
+      // Match vide (futur)
+      const isEmpty = !m.participant1_id && !m.participant2_id;
+      const matchClass = isEmpty ? 'bracket-match' : 'bracket-match';
+      const emptyStyle = isEmpty ? 'opacity:0.4;' : '';
+
       html += `
-        <div class="bracket-match">
+        <div class="${matchClass}" style="${emptyStyle}">
           <div class="bracket-player ${m.winner_id === m.participant1_id ? 'winner' : isPlayed ? 'loser' : ''}">
-            <span class="bracket-player-name">${escapeHtml(m.p1_name || 'TBD')}</span>
+            <span class="bracket-player-name" style="${!m.participant1_id ? 'font-style:italic;color:var(--muted)' : ''}">${escapeHtml(m.p1_name || 'TBD')}</span>
             ${isPlayed ? `<span class="bracket-player-score">${p1Score}</span>` : ''}
           </div>
           <div class="bracket-player ${m.winner_id === m.participant2_id ? 'winner' : isPlayed ? 'loser' : ''}">
-            <span class="bracket-player-name">${escapeHtml(m.p2_name || 'TBD')}</span>
+            <span class="bracket-player-name" style="${!m.participant2_id ? 'font-style:italic;color:var(--muted)' : ''}">${escapeHtml(m.p2_name || 'TBD')}</span>
             ${isPlayed ? `<span class="bracket-player-score">${p2Score}</span>` : ''}
           </div>
 

@@ -1530,18 +1530,20 @@ async function generateSingleElimination(tournamentId, participants) {
   const matchesByRound = [];
 
   // Génération des rounds en partant de la fin (finale -> premier tour)
+  // Mais on numérote dans le bon sens : Round 1 = premier tour, Round N = finale
   for (let round = rounds; round >= 1; round--) {
     const matchesInRound = Math.pow(2, round - 1);
     const roundMatches = [];
-    console.log(`  Round ${round}: ${matchesInRound} matchs`);
+    const displayRound = rounds - round + 1; // Inverser: Round 1 = premier tour
+    console.log(`  Round ${displayRound}: ${matchesInRound} matchs`);
 
     for (let i = 0; i < matchesInRound; i++) {
-      // Insérer le match
+      // Insérer le match avec le numéro de round dans le bon sens
       const result = await q(`
         INSERT INTO tournament_matches(tournament_id, round_number, match_number, bracket_type, participant1_id, participant2_id)
         VALUES ($1, $2, $3, 'winner', NULL, NULL)
         RETURNING id
-      `, [tournamentId, round, i + 1]);
+      `, [tournamentId, displayRound, i + 1]);
 
       roundMatches.push(result.rows[0].id);
     }
@@ -1602,13 +1604,14 @@ async function generateDoubleElimination(tournamentId, participants, hasLoserBra
   for (let round = rounds; round >= 1; round--) {
     const matchesInRound = Math.pow(2, round - 1);
     const roundMatches = [];
+    const displayRound = rounds - round + 1; // Round 1 = premier tour
 
     for (let i = 0; i < matchesInRound; i++) {
       const result = await q(`
         INSERT INTO tournament_matches(tournament_id, round_number, match_number, bracket_type, participant1_id, participant2_id)
         VALUES ($1, $2, $3, 'winner', NULL, NULL)
         RETURNING id
-      `, [tournamentId, round, i + 1]);
+      `, [tournamentId, displayRound, i + 1]);
 
       roundMatches.push(result.rows[0].id);
     }

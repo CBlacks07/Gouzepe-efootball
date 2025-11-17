@@ -1524,6 +1524,8 @@ async function generateSingleElimination(tournamentId, participants) {
   const rounds = Math.ceil(Math.log2(n));
   const totalSlots = Math.pow(2, rounds);
 
+  console.log(`🏆 Génération bracket - ${n} participants, ${rounds} rounds`);
+
   // Créer tous les rounds à l'avance avec références next_match
   const matchesByRound = [];
 
@@ -1531,6 +1533,7 @@ async function generateSingleElimination(tournamentId, participants) {
   for (let round = rounds; round >= 1; round--) {
     const matchesInRound = Math.pow(2, round - 1);
     const roundMatches = [];
+    console.log(`  Round ${round}: ${matchesInRound} matchs`);
 
     for (let i = 0; i < matchesInRound; i++) {
       // Insérer le match
@@ -1563,9 +1566,13 @@ async function generateSingleElimination(tournamentId, participants) {
 
   // Remplir le premier tour avec les participants
   const firstRoundMatches = matchesByRound[0];
+  console.log(`  Remplissage premier tour: ${firstRoundMatches.length} matchs`);
+
   for (let i = 0; i < firstRoundMatches.length; i++) {
     const p1 = participants[i * 2] || null;
     const p2 = participants[i * 2 + 1] || null;
+
+    console.log(`    Match ${i + 1}: ${p1?.participant_name || 'TBD'} vs ${p2?.participant_name || 'TBD'}`);
 
     await q(`
       UPDATE tournament_matches
@@ -1573,6 +1580,9 @@ async function generateSingleElimination(tournamentId, participants) {
       WHERE id = $3
     `, [p1?.id || null, p2?.id || null, firstRoundMatches[i]]);
   }
+
+  const totalMatches = matchesByRound.reduce((sum, round) => sum + round.length, 0);
+  console.log(`✅ Bracket généré: ${totalMatches} matchs au total`);
 }
 
 async function generateDoubleElimination(tournamentId, participants, hasLoserBracket = false) {

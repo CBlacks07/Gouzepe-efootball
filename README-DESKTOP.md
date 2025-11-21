@@ -104,9 +104,38 @@ Gouzepe-efootball/
 ✅ **Application native** - Fonctionne hors ligne (une fois la base de données configurée)
 ✅ **Serveur intégré** - Le serveur API démarre automatiquement avec l'application
 ✅ **Multi-plateforme** - Windows, macOS, Linux
+✅ **Multi-connexion réseau** - Plusieurs appareils peuvent se connecter simultanément (voir ci-dessous)
 ✅ **Auto-mise à jour** - Mise à jour automatique de l'application (à configurer)
 ✅ **Notifications système** - Notifications natives du système d'exploitation
 ✅ **Menu natif** - Menu d'application avec raccourcis clavier
+
+## 🌐 Multi-Connexion Réseau
+
+L'application permet la **connexion simultanée de plusieurs appareils** sur le même réseau WiFi.
+
+### Comment ça marche ?
+
+1. **Lancez l'application Electron** sur un ordinateur principal (serveur)
+2. **Dans le menu Réseau** → Cliquez sur "Afficher les adresses réseau"
+3. **Partagez l'URL affichée** aux autres appareils (ex: `http://192.168.1.10:3000`)
+4. **Les autres appareils** (tablettes, smartphones, PC) ouvrent cette URL dans leur navigateur web
+5. **Tous les appareils** accèdent à l'application en temps réel avec Socket.IO
+
+### Cas d'usage
+
+- **Tournoi avec plusieurs arbitres** : Chaque arbitre a sa tablette pour saisir les résultats
+- **Écrans d'affichage** : Téléviseurs connectés affichent les classements en temps réel
+- **Accès joueurs** : Les joueurs consultent leurs stats depuis leur smartphone
+
+### Configuration
+
+Par défaut, le serveur écoute sur **0.0.0.0** (toutes les interfaces réseau), ce qui permet les connexions depuis le réseau local.
+
+Pour modifier :
+- `API_HOST=0.0.0.0` - Mode réseau (par défaut)
+- `API_HOST=localhost` - Mode local uniquement
+
+📚 **Documentation complète** : Voir [RESEAU-MULTI-CONNEXION.md](./RESEAU-MULTI-CONNEXION.md)
 
 ## Raccourcis clavier
 

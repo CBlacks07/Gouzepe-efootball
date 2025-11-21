@@ -16,6 +16,7 @@ const crypto = require('crypto');
 
 /* ====== Config ====== */
 const PORT = parseInt(process.env.PORT || '10000', 10);
+const HOST = process.env.HOST || '0.0.0.0'; // 0.0.0.0 pour accepter les connexions réseau, localhost pour local uniquement
 const JWT_SECRET = process.env.JWT_SECRET || '1XS1r4QJNp6AtkjORvKUU01RZRfzbGV+echJsio9gq8lAOc2NW7sSYsQuncE6+o9';
 const EMAIL_DOMAIN = process.env.EMAIL_DOMAIN || 'gz.local';
 
@@ -58,8 +59,38 @@ const allowedOrigins = (process.env.CORS_ORIGIN ||
 // ✅ FIX: Configuration CORS unique (suppression de la duplication)
 const corsOptions = {
   origin: (origin, cb) => {
-    if (!origin || allowedOrigins.includes('*')) return cb(null, true);
-    return cb(null, allowedOrigins.includes(origin));
+    // Pas d'origin = requête depuis le même serveur ou Electron
+    if (!origin) return cb(null, true);
+
+    // Wildcard autorisé
+    if (allowedOrigins.includes('*')) return cb(null, true);
+
+    // Origin dans la liste autorisée
+    if (allowedOrigins.includes(origin)) return cb(null, true);
+
+    // Autoriser les connexions depuis le réseau local (192.168.x.x, 10.x.x.x, 172.16-31.x.x)
+    try {
+      const originUrl = new URL(origin);
+      const hostname = originUrl.hostname;
+
+      // Localhost
+      if (hostname === 'localhost' || hostname === '127.0.0.1') {
+        return cb(null, true);
+      }
+
+      // Réseau local
+      if (
+        /^192\.168\.\d+\.\d+$/.test(hostname) ||
+        /^10\.\d+\.\d+\.\d+$/.test(hostname) ||
+        /^172\.(1[6-9]|2[0-9]|3[0-1])\.\d+\.\d+$/.test(hostname)
+      ) {
+        return cb(null, true);
+      }
+    } catch (e) {
+      // Invalid origin URL
+    }
+
+    return cb(null, false);
   },
   credentials: false,
   methods: ['GET','POST','PUT','DELETE','OPTIONS'],
@@ -71,8 +102,38 @@ const corsOptions = {
 const io = require('socket.io')(server, {
   cors: {
     origin: (origin, cb) => {
-      if (!origin || allowedOrigins.includes('*')) return cb(null, true);
-      cb(null, allowedOrigins.includes(origin));
+      // Pas d'origin = requête depuis le même serveur ou Electron
+      if (!origin) return cb(null, true);
+
+      // Wildcard autorisé
+      if (allowedOrigins.includes('*')) return cb(null, true);
+
+      // Origin dans la liste autorisée
+      if (allowedOrigins.includes(origin)) return cb(null, true);
+
+      // Autoriser les connexions depuis le réseau local
+      try {
+        const originUrl = new URL(origin);
+        const hostname = originUrl.hostname;
+
+        // Localhost
+        if (hostname === 'localhost' || hostname === '127.0.0.1') {
+          return cb(null, true);
+        }
+
+        // Réseau local
+        if (
+          /^192\.168\.\d+\.\d+$/.test(hostname) ||
+          /^10\.\d+\.\d+\.\d+$/.test(hostname) ||
+          /^172\.(1[6-9]|2[0-9]|3[0-1])\.\d+\.\d+$/.test(hostname)
+        ) {
+          return cb(null, true);
+        }
+      } catch (e) {
+        // Invalid origin URL
+      }
+
+      cb(null, false);
     },
     methods: ['GET','POST','PUT','DELETE','OPTIONS']
   }
@@ -1099,7 +1160,32 @@ app.use('/tournaments', tournamentModule.router);
   try{
     await ensureSchema();
     await tournamentModule.ensureTournamentSchema();
-    server.listen(PORT, ()=> console.log('API OK on :'+PORT));
+    server.listen(PORT, HOST, ()=> {
+      console.log(`API OK on ${HOST}:${PORT}`);
+
+      // Afficher l'IP locale pour les connexions réseau
+      if (HOST === '0.0.0.0') {
+        const os = require('os');
+        const networkInterfaces = os.networkInterfaces();
+        const localIPs = [];
+
+        Object.keys(networkInterfaces).forEach(interfaceName => {
+          networkInterfaces[interfaceName].forEach(iface => {
+            if (iface.family === 'IPv4' && !iface.internal) {
+              localIPs.push(iface.address);
+            }
+          });
+        });
+
+        if (localIPs.length > 0) {
+          console.log('\n📡 Serveur accessible depuis le réseau local :');
+          localIPs.forEach(ip => {
+            console.log(`   http://${ip}:${PORT}`);
+          });
+          console.log('\n💡 Les autres appareils peuvent se connecter avec ces URLs\n');
+        }
+      }
+    });
   }catch(e){
     console.error('Schema init error', e);
     process.exit(1);

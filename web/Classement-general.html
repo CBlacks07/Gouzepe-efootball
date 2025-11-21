@@ -302,9 +302,9 @@ document.querySelectorAll('.adminOnly').forEach(el=>el.style.display=(role==='ad
 /* thème + menu + logout */
 (function(){
   const k='efoot.theme';
-  const apply=m=>{document.documentElement.classList.toggle('light',m==='light');localStorage.setItem(k,m);$('#theme').textContent=m==='light'?'🌙':'☀️'};
+  const apply=m=>{document.documentElement.classList.toggle('light',m==='light');localStorage.setItem(k,m);$('#themeBtn').textContent=m==='light'?'🌙':'☀️'};
   apply(localStorage.getItem(k)||'dark');
-  $('#theme').onclick=()=>apply(document.documentElement.classList.contains('light')?'dark':'light');
+  $('#themeBtn').onclick=()=>apply(document.documentElement.classList.contains('light')?'dark':'light');
 })();
 
 $('#logoutBtn')?.addEventListener('click',()=>{
@@ -977,7 +977,7 @@ document.getElementById('seasonSelect').addEventListener('change', async ()=>{
   if($('#mmAdminUsers')) $('#mmAdminUsers').style.display = isAdmin ? '' : 'none';
 
   // Synchronise avec les contrôles existants
-  $('#mmTheme').onclick = ()=> $('#theme').click();
+  $('#mmTheme').onclick = ()=> $('#themeBtn').click();
   $('#mmLogout').onclick = ()=> $('#logoutBtn').click();
 })();
 

@@ -338,6 +338,25 @@ module.exports = function(pool, io, auth, adminOnly) {
       UNIQUE(participant_id, phase_id)
     )`);
 
+    // ===== MIGRATIONS - Ajouter les colonnes manquantes si nécessaire =====
+    // Ajouter la colonne slug si elle n'existe pas (pour les anciennes BDD)
+    await q(`
+      DO $$
+      BEGIN
+        IF NOT EXISTS (
+          SELECT 1 FROM information_schema.columns
+          WHERE table_name = 'tournaments' AND column_name = 'slug'
+        ) THEN
+          ALTER TABLE tournaments ADD COLUMN slug TEXT;
+          -- Générer des slugs pour les tournois existants
+          UPDATE tournaments SET slug = LOWER(REPLACE(REPLACE(name, ' ', '-'), '''', '')) WHERE slug IS NULL;
+          -- Rendre la colonne NOT NULL et UNIQUE après avoir rempli les valeurs
+          ALTER TABLE tournaments ALTER COLUMN slug SET NOT NULL;
+          ALTER TABLE tournaments ADD CONSTRAINT tournaments_slug_key UNIQUE (slug);
+        END IF;
+      END $$;
+    `);
+
     // ===== INDEXES =====
     await q(`CREATE INDEX IF NOT EXISTS idx_tournaments_slug ON tournaments(slug)`);
     await q(`CREATE INDEX IF NOT EXISTS idx_tournaments_status ON tournaments(status)`);

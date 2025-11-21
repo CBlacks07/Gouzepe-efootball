@@ -1,4 +1,4 @@
-// server.js — GOUZEPE eFOOT API (Express + PostgreSQL + Socket.IO) — Render-ready, NO HANDOFF
+// server.js — GOUZEPE eFOOT API (Express + PostgreSQL + Socket.IO)
 require('dotenv').config();
 
 const express = require('express');
@@ -15,24 +15,18 @@ const dayjs = require('dayjs');
 const crypto = require('crypto');
 
 /* ====== Config ====== */
-const PORT = parseInt(process.env.PORT || '10000', 10);
+const PORT = parseInt(process.env.PORT || '3000', 10);
 const HOST = process.env.HOST || '0.0.0.0'; // 0.0.0.0 pour accepter les connexions réseau, localhost pour local uniquement
 const JWT_SECRET = process.env.JWT_SECRET || '1XS1r4QJNp6AtkjORvKUU01RZRfzbGV+echJsio9gq8lAOc2NW7sSYsQuncE6+o9';
 const EMAIL_DOMAIN = process.env.EMAIL_DOMAIN || 'gz.local';
 
-/* ====== Database (Render-friendly) ====== */
+/* ====== Database ====== */
 const localHosts = new Set(['localhost','127.0.0.1']);
 const parsedDbUrl = (()=>{ try { return process.env.DATABASE_URL ? new URL(process.env.DATABASE_URL) : null; } catch(_) { return null; } })();
 const inferLocal = parsedDbUrl ? localHosts.has(parsedDbUrl.hostname) : localHosts.has(String(process.env.PGHOST||'').toLowerCase());
 
 const forceSSL = process.env.PGSSL_FORCE === 'true';
-const useSSL =
-  forceSSL ? true :
-  (inferLocal ? false : (
-    process.env.PGSSL === 'true' ||
-    process.env.RENDER === 'true' ||
-    process.env.NODE_ENV === 'production'
-  ));
+const useSSL = forceSSL ? true : (inferLocal ? false : process.env.PGSSL === 'true');
 
 const pgOpts = process.env.DATABASE_URL
   ? { connectionString: process.env.DATABASE_URL, ssl: useSSL ? { rejectUnauthorized:false } : false }
@@ -51,9 +45,9 @@ const pool = new Pool(pgOpts);
 const app = express();
 const server = http.createServer(app);
 
-// ✅ FIX: Retirer le wildcard '*' pour plus de sécurité
+// Configuration CORS
 const allowedOrigins = (process.env.CORS_ORIGIN ||
-  'https://gouzepe-api.onrender.com,https://gouzepe-efootball.onrender.com,http://localhost:3000,http://localhost:5173'
+  'http://localhost:3000,http://localhost:5173'
 ).split(',').map(s=>s.trim()).filter(Boolean);
 
 // ✅ FIX: Configuration CORS unique (suppression de la duplication)

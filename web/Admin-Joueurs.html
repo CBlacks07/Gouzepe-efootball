@@ -454,13 +454,8 @@ load();
   try{
     const isPrivateNet=(h)=>/^(localhost|127\.0\.0\.1|10\.\d+\.\d+\.\d+|192\.168\.\d+\.\d+|172\.(1[6-9]|2\d|3[01])\.\d+\.\d+)$/.test(h||'');
     const DEF_API=()=>{
-      const host=location.hostname||'';
-      if(isPrivateNet(host)) return (location.protocol.startsWith('http')?location.protocol:'http:')+'//'+host+':3000';
-      if(host.endsWith('.onrender.com')){
-        if(host.includes('-app.')) return 'https://'+host.replace('-app.','-api.');
-        if(host.includes('app.'))  return 'https://'+host.replace('app.','api.');
-      }
-      return 'https://gouzepe-api.onrender.com';
+      const host=location.hostname||'localhost';
+      return (location.protocol.startsWith('http')?location.protocol:'http:')+'//'+host+':3000';
     };
     if(!window.API){ window.API = (localStorage.getItem('efoot.api')||DEF_API()).replace(/\/+$/,''); }
     // Auth guard

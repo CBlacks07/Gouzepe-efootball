@@ -1,0 +1,69 @@
+{
+  "name": "gouzepe-efootball-desktop",
+  "version": "1.0.0",
+  "description": "GOUZEPE eFOOT - Application Desktop",
+  "main": "electron/main.js",
+  "scripts": {
+    "start": "electron .",
+    "dev": "electron . --dev",
+    "build": "electron-builder",
+    "build:win": "electron-builder --win",
+    "build:mac": "electron-builder --mac",
+    "build:linux": "electron-builder --linux",
+    "postinstall": "cd api && npm install"
+  },
+  "build": {
+    "appId": "com.gouzepe.efootball",
+    "productName": "GOUZEPE eFOOT",
+    "directories": {
+      "output": "dist"
+    },
+    "files": [
+      "electron/**/*",
+      "web/**/*",
+      "api/**/*",
+      "index.html",
+      "!api/node_modules/.bin",
+      "!**/*.map"
+    ],
+    "extraResources": [
+      {
+        "from": "api",
+        "to": "api",
+        "filter": ["**/*"]
+      }
+    ],
+    "win": {
+      "target": ["nsis"],
+      "icon": "electron/icons/icon.ico"
+    },
+    "mac": {
+      "target": ["dmg"],
+      "icon": "electron/icons/icon.icns",
+      "category": "public.app-category.sports"
+    },
+    "linux": {
+      "target": ["AppImage", "deb"],
+      "icon": "electron/icons/icon.png",
+      "category": "Game"
+    },
+    "nsis": {
+      "oneClick": false,
+      "allowToChangeInstallationDirectory": true,
+      "createDesktopShortcut": true,
+      "createStartMenuShortcut": true
+    }
+  },
+  "dependencies": {
+    "electron-squirrel-startup": "^1.0.0"
+  },
+  "devDependencies": {
+    "electron": "^28.0.0",
+    "electron-builder": "^24.9.1"
+  },
+  "engines": {
+    "node": ">=18.0.0"
+  },
+  "author": "GOUZEPE",
+  "license": "UNLICENSED"
+}

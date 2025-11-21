@@ -1,0 +1,11 @@
+<svg width="512" height="512" xmlns="http://www.w3.org/2000/svg">
+  <!-- Background -->
+  <rect width="512" height="512" fill="#1a73e8" rx="64"/>
+
+  <!-- Football icon -->
+  <circle cx="256" cy="256" r="140" fill="#ffffff"/>
+  <path d="M 256 116 L 280 180 L 344 180 L 294 220 L 318 284 L 256 244 L 194 284 L 218 220 L 168 180 L 232 180 Z" fill="#1a73e8"/>
+
+  <!-- Text GEF -->
+  <text x="256" y="420" font-family="Arial, sans-serif" font-size="80" font-weight="bold" fill="#ffffff" text-anchor="middle">GEF</text>
+</svg>

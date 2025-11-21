@@ -146,6 +146,9 @@ const UP_PLAYERS = path.join(UP, 'players');
 fs.mkdirSync(UP_PLAYERS, { recursive:true });
 app.use('/uploads', express.static(UP));
 
+/* ====== Static files (web) ====== */
+app.use('/web', express.static(path.join(__dirname, '../web')));
+
 const upload = multer({
   storage: multer.diskStorage({
     destination: (_req, _file, cb)=> cb(null, UP_PLAYERS),

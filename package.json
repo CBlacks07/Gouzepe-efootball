@@ -40,7 +40,7 @@
     ],
     "win": {
       "target": ["nsis"],
-      "icon": "electron/icons/icon.ico"
+      "icon": "electron/icons/icon.png"
     },
     "mac": {
       "target": ["dmg"],

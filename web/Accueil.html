@@ -465,7 +465,7 @@ html.light .bg-video{opacity:.18; filter:contrast(.95) saturate(.85)}
 
   <script>
   /* ============ BASE / RÔLES / NAV ============ */
-  const API = () => (window.API || localStorage.getItem('efoot.api') || (location.protocol+'//'+location.hostname+':3000')).replace(/\/+$/,'');
+  const API = () => (window.API || localStorage.getItem('efoot.api') || (location.protocol+'//'+location.hostname+':3005')).replace(/\/+$/,'');
   let TOKEN = localStorage.getItem('efoot.token') || '';
   let ROLE = (localStorage.getItem('efoot.role')||'member').toLowerCase();
   const hd = (m='GET',tok=TOKEN)=>({method:m,headers:{'Content-Type':'application/json','Authorization':'Bearer '+tok}});

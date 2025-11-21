@@ -252,7 +252,7 @@
       e.preventDefault(); e.stopPropagation(); e.stopImmediatePropagation();
       const ok = confirm('Voulez-vous vraiment vous déconnecter ?');
       if(!ok) return;
-      const API = () => (window.API || localStorage.getItem('efoot.api') || (location.protocol+'//'+location.hostname+':3000')).replace(/\/+$/,'');
+      const API = () => (window.API || localStorage.getItem('efoot.api') || (location.protocol+'//'+location.hostname+':3005')).replace(/\/+$/,'');
       const token = localStorage.getItem('efoot.token') || '';
       (async () => {
         try{ await fetch(API()+'/auth/logout',{ method:'POST', headers:{ Authorization:'Bearer '+token }}); }catch(_){}
@@ -492,7 +492,7 @@
   </main>
 
   <script>
-  const API = () => (window.API || localStorage.getItem('efoot.api') || (location.protocol+'//'+location.hostname+':3000')).replace(/\/+$/,'');
+  const API = () => (window.API || localStorage.getItem('efoot.api') || (location.protocol+'//'+location.hostname+':3005')).replace(/\/+$/,'');
   const TOK = localStorage.getItem('efoot.token')||'';
   let MY_ROLE = (localStorage.getItem('efoot.role')||'member').toLowerCase();
   const hd = (m='GET')=>({method:m,headers:{'Content-Type':'application/json',Authorization:'Bearer '+TOK}});

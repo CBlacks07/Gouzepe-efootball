@@ -62,11 +62,11 @@ npm start    # Mode production
 **Méthode 2 : Console de démarrage**
 Au démarrage, le serveur affiche automatiquement :
 ```
-API OK on 0.0.0.0:3000
+API OK on 0.0.0.0:3005
 
 📡 Serveur accessible depuis le réseau local :
-   http://192.168.1.10:3000
-   http://192.168.43.1:3000
+   http://192.168.1.10:3005
+   http://192.168.43.1:3005
 
 💡 Les autres appareils peuvent se connecter avec ces URLs
 ```
@@ -79,7 +79,7 @@ Sur les appareils secondaires (tablettes, smartphones, autres PC) :
 2. **Ouvrez un navigateur web** (Chrome, Firefox, Safari, Edge)
 3. **Tapez l'adresse réseau** obtenue à l'étape 2 :
    ```
-   http://192.168.1.10:3000
+   http://192.168.1.10:3005
    ```
 4. **L'application web s'affiche** exactement comme sur l'ordinateur principal
 
@@ -135,10 +135,10 @@ API_PORT=3001
 
 ### URLs de connexion
 
-- **Page de connexion** : `http://[IP]:3000/web/login.html`
-- **Accueil** : `http://[IP]:3000/web/Accueil.html`
-- **Tournois** : `http://[IP]:3000/web/Tournois.html`
-- **Classement** : `http://[IP]:3000/web/Classement-general.html`
+- **Page de connexion** : `http://[IP]:3005/web/login.html`
+- **Accueil** : `http://[IP]:3005/web/Accueil.html`
+- **Tournois** : `http://[IP]:3005/web/Tournois.html`
+- **Classement** : `http://[IP]:3005/web/Classement-general.html`
 
 ### Compatibilité navigateurs
 
@@ -235,7 +235,7 @@ Pour de meilleures performances avec beaucoup d'utilisateurs :
 
 Pour faciliter la connexion, générez un code QR avec l'URL :
 - Utilisez un générateur en ligne : https://www.qr-code-generator.com/
-- Entrez l'URL : `http://192.168.1.10:3000`
+- Entrez l'URL : `http://192.168.1.10:3005`
 - Affichez le code QR pour que les joueurs le scannent
 
 ### Bookmark sur les appareils

@@ -15,7 +15,7 @@ const dayjs = require('dayjs');
 const crypto = require('crypto');
 
 /* ====== Config ====== */
-const PORT = parseInt(process.env.PORT || '3000', 10);
+const PORT = parseInt(process.env.PORT || '3005', 10);
 const HOST = process.env.HOST || '0.0.0.0'; // 0.0.0.0 pour accepter les connexions réseau, localhost pour local uniquement
 const JWT_SECRET = process.env.JWT_SECRET || '1XS1r4QJNp6AtkjORvKUU01RZRfzbGV+echJsio9gq8lAOc2NW7sSYsQuncE6+o9';
 const EMAIL_DOMAIN = process.env.EMAIL_DOMAIN || 'gz.local';
@@ -1143,17 +1143,10 @@ io.on('connection', (socket)=>{
   });
 });
 
-/* ====== TOURNAMENTS MODULE (NEW) ====== */
-const tournamentModule = require('./tournaments')(pool, io, auth, adminOnly);
-
-/* ====== Mount tournament routes ====== */
-app.use('/tournaments', tournamentModule.router);
-
 /* ====== Start ====== */
 (async ()=>{
   try{
     await ensureSchema();
-    await tournamentModule.ensureTournamentSchema();
     server.listen(PORT, HOST, ()=> {
       console.log(`API OK on ${HOST}:${PORT}`);
 

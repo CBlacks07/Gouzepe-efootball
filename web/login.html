@@ -151,7 +151,7 @@
   <dialog id="cfg">
     <div class="dlg-h">Configuration de l’API</div>
     <div class="dlg-b">
-      <label>Adresse API (ex: http://localhost:3000 ou http://192.168.1.10:3000)</label>
+      <label>Adresse API (ex: http://localhost:3005 ou http://192.168.1.10:3005)</label>
       <input id="apiUrl">
       <div id="cfgMsg" class="muted">—</div>
     </div>
@@ -176,7 +176,7 @@
 const isPrivateNet = (h)=>/^(localhost|127\.0\.0\.1|10\.\d+\.\d+\.\d+|192\.168\.\d+\.\d+|172\.(1[6-9]|2\d|3[01])\.\d+\.\d+)$/.test(h);
 const DEF_API = ()=>{
   const host = location.hostname || 'localhost';
-  return (location.protocol.startsWith('http') ? location.protocol : 'http:') + '//' + host + ':3000';
+  return (location.protocol.startsWith('http') ? location.protocol : 'http:') + '//' + host + ':3005';
 };
 function getAPI(){ return (localStorage.getItem('efoot.api')||DEF_API()).replace(/\/+$/,''); }
 function setAPI(v){ localStorage.setItem('efoot.api', v.replace(/\/+$/,'')); }

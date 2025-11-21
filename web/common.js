@@ -7,7 +7,7 @@
 
   const DEF_API = () =>
     (location.protocol.startsWith('http') ? location.protocol : 'http:') +
-    '//' + location.hostname + ':3000';
+    '//' + location.hostname + ':3005';
 
   const getAPI = () => (localStorage.getItem('efoot.api') || DEF_API()).replace(/\/+$/, '');
   const getTok = () => localStorage.getItem('efoot.token') || '';

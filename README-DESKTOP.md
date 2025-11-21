@@ -117,7 +117,7 @@ L'application permet la **connexion simultanée de plusieurs appareils** sur le 
 
 1. **Lancez l'application Electron** sur un ordinateur principal (serveur)
 2. **Dans le menu Réseau** → Cliquez sur "Afficher les adresses réseau"
-3. **Partagez l'URL affichée** aux autres appareils (ex: `http://192.168.1.10:3000`)
+3. **Partagez l'URL affichée** aux autres appareils (ex: `http://192.168.1.10:3005`)
 4. **Les autres appareils** (tablettes, smartphones, PC) ouvrent cette URL dans leur navigateur web
 5. **Tous les appareils** accèdent à l'application en temps réel avec Socket.IO
 

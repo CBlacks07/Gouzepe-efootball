@@ -12,7 +12,7 @@ let mainWindow;
 let apiProcess;
 let serverNetworkInfo = null;
 
-const API_PORT = process.env.API_PORT || 3000;
+const API_PORT = process.env.API_PORT || 3005;
 const API_HOST = process.env.API_HOST || '0.0.0.0'; // 0.0.0.0 pour réseau, localhost pour local uniquement
 const API_URL = `http://localhost:${API_PORT}`;
 

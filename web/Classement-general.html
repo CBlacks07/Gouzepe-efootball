@@ -287,7 +287,7 @@
 <script>
 /* ===== utilitaires & état ===== */
 const $ = s => document.querySelector(s);
-const DEF_API = () => `${location.protocol.startsWith('http')?location.protocol:'http:'}//${location.hostname}:3000`;
+const DEF_API = () => `${location.protocol.startsWith('http')?location.protocol:'http:'}//${location.hostname}:3005`;
 const API   = (localStorage.getItem('efoot.api')||DEF_API()).replace(/\/+$/,'');
 const token = localStorage.getItem('efoot.token');
 const role  = (localStorage.getItem('efoot.role')||'member').toLowerCase();

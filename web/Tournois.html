@@ -490,7 +490,7 @@
 <script>
 const $ = s => document.querySelector(s);
 const $$ = s => document.querySelectorAll(s);
-const API = (localStorage.getItem('efoot.api') || `${location.protocol}//${location.hostname}:3000`).replace(/\/+$/, '');
+const API = (localStorage.getItem('efoot.api') || `${location.protocol}//${location.hostname}:3005`).replace(/\/+$/, '');
 const token = localStorage.getItem('efoot.token');
 const role = (localStorage.getItem('efoot.role') || 'member').toLowerCase();
 

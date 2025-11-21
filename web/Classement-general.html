@@ -287,7 +287,10 @@
 <script>
 /* ===== utilitaires & état ===== */
 const $ = s => document.querySelector(s);
-const DEF_API = () => `${location.protocol.startsWith('http')?location.protocol:'http:'}//${location.hostname}:3005`;
+const DEF_API = () => {
+  const host = (location.hostname && location.hostname !== '') ? location.hostname : 'localhost';
+  return 'http://' + host + ':3005';
+};
 const API   = (localStorage.getItem('efoot.api')||DEF_API()).replace(/\/+$/,'');
 const token = localStorage.getItem('efoot.token');
 const role  = (localStorage.getItem('efoot.role')||'member').toLowerCase();
@@ -317,8 +320,16 @@ const ROLE_BY_ID = new Map(); // MEMBRE | INVITE
 async function loadPlayers(){
   if(NAME_BY_ID.size>0) return;
   try{
+    console.log('[Classement] Chargement des joueurs depuis:', `${API}/players`);
     const r=await fetch(`${API}/players`,{headers:{'Authorization':`Bearer ${token}`}});
+    console.log('[Classement] Réponse /players:', r.status, r.ok);
+    if(!r.ok) {
+      const errText = await r.text();
+      console.error('[Classement] Erreur /players:', r.status, errText);
+      throw new Error(`HTTP ${r.status}: ${errText}`);
+    }
     const d=await r.json();
+    console.log('[Classement] Joueurs chargés:', d.players?.length || 0);
     (d.players||[]).forEach(p=>{
       NAME_BY_ID.set(p.player_id, p.name||p.player_id);
       ROLE_BY_ID.set(p.player_id, (p.role||'MEMBRE').toUpperCase());
@@ -336,7 +347,10 @@ async function loadPlayers(){
         const o2=document.createElement('option'); o2.value=id; o2.textContent=`${nom} (${id})`; selB.appendChild(o2);
       });
     }
-  }catch(_){}
+  }catch(err){
+    console.error('[Classement] Erreur loadPlayers:', err);
+    alert('Erreur lors du chargement des joueurs: ' + err.message);
+  }
 }
 function nameOf(id){ return NAME_BY_ID.get(id)||id||''; }
 function roleOf(id){ return (ROLE_BY_ID.get(id)||'MEMBRE').toUpperCase(); }
@@ -350,15 +364,29 @@ function escapeHtml(t){return String(t||'').replace(/[&<>"']/g,m=>({'&':'&amp;',
 
 /* ===== saisons ===== */
 async function loadSeasons(){
-  const r = await fetch(`${API}/seasons`, { headers:{Authorization:`Bearer ${token}`} });
-  const d = await r.json();
-  const sel = $('#seasonSelect'); sel.innerHTML='';
-  (d.seasons||[]).forEach(s=>{
-    const o=document.createElement('option');
-    o.value=s.id; o.textContent=`${s.name}${s.is_closed?' (clôturée)':''}`;
-    sel.appendChild(o);
-  });
-  return d.seasons||[];
+  try{
+    console.log('[Classement] Chargement des saisons depuis:', `${API}/seasons`);
+    const r = await fetch(`${API}/seasons`, { headers:{Authorization:`Bearer ${token}`} });
+    console.log('[Classement] Réponse /seasons:', r.status, r.ok);
+    if(!r.ok) {
+      const errText = await r.text();
+      console.error('[Classement] Erreur /seasons:', r.status, errText);
+      throw new Error(`HTTP ${r.status}: ${errText}`);
+    }
+    const d = await r.json();
+    console.log('[Classement] Saisons chargées:', d.seasons?.length || 0);
+    const sel = $('#seasonSelect'); sel.innerHTML='';
+    (d.seasons||[]).forEach(s=>{
+      const o=document.createElement('option');
+      o.value=s.id; o.textContent=`${s.name}${s.is_closed?' (clôturée)':''}`;
+      sel.appendChild(o);
+    });
+    return d.seasons||[];
+  }catch(err){
+    console.error('[Classement] Erreur loadSeasons:', err);
+    alert('Erreur lors du chargement des saisons: ' + err.message);
+    return [];
+  }
 }
 async function selectCurrentSeasonIfPossible(){
   let current=null;
@@ -568,9 +596,22 @@ function setDayOptions(days, sid){
 }
 
 async function loadDays(){
-  const r = await fetch(`${API}/matchdays`, { headers:{'Authorization':`Bearer ${token}`} });
-  const d = await r.json();
-  setDayOptions(d.days || [], 'current');
+  try{
+    console.log('[Classement] Chargement des journées depuis:', `${API}/matchdays`);
+    const r = await fetch(`${API}/matchdays`, { headers:{'Authorization':`Bearer ${token}`} });
+    console.log('[Classement] Réponse /matchdays:', r.status, r.ok);
+    if(!r.ok) {
+      const errText = await r.text();
+      console.error('[Classement] Erreur /matchdays:', r.status, errText);
+      throw new Error(`HTTP ${r.status}: ${errText}`);
+    }
+    const d = await r.json();
+    console.log('[Classement] Journées chargées:', d.days?.length || 0);
+    setDayOptions(d.days || [], 'current');
+  }catch(err){
+    console.error('[Classement] Erreur loadDays:', err);
+    alert('Erreur lors du chargement des journées: ' + err.message);
+  }
 }
 
 function computeStandingsDay(rows){
@@ -863,19 +904,48 @@ async function initSeasonFlow(){
 }
 document.getElementById('seasonSelect').addEventListener('change', async ()=>{
   const sid = +$('#seasonSelect').value;
-  // standings
-  let r = await fetch(`${API}/seasons/${sid}/standings`,{headers:{Authorization:`Bearer ${token}`}});
-  let d = await r.json();
-  seasonData = Array.isArray(d.standings)? d.standings : (d.standings?.rows||[]);
-  // agrégats client (Win%, Forme, D1/D2)
-  await buildSeasonAggregation(sid);
-  // journées (pour le sélecteur + seuil)
-  r = await fetch(`${API}/seasons/${sid}/matchdays`,{headers:{Authorization:`Bearer ${token}`}});
-  d = await r.json();
-seasonDaysCount = (d.days || []).length;
-setDayOptions(d.days || [], sid);
+  console.log('[Classement] Changement de saison:', sid);
 
-renderSeason();
+  try {
+    // standings
+    console.log('[Classement] Récupération standings pour saison:', sid);
+    let r = await fetch(`${API}/seasons/${sid}/standings`,{headers:{Authorization:`Bearer ${token}`}});
+    console.log('[Classement] Réponse /standings:', r.status, r.ok);
+    if(!r.ok) {
+      const errText = await r.text();
+      console.error('[Classement] Erreur /standings:', r.status, errText);
+      throw new Error(`Erreur standings: HTTP ${r.status}`);
+    }
+    let d = await r.json();
+    seasonData = Array.isArray(d.standings)? d.standings : (d.standings?.rows||[]);
+    console.log('[Classement] Standings chargés:', seasonData.length, 'joueurs');
+
+    // agrégats client (Win%, Forme, D1/D2)
+    console.log('[Classement] Construction agrégation saison...');
+    await buildSeasonAggregation(sid);
+    console.log('[Classement] Agrégation terminée, joueurs:', SEASON_AGG.size);
+
+    // journées (pour le sélecteur + seuil)
+    console.log('[Classement] Récupération journées pour saison:', sid);
+    r = await fetch(`${API}/seasons/${sid}/matchdays`,{headers:{Authorization:`Bearer ${token}`}});
+    console.log('[Classement] Réponse /matchdays:', r.status, r.ok);
+    if(!r.ok) {
+      const errText = await r.text();
+      console.error('[Classement] Erreur /matchdays pour saison:', r.status, errText);
+      throw new Error(`Erreur matchdays: HTTP ${r.status}`);
+    }
+    d = await r.json();
+    seasonDaysCount = (d.days || []).length;
+    console.log('[Classement] Journées chargées:', seasonDaysCount);
+    setDayOptions(d.days || [], sid);
+
+    console.log('[Classement] Rendu du classement...');
+    renderSeason();
+    console.log('[Classement] Rendu terminé');
+  } catch(err) {
+    console.error('[Classement] Erreur lors du changement de saison:', err);
+    alert('Erreur lors du chargement des données de la saison: ' + err.message);
+  }
 });
 
 /* ===== autres ajustements UI ===== */
@@ -913,11 +983,22 @@ renderSeason();
 
 /* ===== démarrage ===== */
 (async function(){
-  await loadPlayers();
-  await loadSeasons();
-  await selectCurrentSeasonIfPossible();
-  await loadDays();
-  initSockets();
+  console.log('[Classement] === DÉMARRAGE ===');
+  console.log('[Classement] API URL:', API);
+  console.log('[Classement] Token présent:', !!token);
+  console.log('[Classement] Role:', role);
+
+  try {
+    await loadPlayers();
+    await loadSeasons();
+    await selectCurrentSeasonIfPossible();
+    await loadDays();
+    initSockets();
+    console.log('[Classement] === INITIALISATION TERMINÉE ===');
+  } catch(err) {
+    console.error('[Classement] Erreur lors de l\'initialisation:', err);
+    alert('Erreur lors de l\'initialisation de la page: ' + err.message);
+  }
 
   // ping présence côté membre
   const r = (localStorage.getItem('efoot.role')||'member').toLowerCase();

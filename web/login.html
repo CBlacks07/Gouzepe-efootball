@@ -175,8 +175,9 @@
 /* ===== Helpers ===== */
 const isPrivateNet = (h)=>/^(localhost|127\.0\.0\.1|10\.\d+\.\d+\.\d+|192\.168\.\d+\.\d+|172\.(1[6-9]|2\d|3[01])\.\d+\.\d+)$/.test(h);
 const DEF_API = ()=>{
-  const host = location.hostname || 'localhost';
-  return (location.protocol.startsWith('http') ? location.protocol : 'http:') + '//' + host + ':3005';
+  // Si on est dans Electron (file://) ou si hostname est vide, utiliser localhost
+  const host = (location.hostname && location.hostname !== '') ? location.hostname : 'localhost';
+  return 'http://' + host + ':3005';
 };
 function getAPI(){ return (localStorage.getItem('efoot.api')||DEF_API()).replace(/\/+$/,''); }
 function setAPI(v){ localStorage.setItem('efoot.api', v.replace(/\/+$/,'')); }

@@ -39,12 +39,18 @@ function startApiServer() {
     console.log('Démarrage du serveur API...');
 
     // Déterminer le chemin du serveur selon l'environnement
-    const isDev = process.argv.includes('--dev');
+    // En mode développement, le dossier api est dans le parent
+    // En mode production (empaqueté), il est dans resources
+    const isDev = !app.isPackaged;
     const apiPath = isDev
       ? path.join(__dirname, '../api')
       : path.join(process.resourcesPath, 'api');
 
     const serverPath = path.join(apiPath, 'server.js');
+
+    console.log('Mode:', isDev ? 'développement' : 'production');
+    console.log('Chemin API:', apiPath);
+    console.log('Chemin serveur:', serverPath);
 
     // Vérifier que le fichier existe
     if (!fs.existsSync(serverPath)) {

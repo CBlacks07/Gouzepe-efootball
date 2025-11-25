@@ -67,3 +67,12 @@ La mise à jour de l'ID joueur met à jour :
 - ✅ Gagnant barrage dans `matchday.payload.barrage.winner`
 - ✅ Même structure pour les `draft.payload`
 - ✅ Map de présence en mémoire `presence.players`
+
+---
+
+## Support
+
+**Application développée par OPS CORPORATION**
+- Email: cmaathey@gmail.com
+
+Pour toute question concernant cette migration, contactez-nous à l'adresse ci-dessus.

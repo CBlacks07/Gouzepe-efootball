@@ -9,6 +9,9 @@ contextBridge.exposeInMainWorld('electronAPI', {
   // Fonctions utiles pour l'application
   isElectron: true,
 
+  // Nettoyage du cache Electron (pour déconnexion propre)
+  clearCache: () => ipcRenderer.invoke('clear-cache'),
+
   // Événements IPC (si nécessaire plus tard)
   on: (channel, callback) => {
     // Whitelist des canaux autorisés

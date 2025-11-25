@@ -524,6 +524,16 @@ $('#logoutBtn').onclick=async ()=>{
     caches.keys().then(names=>{ for(let name of names) caches.delete(name); });
   }
 
+  // Nettoyage du cache Electron (application desktop)
+  if(window.electronAPI?.clearCache){
+    try{
+      await window.electronAPI.clearCache();
+      console.log('[Logout] Cache Electron nettoyé');
+    }catch(err){
+      console.error('[Logout] Erreur nettoyage cache Electron:', err);
+    }
+  }
+
   // Redirection avec reload forcé
   location.replace('login.html');
   location.reload(true);

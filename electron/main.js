@@ -1,4 +1,4 @@
-const { app, BrowserWindow, Menu, dialog } = require('electron');
+const { app, BrowserWindow, Menu, dialog, ipcMain, session } = require('electron');
 const path = require('path');
 const { spawn } = require('child_process');
 const fs = require('fs');
@@ -262,6 +262,30 @@ function createWindow() {
     mainWindow = null;
   });
 }
+
+// Handler IPC pour nettoyer le cache Electron lors de la déconnexion
+ipcMain.handle('clear-cache', async () => {
+  try {
+    if (mainWindow && mainWindow.webContents) {
+      const ses = mainWindow.webContents.session;
+
+      // Nettoyer le cache HTTP
+      await ses.clearCache();
+
+      // Nettoyer les données de stockage (localStorage, sessionStorage, cookies, etc.)
+      await ses.clearStorageData({
+        storages: ['cookies', 'localstorage', 'sessionstorage', 'cachestorage', 'indexdb']
+      });
+
+      console.log('[Electron] Cache nettoyé avec succès');
+      return { success: true };
+    }
+    return { success: false, error: 'No active window' };
+  } catch (error) {
+    console.error('[Electron] Erreur nettoyage cache:', error);
+    return { success: false, error: error.message };
+  }
+});
 
 // Événement: Application prête
 app.whenReady().then(async () => {

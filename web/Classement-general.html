@@ -168,7 +168,7 @@
         <a class="btn ghost" href="./Accueil.html">🏠 Accueil</a>
         <a class="btn ghost" href="./Duel.html">💪🏽 Duel</a>
         <a class="btn ghost" href="./Classement-general.html">📊 Classements</a>
-        <a class="btn ghost" href="./Panel-Membre.html">👤 Mon espace</a>
+        <a class="btn ghost memberOnly" href="./Panel-Membre.html" style="display:none">👤 Mon espace</a>
         <a class="btn ghost adminNav" href="./Admin-Joueurs.html" style="display:none">👥 Admin-Joueurs</a>
         <a class="btn ghost adminNav" href="./Admin-Utilisateurs.html" style="display:none">🛡️ Admin Utilisateurs</a>
         <button id="logoutBtn" class="btn ghost danger" type="button" title="Se déconnecter de votre compte">Déconnexion</button>
@@ -191,7 +191,7 @@
       <a class="mm-btn" href="./Accueil.html">🏠 Accueil</a>
       <a class="mm-btn" href="./Duel.html">💪🏽 Duel</a>
       <a class="mm-btn" href="./Classement-general.html">📊 Classements</a>
-      <a class="mm-btn" href="./Panel-Membre.html">👤 Mon espace</a>
+      <a class="mm-btn memberOnly" href="./Panel-Membre.html" style="display:none">👤 Mon espace</a>
       <a class="mm-btn adminOnly" id="mmAdminPlayers" href="./Admin-Joueurs.html" style="display:none">👥 Admin-Joueurs</a>
     </div>
     <div class="mm-theme"><button id="mmTheme" class="btn ghost" title="Basculer entre thème clair et sombre">☀️ / 🌙 Thème</button></div>
@@ -326,6 +326,16 @@ $('#logoutBtn')?.addEventListener('click',async ()=>{
   // Nettoyage des caches si service worker présent
   if('caches' in window){
     caches.keys().then(names=>{ for(let name of names) caches.delete(name); });
+  }
+
+  // Nettoyage du cache Electron (application desktop)
+  if(window.electronAPI?.clearCache){
+    try{
+      await window.electronAPI.clearCache();
+      console.log('[Logout] Cache Electron nettoyé');
+    }catch(err){
+      console.error('[Logout] Erreur nettoyage cache Electron:', err);
+    }
   }
 
   // Redirection avec reload forcé
@@ -990,10 +1000,11 @@ document.getElementById('seasonSelect').addEventListener('change', async ()=>{
   sheet.addEventListener('click', (e)=>{ if(e.target===sheet) close(); });
   document.addEventListener('keydown', (e)=>{ if(e.key==='Escape' && !sheet.hidden) close(); });
 
-  // Rôle admin -> affiche liens admin
+  // Rôle admin -> affiche liens admin, masque liens membres
   const isAdmin = role==='admin';
   if($('#mmAdminPlayers')) $('#mmAdminPlayers').style.display = isAdmin ? '' : 'none';
   if($('#mmAdminUsers')) $('#mmAdminUsers').style.display = isAdmin ? '' : 'none';
+  document.querySelectorAll('.memberOnly').forEach(el => el.style.display = isAdmin ? 'none' : '');
 
   // Synchronise avec les contrôles existants
   $('#mmTheme').onclick = ()=> $('#themeBtn').click();

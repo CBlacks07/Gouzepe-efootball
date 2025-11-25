@@ -504,6 +504,22 @@ html.light .bg-video{opacity:.18; filter:contrast(.95) saturate(.85)}
   $('#logoutBtn').addEventListener('click', async ()=>{
     if(!confirm('Se déconnecter ?')) return;
 
+    // 🔒 IMPORTANT: Sauvegarder le brouillon en cours avant de se déconnecter (si admin)
+    if(ROLE==='admin'){
+      const d=$('#dayPicker').value;
+      if(d){
+        try{
+          await saveDraftAPI(d, payload());
+          console.log('[Logout] Brouillon sauvegardé avant déconnexion');
+        }catch(err){
+          console.error('[Logout] Erreur sauvegarde brouillon:', err);
+          if(!confirm('Impossible de sauvegarder le brouillon. Se déconnecter quand même ?')){
+            return; // Annuler la déconnexion
+          }
+        }
+      }
+    }
+
     // Appel API logout
     try{ await fetch(API()+'/auth/logout', hd('POST')); }catch(_){}
 

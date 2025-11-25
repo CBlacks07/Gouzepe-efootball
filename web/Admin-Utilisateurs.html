@@ -304,11 +304,30 @@
   }
 
   // logout (confirm)
-  document.getElementById('logoutBtn')?.addEventListener('click',()=>{
-    if(confirm('Voulez-vous vraiment vous déconnecter ?')){
-      ['efoot.token','efoot.role','efoot.expAt'].forEach(k=>localStorage.removeItem(k));
-      location.href='login.html';
+  document.getElementById('logoutBtn')?.addEventListener('click',async ()=>{
+    if(!confirm('Voulez-vous vraiment vous déconnecter ?')) return;
+
+    // Appel API logout
+    try{ await fetch(`${API}/auth/logout`, {method:'POST',headers:{'Authorization':`Bearer ${token}`}}); }catch(_){}
+
+    // Nettoyage complet du localStorage (sauf thème)
+    const keep = new Set(['efoot.theme','efoot.emailDomain']);
+    for(let i=localStorage.length-1; i>=0; i--){
+      const k = localStorage.key(i);
+      if(!keep.has(k)) localStorage.removeItem(k);
     }
+
+    // Nettoyage sessionStorage
+    sessionStorage.clear();
+
+    // Nettoyage des caches si service worker présent
+    if('caches' in window){
+      caches.keys().then(names=>{ for(let name of names) caches.delete(name); });
+    }
+
+    // Redirection avec reload forcé
+    location.replace('login.html');
+    location.reload(true);
   });
 })();
 

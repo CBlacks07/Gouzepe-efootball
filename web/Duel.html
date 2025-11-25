@@ -255,13 +255,29 @@
       const API = () => (window.API || localStorage.getItem('efoot.api') || (location.protocol+'//'+location.hostname+':3005')).replace(/\/+$/,'');
       const token = localStorage.getItem('efoot.token') || '';
       (async () => {
+        // Appel API logout
         try{ await fetch(API()+'/auth/logout',{ method:'POST', headers:{ Authorization:'Bearer '+token }}); }catch(_){}
+
+        // Nettoyage complet du localStorage (sauf thème)
         try{
-          const keep=new Set(['efoot.theme','efoot.api']);
-          for(let i=localStorage.length-1;i>=0;i--){ const k=localStorage.key(i); if(!keep.has(k)) localStorage.removeItem(k); }
+          const keep=new Set(['efoot.theme']);
+          for(let i=localStorage.length-1;i>=0;i--){
+            const k=localStorage.key(i);
+            if(!keep.has(k)) localStorage.removeItem(k);
+          }
           sessionStorage.clear();
         }catch(_){}
+
+        // Nettoyage des caches si service worker présent
+        if('caches' in window){
+          try{
+            caches.keys().then(names=>{ for(let name of names) caches.delete(name); });
+          }catch(_){}
+        }
+
+        // Redirection avec reload forcé
         location.replace('login.html');
+        location.reload(true);
       })();
     }, true);
   })();

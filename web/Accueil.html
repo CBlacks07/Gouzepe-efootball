@@ -229,7 +229,6 @@ html.light .bg-video{opacity:.18; filter:contrast(.95) saturate(.85)}
       <div id="menu">
         <a class="btn ghost" href="./Duel.html">💪🏽 Duel</a>
         <a class="btn ghost" href="./Classement-general.html">📊 Classements</a>
-        <a class="btn ghost" href="./Tournois.html">🏆 Tournois</a>
         <a class="btn ghost" href="./Panel-Membre.html">👤 Mon espace</a>
         <a class="btn ghost adminNav" href="./Admin-Joueurs.html" style="display:none">👥 Admin-Joueurs</a>
         <a class="btn ghost adminNav" href="./Admin-Utilisateurs.html" style="display:none">🛡️ Admin Utilisateurs</a>
@@ -252,7 +251,6 @@ html.light .bg-video{opacity:.18; filter:contrast(.95) saturate(.85)}
     <div class="mm-list">
       <a class="mm-btn" href="./Duel.html">💪🏽 Duel</a>
       <a class="mm-btn" href="./Classement-general.html">📊 Classements</a>
-      <a class="mm-btn" href="./Tournois.html">🏆 Tournois</a>
       <a class="mm-btn" href="./Panel-Membre.html">👤 Mon espace</a>
       <a class="mm-btn adminOnly" id="mmAdminPlayers" href="./Admin-Joueurs.html" style="display:none">👥 Admin-Joueurs</a>
     </div>
@@ -465,7 +463,7 @@ html.light .bg-video{opacity:.18; filter:contrast(.95) saturate(.85)}
 
   <script>
   /* ============ BASE / RÔLES / NAV ============ */
-  const API = () => (window.API || localStorage.getItem('efoot.api') || (location.protocol+'//'+location.hostname+':3000')).replace(/\/+$/,'');
+  const API = () => (window.API || localStorage.getItem('efoot.api') || (location.protocol+'//'+location.hostname+':3005')).replace(/\/+$/,'');
   let TOKEN = localStorage.getItem('efoot.token') || '';
   let ROLE = (localStorage.getItem('efoot.role')||'member').toLowerCase();
   const hd = (m='GET',tok=TOKEN)=>({method:m,headers:{'Content-Type':'application/json','Authorization':'Bearer '+tok}});
@@ -505,11 +503,44 @@ html.light .bg-video{opacity:.18; filter:contrast(.95) saturate(.85)}
   // déconnexion confirmée
   $('#logoutBtn').addEventListener('click', async ()=>{
     if(!confirm('Se déconnecter ?')) return;
+
+    // 🔒 IMPORTANT: Sauvegarder le brouillon en cours avant de se déconnecter (si admin)
+    if(ROLE==='admin'){
+      const d=$('#dayPicker').value;
+      if(d){
+        try{
+          await saveDraftAPI(d, payload());
+          console.log('[Logout] Brouillon sauvegardé avant déconnexion');
+        }catch(err){
+          console.error('[Logout] Erreur sauvegarde brouillon:', err);
+          if(!confirm('Impossible de sauvegarder le brouillon. Se déconnecter quand même ?')){
+            return; // Annuler la déconnexion
+          }
+        }
+      }
+    }
+
+    // Appel API logout
     try{ await fetch(API()+'/auth/logout', hd('POST')); }catch(_){}
-    const keep=new Set(['efoot.theme','efoot.api']);
-    for(let i=localStorage.length-1;i>=0;i--){ const k=localStorage.key(i); if(!keep.has(k)) localStorage.removeItem(k); }
+
+    // Nettoyage complet du localStorage (sauf thème)
+    const keep=new Set(['efoot.theme']);
+    for(let i=localStorage.length-1;i>=0;i--){
+      const k=localStorage.key(i);
+      if(!keep.has(k)) localStorage.removeItem(k);
+    }
+
+    // Nettoyage sessionStorage
     sessionStorage.clear();
-    location.href = './login.html';
+
+    // Nettoyage des caches si service worker présent
+    if('caches' in window){
+      caches.keys().then(names=>{ for(let name of names) caches.delete(name); });
+    }
+
+    // Redirection avec reload forcé
+    location.replace('./login.html');
+    location.reload(true);
   });
 
   async function loadSession(){
@@ -1254,8 +1285,11 @@ async function loadNextFixtures(){
     const conflicts=validateCross(); if(conflicts.length){ alert('Conflits D1/D2: '+conflicts.join(', ')); return; }
 
     const st1=standings('d1'), st2=standings('d2');
-    $('#c_d1').textContent = st1[0]?.id || '—';
-    $('#c_d2').textContent = st2[0]?.id || '—';
+    // ✅ Exclure les invités du calcul du champion
+    const st1Members = st1.filter(r => r.role !== 'INVITE');
+    const st2Members = st2.filter(r => r.role !== 'INVITE');
+    $('#c_d1').textContent = st1Members[0]?.id || '—';
+    $('#c_d2').textContent = st2Members[0]?.id || '—';
     $('#c_bar').textContent = S.barr.label || '—';
     $('#c_date').textContent = 'Journée : '+d;
     $('#confirm').showModal();

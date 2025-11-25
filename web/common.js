@@ -5,9 +5,10 @@
   const $ = (s) => document.querySelector(s);
   const $$ = (s) => Array.from(document.querySelectorAll(s));
 
-  const DEF_API = () =>
-    (location.protocol.startsWith('http') ? location.protocol : 'http:') +
-    '//' + location.hostname + ':3000';
+  const DEF_API = () => {
+    const host = (location.hostname && location.hostname !== '') ? location.hostname : 'localhost';
+    return 'http://' + host + ':3005';
+  };
 
   const getAPI = () => (localStorage.getItem('efoot.api') || DEF_API()).replace(/\/+$/, '');
   const getTok = () => localStorage.getItem('efoot.token') || '';

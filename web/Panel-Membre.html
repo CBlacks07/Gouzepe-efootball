@@ -170,9 +170,9 @@
     <button id="menuToggle" class="btn ghost" aria-controls="menu" aria-expanded="false" title="Ouvrir le menu de navigation">☰ Menu</button>
     <nav class="nav" aria-label="Navigation principale">
       <div id="menu">
+        <a class="btn ghost" href="./Accueil.html">🏠 Accueil</a>
         <a class="btn ghost" href="./Duel.html">💪🏽 Duel</a>
         <a class="btn ghost" href="./Classement-general.html">📊 Classements</a>
-        <a class="btn ghost" href="./Tournois.html">🏆 Tournois</a>
         <a class="btn ghost" href="./Panel-Membre.html">👤 Mon espace</a>
         <a class="btn ghost adminNav" href="./Admin-Joueurs.html" style="display:none">👥 Admin-Joueurs</a>
         <a class="btn ghost adminNav" href="./Admin-Utilisateurs.html" style="display:none">🛡️ Admin Utilisateurs</a>
@@ -193,9 +193,9 @@
       <button id="mmClose" class="btn ghost" style="position:absolute;right:12px;top:12px;padding:6px 10px;font-size:18px;line-height:1" aria-label="Fermer" title="Fermer le menu">✕</button>
     </div>
     <div class="mm-list">
+      <a class="mm-btn" href="./Accueil.html">🏠 Accueil</a>
       <a class="mm-btn" href="./Duel.html">💪🏽 Duel</a>
       <a class="mm-btn" href="./Classement-general.html">📊 Classements</a>
-      <a class="mm-btn" href="./Tournois.html">🏆 Tournois</a>
       <a class="mm-btn" href="./Panel-Membre.html">👤 Mon espace</a>
       <a class="mm-btn adminOnly" id="mmAdminPlayers" href="./Admin-Joueurs.html" style="display:none">👥 Admin-Joueurs</a>
     </div>
@@ -458,7 +458,7 @@
 /* ===== Utilitaires ===== */
 const $  = (s)=>document.querySelector(s);
 const $$ = (s)=>document.querySelectorAll(s);
-const DEF_API = ()=> (location.protocol.startsWith('http') ? location.protocol : 'http:') + '//' + location.hostname + ':3000';
+const DEF_API = ()=> (location.protocol.startsWith('http') ? location.protocol : 'http:') + '//' + location.hostname + ':3005';
 const API = (localStorage.getItem('efoot.api')||DEF_API()).replace(/\/+$/,'');
 const TOKEN = localStorage.getItem('efoot.token');
 
@@ -503,11 +503,30 @@ async function safeFetch(url,opt={},ms=12000){
 })();
 
 /* ===== Déconnexion (avec confirmation) ===== */
-$('#logoutBtn').onclick=()=>{
-  if(confirm('Voulez-vous vraiment vous déconnecter ?')){
-    ['efoot.token','efoot.role','efoot.expAt'].forEach(k=>localStorage.removeItem(k));
-    location.href='login.html';
+$('#logoutBtn').onclick=async ()=>{
+  if(!confirm('Voulez-vous vraiment vous déconnecter ?')) return;
+
+  // Appel API logout
+  try{ await fetch(`${API}/auth/logout`, {method:'POST',headers:{'Authorization':`Bearer ${TOKEN}`}}); }catch(_){}
+
+  // Nettoyage complet du localStorage (sauf thème)
+  const keep = new Set(['efoot.theme']);
+  for(let i=localStorage.length-1; i>=0; i--){
+    const k = localStorage.key(i);
+    if(!keep.has(k)) localStorage.removeItem(k);
   }
+
+  // Nettoyage sessionStorage
+  sessionStorage.clear();
+
+  // Nettoyage des caches si service worker présent
+  if('caches' in window){
+    caches.keys().then(names=>{ for(let name of names) caches.delete(name); });
+  }
+
+  // Redirection avec reload forcé
+  location.replace('login.html');
+  location.reload(true);
 };
 
 /* ===== Identité + KPIs + confrontations ===== */
@@ -938,13 +957,8 @@ bindToggles();
   try{
     const isPrivateNet=(h)=>/^(localhost|127\.0\.0\.1|10\.\d+\.\d+\.\d+|192\.168\.\d+\.\d+|172\.(1[6-9]|2\d|3[01])\.\d+\.\d+)$/.test(h||'');
     const DEF_API=()=>{
-      const host=location.hostname||'';
-      if(isPrivateNet(host)) return (location.protocol.startsWith('http')?location.protocol:'http:')+'//'+host+':3000';
-      if(host.endsWith('.onrender.com')){
-        if(host.includes('-app.')) return 'https://'+host.replace('-app.','-api.');
-        if(host.includes('app.'))  return 'https://'+host.replace('app.','api.');
-      }
-      return 'https://gouzepe-api.onrender.com';
+      const host=(location.hostname && location.hostname!=='')?location.hostname:'localhost';
+      return 'http://'+host+':3005';
     };
     if(!window.API){ window.API = (localStorage.getItem('efoot.api')||DEF_API()).replace(/\/+$/,''); }
     // Auth guard

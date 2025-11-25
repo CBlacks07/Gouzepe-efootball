@@ -10,8 +10,28 @@ if (require('electron-squirrel-startup')) {
 
 let mainWindow;
 let apiProcess;
-const API_PORT = process.env.API_PORT || 3000;
+let serverNetworkInfo = null;
+
+const API_PORT = process.env.API_PORT || 3005;
+const API_HOST = process.env.API_HOST || '0.0.0.0'; // 0.0.0.0 pour réseau, localhost pour local uniquement
 const API_URL = `http://localhost:${API_PORT}`;
+
+// Fonction pour obtenir les IPs locales
+function getLocalIPs() {
+  const os = require('os');
+  const networkInterfaces = os.networkInterfaces();
+  const ips = [];
+
+  Object.keys(networkInterfaces).forEach(interfaceName => {
+    networkInterfaces[interfaceName].forEach(iface => {
+      if (iface.family === 'IPv4' && !iface.internal) {
+        ips.push(iface.address);
+      }
+    });
+  });
+
+  return ips;
+}
 
 // Fonction pour démarrer le serveur API
 function startApiServer() {
@@ -19,12 +39,18 @@ function startApiServer() {
     console.log('Démarrage du serveur API...');
 
     // Déterminer le chemin du serveur selon l'environnement
-    const isDev = process.argv.includes('--dev');
+    // En mode développement, le dossier api est dans le parent
+    // En mode production (empaqueté), il est dans resources
+    const isDev = !app.isPackaged;
     const apiPath = isDev
       ? path.join(__dirname, '../api')
       : path.join(process.resourcesPath, 'api');
 
     const serverPath = path.join(apiPath, 'server.js');
+
+    console.log('Mode:', isDev ? 'développement' : 'production');
+    console.log('Chemin API:', apiPath);
+    console.log('Chemin serveur:', serverPath);
 
     // Vérifier que le fichier existe
     if (!fs.existsSync(serverPath)) {
@@ -32,17 +58,32 @@ function startApiServer() {
       return;
     }
 
-    // Lancer le processus Node.js
+    // Lancer le processus Node.js avec HOST et PORT configurés
     apiProcess = spawn('node', [serverPath], {
       cwd: apiPath,
-      env: { ...process.env, NODE_ENV: isDev ? 'development' : 'production' },
+      env: {
+        ...process.env,
+        NODE_ENV: isDev ? 'development' : 'production',
+        PORT: API_PORT.toString(),
+        HOST: API_HOST
+      },
       stdio: ['ignore', 'pipe', 'pipe']
     });
 
     apiProcess.stdout.on('data', (data) => {
-      console.log(`[API] ${data.toString().trim()}`);
+      const output = data.toString().trim();
+      console.log(`[API] ${output}`);
+
       // Vérifier si le serveur a démarré
-      if (data.toString().includes('démarré') || data.toString().includes('listening')) {
+      if (output.includes('API OK') || output.includes('démarré') || output.includes('listening')) {
+        // Capturer les informations réseau
+        if (API_HOST === '0.0.0.0') {
+          const localIPs = getLocalIPs();
+          serverNetworkInfo = {
+            localhost: `http://localhost:${API_PORT}`,
+            networkIPs: localIPs.map(ip => `http://${ip}:${API_PORT}`)
+          };
+        }
         resolve();
       }
     });
@@ -128,6 +169,46 @@ function createWindow() {
           label: 'Outils de développement',
           accelerator: 'CmdOrCtrl+Shift+I',
           click: () => mainWindow.webContents.openDevTools()
+        }
+      ]
+    },
+    {
+      label: 'Réseau',
+      submenu: [
+        {
+          label: 'Afficher les adresses réseau',
+          click: () => {
+            if (serverNetworkInfo && serverNetworkInfo.networkIPs.length > 0) {
+              const urls = [
+                `Local : ${serverNetworkInfo.localhost}`,
+                '',
+                'Réseau local (autres appareils) :',
+                ...serverNetworkInfo.networkIPs.map(ip => `  • ${ip}`)
+              ].join('\n');
+
+              dialog.showMessageBox(mainWindow, {
+                type: 'info',
+                title: 'Adresses d\'accès au serveur',
+                message: 'Serveur accessible sur le réseau',
+                detail: `${urls}\n\nLes autres appareils sur le même réseau WiFi peuvent se connecter avec ces URLs.`,
+                buttons: ['Copier', 'Fermer'],
+                defaultId: 1
+              }).then(result => {
+                if (result.response === 0) {
+                  // Copier dans le presse-papier
+                  require('electron').clipboard.writeText(serverNetworkInfo.networkIPs[0]);
+                }
+              });
+            } else {
+              dialog.showMessageBox(mainWindow, {
+                type: 'info',
+                title: 'Mode local uniquement',
+                message: 'Serveur en mode local',
+                detail: 'Le serveur est configuré en mode local uniquement.\n\nPour activer l\'accès réseau, configurez la variable d\'environnement API_HOST=0.0.0.0',
+                buttons: ['OK']
+              });
+            }
+          }
         }
       ]
     },

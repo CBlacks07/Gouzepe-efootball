@@ -1,0 +1,105 @@
+================================================================================
+                    GOUZEPE eFOOT - LANCEMENT RAPIDE
+================================================================================
+
+ETAPE 1 : DIAGNOSTIC
+--------------------
+Double-cliquez sur :  diagnostic.bat
+
+Ce script va tester la connexion à PostgreSQL et afficher les problèmes.
+
+
+ETAPE 2 : CREER LA BASE DE DONNEES (si nécessaire)
+---------------------------------------------------
+Double-cliquez sur :  creer-base.bat
+
+Entrez le mot de passe PostgreSQL quand demandé.
+
+
+ETAPE 3 : VERIFIER LA CONFIGURATION
+------------------------------------
+Ouvrez le fichier :  api\.env
+
+Vérifiez que le mot de passe correspond à votre installation PostgreSQL :
+  PGPASSWORD=Admin123
+
+Si différent, changez-le.
+
+
+ETAPE 4 : DEMARRER LE SERVEUR
+------------------------------
+Méthode 1 (avec Electron) :
+  npm run dev
+
+Méthode 2 (serveur seul) :
+  Double-cliquez sur :  demarrer-serveur.bat
+
+
+ETAPE 5 : ACCEDER A L'APPLICATION
+----------------------------------
+Ouvrez votre navigateur :
+  http://localhost:3005/web/login.html
+
+
+================================================================================
+PROBLEMES COURANTS
+================================================================================
+
+"ECONNREFUSED" ou "connection refused"
+--------------------------------------
+→ PostgreSQL n'est pas démarré
+
+SOLUTION :
+1. Ouvrez les Services Windows (Win+R, tapez: services.msc)
+2. Cherchez "postgresql" dans la liste
+3. Clic droit → Démarrer
+
+
+"password authentication failed"
+---------------------------------
+→ Mot de passe incorrect
+
+SOLUTION :
+1. Ouvrez api\.env
+2. Changez PGPASSWORD= avec votre vrai mot de passe PostgreSQL
+
+
+"database EFOOTBALL does not exist"
+------------------------------------
+→ La base de données n'existe pas
+
+SOLUTION :
+1. Double-cliquez sur :  creer-base.bat
+2. Ou créez-la manuellement dans pgAdmin
+
+
+"Port 3005 already in use"
+--------------------------
+→ Le port est déjà utilisé
+
+SOLUTION :
+1. Fermez l'autre application qui utilise le port
+2. Ou changez le port dans api\.env :  PORT=3006
+
+
+================================================================================
+IDENTIFIANTS PAR DEFAUT
+================================================================================
+
+Après avoir créé un admin avec :  cd api && node create_admin.js
+
+Email :     admin@gz.local
+Mot de passe :  admin123
+
+
+================================================================================
+AIDE COMPLETE
+================================================================================
+
+Consultez :
+- DEMARRAGE-RAPIDE.md (documentation complète)
+- INSTALLATION.md (guide d'installation Electron)
+- README-DESKTOP.md (fonctionnalités desktop)
+
+
+================================================================================

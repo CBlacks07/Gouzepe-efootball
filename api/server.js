@@ -1,4 +1,4 @@
-// server.js — GOUZEPE eFOOT API (Express + PostgreSQL + Socket.IO) — Render-ready, NO HANDOFF
+// server.js — GOUZEPE eFOOT API (Express + PostgreSQL + Socket.IO)
 require('dotenv').config();
 
 const express = require('express');
@@ -15,23 +15,18 @@ const dayjs = require('dayjs');
 const crypto = require('crypto');
 
 /* ====== Config ====== */
-const PORT = parseInt(process.env.PORT || '10000', 10);
+const PORT = parseInt(process.env.PORT || '3005', 10);
+const HOST = process.env.HOST || '0.0.0.0'; // 0.0.0.0 pour accepter les connexions réseau, localhost pour local uniquement
 const JWT_SECRET = process.env.JWT_SECRET || '1XS1r4QJNp6AtkjORvKUU01RZRfzbGV+echJsio9gq8lAOc2NW7sSYsQuncE6+o9';
 const EMAIL_DOMAIN = process.env.EMAIL_DOMAIN || 'gz.local';
 
-/* ====== Database (Render-friendly) ====== */
+/* ====== Database ====== */
 const localHosts = new Set(['localhost','127.0.0.1']);
 const parsedDbUrl = (()=>{ try { return process.env.DATABASE_URL ? new URL(process.env.DATABASE_URL) : null; } catch(_) { return null; } })();
 const inferLocal = parsedDbUrl ? localHosts.has(parsedDbUrl.hostname) : localHosts.has(String(process.env.PGHOST||'').toLowerCase());
 
 const forceSSL = process.env.PGSSL_FORCE === 'true';
-const useSSL =
-  forceSSL ? true :
-  (inferLocal ? false : (
-    process.env.PGSSL === 'true' ||
-    process.env.RENDER === 'true' ||
-    process.env.NODE_ENV === 'production'
-  ));
+const useSSL = forceSSL ? true : (inferLocal ? false : process.env.PGSSL === 'true');
 
 const pgOpts = process.env.DATABASE_URL
   ? { connectionString: process.env.DATABASE_URL, ssl: useSSL ? { rejectUnauthorized:false } : false }
@@ -50,16 +45,46 @@ const pool = new Pool(pgOpts);
 const app = express();
 const server = http.createServer(app);
 
-// ✅ FIX: Retirer le wildcard '*' pour plus de sécurité
+// Configuration CORS
 const allowedOrigins = (process.env.CORS_ORIGIN ||
-  'https://gouzepe-api.onrender.com,https://gouzepe-efootball.onrender.com,http://localhost:3000,http://localhost:5173'
+  'http://localhost:3000,http://localhost:5173'
 ).split(',').map(s=>s.trim()).filter(Boolean);
 
 // ✅ FIX: Configuration CORS unique (suppression de la duplication)
 const corsOptions = {
   origin: (origin, cb) => {
-    if (!origin || allowedOrigins.includes('*')) return cb(null, true);
-    return cb(null, allowedOrigins.includes(origin));
+    // Pas d'origin = requête depuis le même serveur ou Electron
+    if (!origin) return cb(null, true);
+
+    // Wildcard autorisé
+    if (allowedOrigins.includes('*')) return cb(null, true);
+
+    // Origin dans la liste autorisée
+    if (allowedOrigins.includes(origin)) return cb(null, true);
+
+    // Autoriser les connexions depuis le réseau local (192.168.x.x, 10.x.x.x, 172.16-31.x.x)
+    try {
+      const originUrl = new URL(origin);
+      const hostname = originUrl.hostname;
+
+      // Localhost
+      if (hostname === 'localhost' || hostname === '127.0.0.1') {
+        return cb(null, true);
+      }
+
+      // Réseau local
+      if (
+        /^192\.168\.\d+\.\d+$/.test(hostname) ||
+        /^10\.\d+\.\d+\.\d+$/.test(hostname) ||
+        /^172\.(1[6-9]|2[0-9]|3[0-1])\.\d+\.\d+$/.test(hostname)
+      ) {
+        return cb(null, true);
+      }
+    } catch (e) {
+      // Invalid origin URL
+    }
+
+    return cb(null, false);
   },
   credentials: false,
   methods: ['GET','POST','PUT','DELETE','OPTIONS'],
@@ -71,8 +96,38 @@ const corsOptions = {
 const io = require('socket.io')(server, {
   cors: {
     origin: (origin, cb) => {
-      if (!origin || allowedOrigins.includes('*')) return cb(null, true);
-      cb(null, allowedOrigins.includes(origin));
+      // Pas d'origin = requête depuis le même serveur ou Electron
+      if (!origin) return cb(null, true);
+
+      // Wildcard autorisé
+      if (allowedOrigins.includes('*')) return cb(null, true);
+
+      // Origin dans la liste autorisée
+      if (allowedOrigins.includes(origin)) return cb(null, true);
+
+      // Autoriser les connexions depuis le réseau local
+      try {
+        const originUrl = new URL(origin);
+        const hostname = originUrl.hostname;
+
+        // Localhost
+        if (hostname === 'localhost' || hostname === '127.0.0.1') {
+          return cb(null, true);
+        }
+
+        // Réseau local
+        if (
+          /^192\.168\.\d+\.\d+$/.test(hostname) ||
+          /^10\.\d+\.\d+\.\d+$/.test(hostname) ||
+          /^172\.(1[6-9]|2[0-9]|3[0-1])\.\d+\.\d+$/.test(hostname)
+        ) {
+          return cb(null, true);
+        }
+      } catch (e) {
+        // Invalid origin URL
+      }
+
+      cb(null, false);
     },
     methods: ['GET','POST','PUT','DELETE','OPTIONS']
   }
@@ -90,6 +145,9 @@ const UP = path.join(__dirname, 'uploads');
 const UP_PLAYERS = path.join(UP, 'players');
 fs.mkdirSync(UP_PLAYERS, { recursive:true });
 app.use('/uploads', express.static(UP));
+
+/* ====== Static files (web) ====== */
+app.use('/web', express.static(path.join(__dirname, '../web')));
 
 const upload = multer({
   storage: multer.diskStorage({
@@ -1088,18 +1146,36 @@ io.on('connection', (socket)=>{
   });
 });
 
-/* ====== TOURNAMENTS MODULE (NEW) ====== */
-const tournamentModule = require('./tournaments')(pool, io, auth, adminOnly);
-
-/* ====== Mount tournament routes ====== */
-app.use('/tournaments', tournamentModule.router);
-
 /* ====== Start ====== */
 (async ()=>{
   try{
     await ensureSchema();
-    await tournamentModule.ensureTournamentSchema();
-    server.listen(PORT, ()=> console.log('API OK on :'+PORT));
+    server.listen(PORT, HOST, ()=> {
+      console.log(`API OK on ${HOST}:${PORT}`);
+
+      // Afficher l'IP locale pour les connexions réseau
+      if (HOST === '0.0.0.0') {
+        const os = require('os');
+        const networkInterfaces = os.networkInterfaces();
+        const localIPs = [];
+
+        Object.keys(networkInterfaces).forEach(interfaceName => {
+          networkInterfaces[interfaceName].forEach(iface => {
+            if (iface.family === 'IPv4' && !iface.internal) {
+              localIPs.push(iface.address);
+            }
+          });
+        });
+
+        if (localIPs.length > 0) {
+          console.log('\n📡 Serveur accessible depuis le réseau local :');
+          localIPs.forEach(ip => {
+            console.log(`   http://${ip}:${PORT}`);
+          });
+          console.log('\n💡 Les autres appareils peuvent se connecter avec ces URLs\n');
+        }
+      }
+    });
   }catch(e){
     console.error('Schema init error', e);
     process.exit(1);

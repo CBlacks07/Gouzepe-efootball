@@ -252,16 +252,32 @@
       e.preventDefault(); e.stopPropagation(); e.stopImmediatePropagation();
       const ok = confirm('Voulez-vous vraiment vous déconnecter ?');
       if(!ok) return;
-      const API = () => (window.API || localStorage.getItem('efoot.api') || (location.protocol+'//'+location.hostname+':3000')).replace(/\/+$/,'');
+      const API = () => (window.API || localStorage.getItem('efoot.api') || (location.protocol+'//'+location.hostname+':3005')).replace(/\/+$/,'');
       const token = localStorage.getItem('efoot.token') || '';
       (async () => {
+        // Appel API logout
         try{ await fetch(API()+'/auth/logout',{ method:'POST', headers:{ Authorization:'Bearer '+token }}); }catch(_){}
+
+        // Nettoyage complet du localStorage (sauf thème)
         try{
-          const keep=new Set(['efoot.theme','efoot.api']);
-          for(let i=localStorage.length-1;i>=0;i--){ const k=localStorage.key(i); if(!keep.has(k)) localStorage.removeItem(k); }
+          const keep=new Set(['efoot.theme']);
+          for(let i=localStorage.length-1;i>=0;i--){
+            const k=localStorage.key(i);
+            if(!keep.has(k)) localStorage.removeItem(k);
+          }
           sessionStorage.clear();
         }catch(_){}
+
+        // Nettoyage des caches si service worker présent
+        if('caches' in window){
+          try{
+            caches.keys().then(names=>{ for(let name of names) caches.delete(name); });
+          }catch(_){}
+        }
+
+        // Redirection avec reload forcé
         location.replace('login.html');
+        location.reload(true);
       })();
     }, true);
   })();
@@ -360,9 +376,9 @@
     <button id="menuToggle" class="btn ghost" aria-controls="menu" aria-expanded="false" title="Ouvrir le menu de navigation">☰ Menu</button>
     <nav class="nav" aria-label="Navigation principale">
       <div id="menu">
+        <a class="btn ghost" href="./Accueil.html">🏠 Accueil</a>
         <a class="btn ghost" href="./Duel.html">💪🏽 Duel</a>
         <a class="btn ghost" href="./Classement-general.html">📊 Classements</a>
-        <a class="btn ghost" href="./Tournois.html">🏆 Tournois</a>
         <a class="btn ghost" href="./Panel-Membre.html">👤 Mon espace</a>
         <a class="btn ghost adminNav" href="./Admin-Joueurs.html" style="display:none">👥 Admin-Joueurs</a>
         <a class="btn ghost adminNav" href="./Admin-Utilisateurs.html" style="display:none">🛡️ Admin Utilisateurs</a>
@@ -383,9 +399,9 @@
       <button id="mmClose" class="btn ghost" style="position:absolute;right:12px;top:12px;padding:6px 10px;font-size:18px;line-height:1" aria-label="Fermer" title="Fermer le menu">✕</button>
     </div>
     <div class="mm-list">
+      <a class="mm-btn" href="./Accueil.html">🏠 Accueil</a>
       <a class="mm-btn" href="./Duel.html">💪🏽 Duel</a>
       <a class="mm-btn" href="./Classement-general.html">📊 Classements</a>
-      <a class="mm-btn" href="./Tournois.html">🏆 Tournois</a>
       <a class="mm-btn" href="./Panel-Membre.html">👤 Mon espace</a>
       <a class="mm-btn adminOnly" id="mmAdminPlayers" href="./Admin-Joueurs.html" style="display:none">👥 Admin-Joueurs</a>
     </div>
@@ -492,7 +508,7 @@
   </main>
 
   <script>
-  const API = () => (window.API || localStorage.getItem('efoot.api') || (location.protocol+'//'+location.hostname+':3000')).replace(/\/+$/,'');
+  const API = () => (window.API || localStorage.getItem('efoot.api') || (location.protocol+'//'+location.hostname+':3005')).replace(/\/+$/,'');
   const TOK = localStorage.getItem('efoot.token')||'';
   let MY_ROLE = (localStorage.getItem('efoot.role')||'member').toLowerCase();
   const hd = (m='GET')=>({method:m,headers:{'Content-Type':'application/json',Authorization:'Bearer '+TOK}});
